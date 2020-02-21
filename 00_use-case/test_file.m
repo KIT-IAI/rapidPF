@@ -7,9 +7,9 @@ NAME_FOR_CONNECTIONS_GLOBAL_FIELD = 'connections_global';
 NAME_FOR_AUX_FIELD = 'connections_with_aux_nodes';
 NAME_FOR_SPLIT_CASE_FILE = 'split_case_files';
 NAME_FOR_AUX_BUSES_FIELD = 'copy_buses_global';
-addpath(genpath('../case-file-generator/'));
-addpath(genpath('../case-file-splitter/'));
-addpath(genpath('../case-file-parser/'));
+addpath(genpath('../01_generator/'));
+addpath(genpath('../02_splitter/'));
+addpath(genpath('../03_parser/'));
 
 names.regions.global = NAME_FOR_REGION_FIELD;
 names.regions.global_with_copies = NAME_FOR_AUX_FIELD;

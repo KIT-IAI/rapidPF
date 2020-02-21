@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Tillmann Mühlpfordt" />
+  <title>Morenet documentation</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" type="text/javascript"></script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Morenet documentation</h1>
+<p class="author">Tillmann Mühlpfordt</p>
+</header>
+<h1 id="local-power-flow-problem">Local power flow problem</h1>
+<p>We compose the set of buses of each region <span class="math inline">\(i\)</span> into a set of <em>core nodes</em>, and a set of <em>copy nodes</em>. The core nodes are the original nodes that make up the power system. The copy nodes are the nodes that connect the power system to the neighboring power systems. Hence, the copy nodes <em>do not belong to the power system</em> but to its neighbors. The sole purpose of the copy nodes is to store the complex voltage information at the neighboring buses such that power flow equations can be constructed.</p>
+<p>The state of the core nodes contains the voltage angles, the voltage magnitudes, the net active power, and the net reactive power of all core nodes <span class="math display">\[\begin{aligned}
+    \label{eq:state-core}
+    x_i = \begin{bmatrix}
+        \theta_i^\text{core} \\
+        v_i^\text{core} \\
+        p_i^\text{core} \\
+        q_i^\text{core} \\
+    \end{bmatrix}
+    \in \mathbb{R}^{4 n^\text{core}_i}.\end{aligned}\]</span></p>
+<p>The state of the copy nodes contains the voltage angles and the voltage magnitudes of all copy nodes <span class="math display">\[\begin{aligned}
+    \label{eq:state-copy}
+    z_i = \begin{bmatrix}
+        \theta_i^\text{copy} \\
+        v_i^\text{copy}
+    \end{bmatrix}
+    \in \mathbb{R}^{2 n^\text{copy}_i}.\end{aligned}\]</span> Hence, from <a href="#eq:state-core" data-reference-type="eqref" data-reference="eq:state-core">[eq:state-core]</a> and <a href="#eq:state-copy" data-reference-type="eqref" data-reference="eq:state-copy">[eq:state-copy]</a> we see: each region <span class="math inline">\(i\)</span> is described by a total of <span class="math inline">\(4 n^\text{core}_i + 2 n^\text{copy}_i\)</span> real numbers.</p>
+<h2 id="power-flow-equations">Power flow equations</h2>
+<p>In region <span class="math inline">\(i\)</span> we formulate a total of <span class="math inline">\(2 n^\text{core}_i\)</span> power flow equations <span class="math inline">\(g^{\text{pf}}_i \colon \mathbb{R}^{4 n^\text{core}_i} \times \mathbb{R}^{2 n^\text{copy}_i} \rightarrow \mathbb{R}^{2 n^\text{core}_i}\)</span> for all core nodes <span class="math display">\[\begin{aligned}
+    g^{\text{pf}}_i( x_i, z_i) = 0.\end{aligned}\]</span></p>
+<h2 id="bus-specifications">Bus specifications</h2>
+<p>In region <span class="math inline">\(i\)</span> we formulate a total of <span class="math inline">\(2 n^\text{core}_i\)</span> bus specifications <span class="math inline">\(g^{\text{bus}}_i \colon \mathbb{R}^{4 n^\text{core}_i} \rightarrow \mathbb{R}^{2 n^\text{core}_i}\)</span> for all core nodes <span class="math display">\[\begin{aligned}
+    g^{\text{bus}}_i( x_i) = 0.\end{aligned}\]</span></p>
+<h2 id="degrees-of-freedom">Degrees of freedom</h2>
+<p>Subtracting the number of equations from the number of decision variables gives us a total of <span class="math display">\[\begin{aligned}
+    \underbrace{4 n^\text{core}_i + 2 n^\text{copy}_i}_{\text{Decision variables}} - \underbrace{2 n^\text{core}_i}_{\text{Power flow equations}} - \underbrace{2 n^\text{core}_i}_{\text{Bus specifications}} = \underbrace{2 n^\text{copy}_i}_{\text{Degrees of freedom}}\end{aligned}\]</span> degrees of freedom for each region <span class="math inline">\(i\)</span>. These degrees of freedom must be fixed globally by the consensus constraints.</p>
+<div id="tab:symbols-and-meanings">
+<table>
+<caption>Symbols and their meanings.<span id="tab:symbols-and-meanings" label="tab:symbols-and-meanings">[tab:symbols-and-meanings]</span></caption>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Symbol</th>
+<th style="text-align: left;">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(n^{\text{reg}}\)</span></td>
+<td style="text-align: left;">Number of regions</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(n^{\text{conn}}\)</span></td>
+<td style="text-align: left;">Number of connecting lines between regions</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(n^\text{core}_{i}\)</span></td>
+<td style="text-align: left;">Number of core nodes in region <span class="math inline">\(i\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(n^\text{copy}_{i}\)</span></td>
+<td style="text-align: left;">Number of copy nodes in region <span class="math inline">\(i\)</span></td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><span class="math inline">\(x_{i}\)</span></td>
+<td style="text-align: left;">State of core nodes in region <span class="math inline">\(i\)</span></td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><span class="math inline">\(z_{i}\)</span></td>
+<td style="text-align: left;">State of copy nodes in region <span class="math inline">\(i\)</span></td>
+</tr>
+</tbody>
+</table>
+</div>
+<h1 id="decentralized-power-flow-problem">Decentralized power flow problem</h1>
+<p><span class="math display">\[\begin{aligned}
+        g^{\text{pf}}_i( x_i, z_i ) &amp;= 0 \\
+        g^{\text{bus}}_i ( x_i ) &amp;= 0 \\
+        \sum_{i = 1}^{n^{\text{reg}}} A_i \begin{bmatrix}
+            x_i \\
+            z_i
+        \end{bmatrix}
+        &amp;= 0,
+    \end{aligned}\]</span></p>
+<p>where the consensus matrices <span class="math inline">\(A_i \in \mathbb{R}^{4 n^{\text{conn}}\times (4 n^\text{core}_i + 2 n^\text{copy}_i)}\)</span> enforce equality of the voltage angle and the voltage magnitude at the copy buses and their respective original buses.</p>
+</body>
+</html>
