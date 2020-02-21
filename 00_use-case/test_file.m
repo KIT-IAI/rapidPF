@@ -66,6 +66,14 @@ savecase('mpc_merge_split.m', mpc_split);
 problem = generate_distributed_problem(mpc_split, names);
 [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
 [sol, xsol, xsol_stacked] = solve_distributed_problem_centralized(mpc_split, problem, names);
+
+opts = struct( ...
+        'rho0',1.5e1,'rhoUpdate',1.1,'rhoMax',1e8,'mu0',1e2,'muUpdate',2,...
+        'muMax',2*1e6,'eps',0,'maxiter',30,'actMargin',-1e-6,'hessian','standard',...%-1e-6
+        'solveQP','MA57','reg','true','locSol','ipopt','innerIter',2400,'innerAlg', ...
+        'full','Hess','standard','plot',true,'slpGlob', true,'trGamma', 1e6, ...
+        'Sig','const','term_eps', 0);
+
      
 %% generate centralized problem
 problem_centralized = generate_centralized_power_flow(mpc_split, names);

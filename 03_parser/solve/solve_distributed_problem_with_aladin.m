@@ -5,7 +5,7 @@ function [xoptAL, loggAL] = solve_distributed_problem_with_aladin(mpc, dOPF, opt
     [ffifun, hhifun, ggifun] = deal(cell(NsubSys, 1));
     
     for i=1:NsubSys
-        [ffifun{i},hhifun{i},ggifun{i}] = deal( matlabFunction(dOPF.ffi{i},'Vars',{dOPF.xx{i}}), @(x)[], matlabFunction(dOPF.ggi{i},'Vars',{dOPF.xx{i}}));
+        [ffifun{i},hhifun{i},ggifun{i}] = deal( @(x)0*sum(x), @(x)[], matlabFunction(dOPF.ggi{i},'Vars',{dOPF.xx{i}}));
     end    
 
     A       = [dOPF.AA{:}];
