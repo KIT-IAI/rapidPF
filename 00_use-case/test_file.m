@@ -63,7 +63,9 @@ mpc_split = split_and_makeYbus(mpc_split, names);
 savecase('mpc_merge_split.m', mpc_split);
 
 %% generate problem formulation for aladin
+tic
 problem = generate_distributed_problem(mpc_split, names);
+
 [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
 % [sol, xsol, xsol_stacked] = solve_distributed_problem_centralized(mpc_split, problem, names);
 % 
@@ -77,9 +79,15 @@ opts = struct( ...
         'Sig','const','term_eps', 0, 'parfor', false);
 
 [xsol_aladin, xsol_stack_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names, opts);
-comparison_aladin = compare_results(xval, xsol_aladin)
+comparison_aladin = compare_results(xval, xsol_aladin);
+%%
+problem_not_symbolic = generate_distributed_problem_not_symbolic(mpc_split, names);
+
+for i = 1:3
+    double(subs(problem.pf{i}, problem.xx{i}, xsol_stack_aladin{i})) - problem_not_symbolic.pf{i}(xsol_stack_aladin{i})
+end
 %% generate centralized problem
-% problem_centralized = generate_centralized_power_flow(mpc_split, names);
+problem_centralized = generate_centralized_power_flow(mpc_split, names);
 % [x_sol, x_ref] = solve_centralized_problem_centralized(problem_centralized, mpc_split, names);
 % comparison = compare_results(x_sol, x_ref)
 

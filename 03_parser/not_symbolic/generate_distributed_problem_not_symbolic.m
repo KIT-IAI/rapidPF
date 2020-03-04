@@ -1,4 +1,4 @@
-function problem = generate_distributed_problem(mpc, names)
+function problem = generate_distributed_problem_not_symbolic(mpc, names)
     %% Extract Data from MATPOWER casefile
     N_regions = numel(mpc.(names.regions.global));
     N_buses_in_regions = cellfun(@(x)numel(x), mpc.(names.regions.global_with_copies));
@@ -13,11 +13,11 @@ function problem = generate_distributed_problem(mpc, names)
     for i = 1:N_regions
         fprintf('Creating power flow problem for system %i...', i);
         if i == 1
-            [cost, inequality, equality, state, x0, pf, bus_spec] = generate_local_power_flow_problem(mpc.(names.split){i}, names, 'trans');
+            [cost, inequality, equality, x0, pf, bus_spec] = generate_local_power_flow_problem_not_symbolic(mpc.(names.split){i}, names, 'trans');
         else
-            [cost, inequality, equality, state, x0, pf, bus_spec] = generate_local_power_flow_problem(mpc.(names.split){i}, names, strcat('dist_', num2str(i-1)));
+            [cost, inequality, equality, x0, pf, bus_spec] = generate_local_power_flow_problem_not_symbolic(mpc.(names.split){i}, names, strcat('dist_', num2str(i-1)));
         end
-        [costs{i}, inequalities{i}, equalities{i}, states{i}, xx0{i}, pfs{i}, bus_specs{i}] = deal(cost, inequality, equality, state, x0, pf, bus_spec);
+        [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, bus_specs{i}] = deal(cost, inequality, equality, x0, pf, bus_spec);
         fprintf('done.\n')
     end
     %% ALADIN parameters
