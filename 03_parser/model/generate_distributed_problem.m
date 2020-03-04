@@ -21,12 +21,20 @@ function problem = generate_distributed_problem(mpc, names)
         fprintf('done.\n')
     end
     %% ALADIN parameters
-%     Sig = build_Sig(N_regions, N_buses_in_regions);
-    [lbxc, ubxc] = build_bounds(N_regions, N_core_buses_in_regions, N_copy_buses_in_regions);
+    [ Sigma, lb, ub ] = deal(cell(N_regions,1));
+    for i = 1:N_regions
+        N_core = N_core_buses_in_regions(i);
+        N_copy = N_copy_buses_in_regions(i);
+        Sigma{i} = build_Sigma_per_region(N_core, N_copy);
+        [lb_temp, ub_temp] = build_bounds_per_region(N_core, N_copy);
+        [lb{i}, ub{i}] = deal(lb_temp, ub_temp);
+    end
+    
+%     [lb, ub] = build_bounds(N_regions, N_core_buses_in_regions, N_copy_buses_in_regions);
     %% generate output
-    problem.lbx = lbxc;
-    problem.ubx = ubxc;
-%     problem.Sig = Sig;
+    problem.lbx = lb;
+    problem.ubx = ub;
+    problem.Sig = Sigma;
 
     problem.ffi = costs;
     problem.ggi = equalities;
@@ -40,82 +48,49 @@ function problem = generate_distributed_problem(mpc, names)
     problem.bus_specs = bus_specs;
 end
 
-function Sig = build_Sig(N_regions, N_buses_in_regions)
-    Sig = cell(N_regions, 1);
-    % penalization values 
-    thetap          = 100;
-    Vp              = 100;
-    Pp              = 1;
-    Qp              = 1;
+function Sigma = build_Sigma_per_region(N_core, N_copy)
+    ang = 100;
+    mag = 100;
+    p = 1;
+    q = 1;
 
-    % set up penalization matrices Sigma
-    for i=1:N_regions
-        Nbus      = N_buses_in_regions(i);
-        weighVec = [    thetap*ones(Nbus,1); Vp*ones(Nbus,1); ...
-                        Pp*ones(Nbus,1);     Qp*ones(Nbus,1)];
-        % weighting matrices for local lagrangians
-        Sig{i}   = diag(weighVec);
-    end
+    Sigma_core = build_Sigma(N_core, [ang; mag; p; q]);
+    Sigma_copy = build_Sigma(N_copy, [ang; mag]);
+    Sigma = blkdiag(Sigma_core, Sigma_copy);
 end
 
-function [lb, ub] = build_bounds(N_regions, N_core_buses_in_regions, N_copy_buses)
-    [lb, ub] = deal(cell(N_regions, 1));
-    % lower upper bounds for local opt.
-    % (to avoid local minimizers in subsystems)
-    lbt             = -pi/4;
-    ubt             =  pi/4;
-    lbV             =  0.5;%0.9;
-    ubV             =  1.5;%1.1;
-    lbP             = -10;
-    ubP             =  10;
-    lbQ             = -10;
-    ubQ             =  10;
-
-    for i=1:N_regions
-        N_core = N_core_buses_in_regions(i);
-        N_copy = N_copy_buses(i);
-        lb{i} = [  lbt*ones(N_core + N_copy, 1);
-                   lbV*ones(N_core + N_copy, 1);
-                   lbP*ones(N_core, 1);
-                   lbQ*ones(N_core, 1)];
-
-        ub{i} = [  ubt*ones(N_core + N_copy, 1);
-                   ubV*ones(N_core + N_copy, 1);
-                   ubP*ones(N_core, 1);
-                   ubQ*ones(N_core, 1)];
-    end
+function Sigma = build_Sigma(Nbus, weights)
+    Sigma_diag_entries = kron(weights, ones(Nbus, 1));
+    Nw = numel(weights);
+    Sigma = speye(Nw*Nbus);
+    Sigma(1:1+Nw*Nbus:(Nw*Nbus)^2) = Sigma_diag_entries;
 end
 
-function bool = has_correct_sizes(equalities, states, xx0, mpc, names)
-    N_buses_in_regions = cellfun(@(x)numel(x), mpc.(names.regions.global_with_copies));
-    N_regions = numel(N_buses_in_regions);
-    copy_buses = mpc.(names.copy_buses.local);
-    for i = 1:N_regions
-        [eq, state, x0, N_bus, copy_bus] = deal(equalities{i}, states{i}, xx0{i}, N_buses_in_regions(i), copy_buses{i});
-        
-        dim_state = 4*N_bus;
-        if i == 1
-            % transmission system
-            dim_power_flow = 2*N_bus;
-            dim_bus_specs = 2*N_bus;
-        else
-            % distribution system
-            dim_power_flow = 2*(N_bus - numel(copy_bus));
-            dim_bus_specs = 2*(N_bus - numel(copy_bus));
-        end
-        
-        if numel(x0) ~= dim_state || numel(state) ~= dim_state
-            bool = false;
-            error('Incorrect state dimension');
-        end
-        
-        if numel(eq) ~= dim_power_flow + dim_bus_specs
-            bool = false;
-            error('Incorrect equality constraint dimension');
-        end
-    end
-    bool = true;
+function [lb, ub] = build_bounds_per_region(N_core, N_copy)
+    ang_lb = -pi/4;
+    ang_ub = pi/4;
+    mag_lb = 0.5;
+    mag_ub = 1.5;
+    p_lb = -10;
+    p_ub = 10;
+    q_lb = -10;
+    q_ub = 10;
+    
+    [lb, ub] = build_bounds(N_core, N_copy, [ang_lb; mag_lb; p_lb; q_lb], [ang_ub; mag_ub; p_ub; q_ub]);
 end
 
+function [lb, ub] = build_bounds(Ncore, Ncopy, lb_vec, ub_vec)
+    lb = build_bounds_aux(Ncore, Ncopy, lb_vec);
+    ub = build_bounds_aux(Ncore, Ncopy, ub_vec);
+end
 
+function bounds = build_bounds_aux(Ncore, Ncopy, vec)
+    ang = vec(1);
+    mag = vec(2);
+    p = vec(3);
+    q = vec(4);
+    
+    bounds = [ kron([ang; mag], ones(Ncore + Ncopy, 1));
+               kron([p; q], ones(Ncore, 1)) ];
+end
 

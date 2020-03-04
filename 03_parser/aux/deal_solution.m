@@ -1,7 +1,7 @@
-function [x, x_stacked] = deal_solution(sol, mpc, names)
-    xsol = full(sol.x);
+function [x, x_stacked] = deal_solution(xsol, mpc, names)
     
     buses_in_regions =  mpc.(names.regions.global);
+    local_buses_in_regions = mpc.(names.regions.local);
     copy_buses_in_regions = mpc.(names.copy_buses.global);
     
     N_buses = cellfun(@(x)numel(x), buses_in_regions);
@@ -15,7 +15,9 @@ function [x, x_stacked] = deal_solution(sol, mpc, names)
         dim = 4*N_buses(i) + 2*N_copy_buses(i);
         x_temp = xsol(N + (1:dim));
         x_stacked{i} = x_temp;
-        x{i} = make_to_array(x_temp, N_buses(i), N_copy_buses(i));
+        x_mat = make_to_array(x_temp, N_buses(i), N_copy_buses(i));
+        % store results only for core nodes
+        x{i} = x_mat(local_buses_in_regions{i}, :);
         N = N + dim;
     end
     

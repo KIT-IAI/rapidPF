@@ -1,5 +1,9 @@
 function [x, x_stacked] = extract_results_per_region(mpc, names)
-    [vang, vmag, pnet, qnet] = extract_results(mpc);
+    opt = mpoption;
+    opt.verbose = 0;
+    opt.out.all = 0;
+    res = runpf(mpc, opt);
+    [vang, vmag, pnet, qnet] = extract_results(res);
     regions = mpc.(names.regions.global);
     N_regions = numel(regions);
     

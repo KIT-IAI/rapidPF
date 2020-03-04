@@ -34,31 +34,9 @@ function [sol, xsol, xsol_stacked] = solve_distributed_problem_centralized(mpc, 
     sol = cas('lbg', zeros(size(g)), 'ubg', zeros(size(g)), 'x0', x0, 'lbx', cat(1, problem.lbx{:}), 'ubx', cat(1, problem.ubx{:}));
     
     %% deal solution back
-    [xsol, xsol_stacked] = deal_solution(sol, mpc, names)
-    %% reference solution
+    [xsol, xsol_stacked] = deal_solution(full(sol.x), mpc, names);
     
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    %%% build a reference solution and copy the values in, then check that
-    %%% the power flow equations + bus specifications we constructed are
-    %%% valid for them.
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%     
-%     res = runpf(mpc);
-%     [x_ref, x_ref_stacked] = extract_results_per_region(res, names);
-%     for i = 1:Nregions
-%         pf_problem_eval{i} = pf_problem{i}(x_ref_stacked{i});
-%         [ang, mag, p, q] = unstack_state(x_ref{i});
-%         pf_eval{i} = create_power_flow_equations(ang, mag, p, q, mpc.Y{i});
-%         bus_specs_eval{i} = create_bus_specifications(ang, mag, p, q, mpc.split_case_files{i});
-%     end
-%     consensus_eval = build_consensus_constraints(problem, cat(1, x_ref_stacked{:}));
-%     % store solution
-%     ref.power_flow = pf_eval;
-%     ref.bus_specs = bus_specs_eval;
-%     ref.consensus = consensus_eval;
-%     ref.sol = x_ref;
-%     ref.sol_stacked = x_ref_stacked;
-
+    
 end
 
 

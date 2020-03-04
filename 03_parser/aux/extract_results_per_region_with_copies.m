@@ -1,9 +1,9 @@
 function [y, y_stacked] = extract_results_per_region_with_copies(mpc, names)
-    opt = mpoption;
-    opt.verbose = 0;
-    opt.out.all = 0;
-    res = runpf(mpc, opt);
-    [x, x_stacked] = extract_results_per_region(res, names);
+%     opt = mpoption;
+%     opt.verbose = 0;
+%     opt.out.all = 0;
+%     res = runpf(mpc, opt);
+    [x, x_stacked] = extract_results_per_region(mpc, names);
     [vang, vmag, pnet, qnet] = unstack_state(cell2mat(x));
     
     copy_local = mpc.(names.copy_buses.local);

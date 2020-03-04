@@ -22,11 +22,11 @@ names.connections.global = NAME_FOR_CONNECTIONS_FIELD;
 names.split = NAME_FOR_SPLIT_CASE_FILE;
 
 %% setup
-fields_to_merge = { 'bus', 'gen', 'branch',};
+fields_to_merge = { 'bus', 'gen', 'branch' };
 
 mpc_trans  = loadcase('case14');
 
-mpc_dist = { loadcase('case9')
+mpc_dist = { loadcase('case30')
              loadcase('case9')
             };
 N_dist = numel(mpc_dist);
@@ -46,13 +46,13 @@ trafo_params_array = { trafo_params, trafo_params };
 global_check(mpc_dist, trans_connection_buses, dist_connection_buses, trafo_params_array);
 
 %% case-file-generator
-mpc_merge = create_skeleton_mpc(mpc_trans, fields_to_merge);
+mpc_merge = create_skeleton_mpc(mpc_trans, fields_to_merge, names);
 
 for i = 1:numel(dist_connection_buses)
     fprintf('\nMerging distribution system #%i \n', i);
     
     merge_info = generate_merge_info(trans_connection_buses(i), dist_connection_buses(i), trafo_params_array{i}, fields_to_merge);
-    mpc_merge = merge_transmission_with_distribution(mpc_merge, mpc_dist{i}, merge_info);
+    mpc_merge = merge_transmission_with_distribution(mpc_merge, mpc_dist{i}, merge_info, names);
 end
 
 savecase('mpc_merge.m', mpc_merge)
@@ -65,20 +65,22 @@ savecase('mpc_merge_split.m', mpc_split);
 %% generate problem formulation for aladin
 problem = generate_distributed_problem(mpc_split, names);
 [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
-[sol, xsol, xsol_stacked] = solve_distributed_problem_centralized(mpc_split, problem, names);
+% [sol, xsol, xsol_stacked] = solve_distributed_problem_centralized(mpc_split, problem, names);
+% 
+% comparison_centralized = compare_results(xval, xsol)
 
 opts = struct( ...
         'rho0',1.5e1,'rhoUpdate',1.1,'rhoMax',1e8,'mu0',1e2,'muUpdate',2,...
         'muMax',2*1e6,'eps',0,'maxiter',30,'actMargin',-1e-6,'hessian','standard',...%-1e-6
         'solveQP','MA57','reg','true','locSol','ipopt','innerIter',2400,'innerAlg', ...
-        'full','Hess','standard','plot',true,'slpGlob', true,'trGamma', 1e6, ...
-        'Sig','const','term_eps', 0);
+        'none','Hess','standard','plot',true,'slpGlob', true,'trGamma', 1e6, ...
+        'Sig','const','term_eps', 0, 'parfor', false);
 
-     
+[xsol_aladin, xsol_stack_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names, opts);
+comparison_aladin = compare_results(xval, xsol_aladin)
 %% generate centralized problem
-problem_centralized = generate_centralized_power_flow(mpc_split, names);
-[x_sol, x_ref] = solve_centralized_problem_centralized(problem_centralized, mpc_split, names);
-dx_norm = arrayfun(@(i)norm(x_ref{i} - x_sol{i}), 1:numel(x_sol), 'UniformOutput', false)
-
+% problem_centralized = generate_centralized_power_flow(mpc_split, names);
+% [x_sol, x_ref] = solve_centralized_problem_centralized(problem_centralized, mpc_split, names);
+% comparison = compare_results(x_sol, x_ref)
 
 
