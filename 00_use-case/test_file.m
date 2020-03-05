@@ -78,6 +78,12 @@ opts = struct( ...
 
 [xsol_aladin, xsol_stack_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names);
 comparison_aladin = compare_results(xsol, xsol_aladin)
+%% pfsoln & printpf test
+et  = 0.1;
+alg = 'ALADIN';
+mpc = back_to_mpc(mpc_split, xsol_aladin, et, alg);
+
+
 
 %% generate centralized problem
 % problem_centralized = generate_centralized_power_flow(mpc_split, names);
