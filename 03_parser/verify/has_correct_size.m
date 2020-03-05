@@ -1,8 +1,3 @@
-function bool = has_correct_size(f, N)
-    if numel(f) == N
-        bool = true;
-    else
-        bool = false;
-        error('incorrect function dimensions.');
-    end
+function has_correct_size(fun, n)
+    assert(numel(fun) == n, 'incorrect function dimensions.');
 end

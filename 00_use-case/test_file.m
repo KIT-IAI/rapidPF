@@ -80,12 +80,13 @@ opts = struct( ...
 
 [xsol_aladin, xsol_stack_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names, opts);
 comparison_aladin = compare_results(xval, xsol_aladin);
-%%
+%% Problem formulation without symbolic variables
 problem_not_symbolic = generate_distributed_problem_not_symbolic(mpc_split, names);
+[xsol_not_symbolic, xsol_stacked_not_symbolic] = solve_distributed_problem_centralized_not_symbolic(mpc_split, problem_not_symbolic, names);
+comparison_not_symbolic = compare_results(xval, xsol_not_symbolic)
 
-for i = 1:3
-    double(subs(problem.pf{i}, problem.xx{i}, xsol_stack_aladin{i})) - problem_not_symbolic.pf{i}(xsol_stack_aladin{i})
-end
+[xsol_aladin_not_symbolic, ~] = solve_distributed_problem_with_aladin_not_symbolic(mpc_split, problem_not_symbolic, names, opts);
+comparison_aladin_not_symbolic = compare_results(xval, xsol_aladin_not_symbolic)
 %% generate centralized problem
 problem_centralized = generate_centralized_power_flow(mpc_split, names);
 % [x_sol, x_ref] = solve_centralized_problem_centralized(problem_centralized, mpc_split, names);

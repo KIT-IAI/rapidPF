@@ -29,7 +29,6 @@ function problem = generate_distributed_problem_not_symbolic(mpc, names)
         [lb_temp, ub_temp] = build_bounds_per_region(N_core, N_copy);
         [lb{i}, ub{i}] = deal(lb_temp, ub_temp);
     end
-    
     %% generate output
     problem.lbx = lb;
     problem.ubx = ub;

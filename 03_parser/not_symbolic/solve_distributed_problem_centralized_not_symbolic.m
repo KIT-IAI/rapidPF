@@ -10,8 +10,6 @@ function [xsol, xsol_stacked] = solve_distributed_problem_centralized_not_symbol
     
     %% deal solution back
     [xsol, xsol_stacked] = deal_solution(xsol, mpc, names);
-    
-    
 end
 
 function [ineq, eq] = build_con(x, problem, buses)

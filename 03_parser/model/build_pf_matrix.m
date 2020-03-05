@@ -8,7 +8,11 @@ function [M_p, M_q] = build_pf_matrix(ang, Y)
 end
 
 function [sin_diff, cos_diff] = build_angle_differences(ang)
-    diff = ang - ang';
+%     diff = ang - ang';
+    
+    ANG = repmat(ang, 1, numel(ang));
+    diff = ANG - ANG';
+    
     sin_diff = sin(diff);
     cos_diff = cos(diff);
 end
