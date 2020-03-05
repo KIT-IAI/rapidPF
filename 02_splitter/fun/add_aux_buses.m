@@ -39,18 +39,12 @@ function check_number_of_buses(mpc, names)
     trans_aux_region = aux_regions{1};
     dist_aux_regions = aux_regions(2:end);
     
-    if numel(dist_regions) == numel(dist_aux_regions)
-        N_dist_systems = numel(dist_regions);
-    else
-        error('inconsistent number of distribution systems.');
-    end
-    if ~(numel(trans_aux_region) == numel(trans_region) + N_dist_systems)
-        error('inconsistent number of buses in trans region')
-    end
+    assert(numel(dist_regions) == numel(dist_aux_regions), 'check_number_of_buses:number_of_distribution_systems', 'inconsistent number of distribution systems.')
+    N_dist_systems = numel(dist_regions);
+    
+    assert(numel(trans_aux_region) == numel(trans_region) + N_dist_systems, 'check_number_of_buses:trans_region', 'inconsistent number of buses in trans region')
     for i = 1:N_dist_systems
-        if ~(numel(dist_aux_regions{i}) == numel(dist_regions{i}) + 1)
-            error('inconsistent number of buses in dist region %i, i');
-        end
+        assert(numel(dist_aux_regions{i}) == numel(dist_regions{i}) + 1, 'check_number_of_buses:dist_region', 'inconsistent number of buses in dist region %i', i)
     end
 end
 

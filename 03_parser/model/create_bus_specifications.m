@@ -1,4 +1,4 @@
-function f = create_bus_specifications_and_remove_bus_new(Vang, Vmag, Pnet, Qnet, mpc, local_bus_to_remove)
+function f = create_bus_specifications(Vang, Vmag, Pnet, Qnet, mpc, local_bus_to_remove)
     [PQ, PV, REF, NONE, BUS_I, BUS_TYPE, PD, QD, GS, BS, BUS_AREA, VM, ...
         VA, BASE_KV, ZONE, VMAX, VMIN, LAM_P, LAM_Q, MU_VMAX, MU_VMIN] = idx_bus;
     [GEN_BUS, PG, QG, QMAX, QMIN, VG, MBASE, GEN_STATUS, PMAX, PMIN, ...
@@ -14,9 +14,7 @@ function f = create_bus_specifications_and_remove_bus_new(Vang, Vmag, Pnet, Qnet
     mpc = ext2int(mpc, mpopt);
     [baseMVA, bus, gen] = deal(mpc.baseMVA, mpc.bus, mpc.gen);
     
-%     [~, pv, pq] = bustypes(bus, gen);
     [ref, pv, pq] = bustypes_ref(bus, gen);
-    
     
     if ~isempty(local_bus_to_remove)
         [ref, pv, pq] = remove_bus(local_bus_to_remove, ref, pv, pq);
@@ -29,31 +27,28 @@ function f = create_bus_specifications_and_remove_bus_new(Vang, Vmag, Pnet, Qnet
     end
     
     on = find(gen(:, GEN_STATUS) > 0);      %% which generators are on?
-    
     gbus = gen(on, GEN_BUS);                %% what buses are they at?
-    % exclude generators that are copy buses
-%     gbus = intersect(gbus, union(ref, pv));
     
-    % slack
-    V0  = bus(:, VM) .* exp(1j * pi/180 * bus(:, VA));
-    vcb = ones(size(V0));           %% create mask of voltage-controlled buses
+    V0ang = bus(:, VA) * pi / 180;
+    V0mag = bus(:, VM);
+    assert(numel(V0ang) == numel(V0mag), 'inconsistent dimensions');
+    
+    vcb = ones(size(V0ang));           %% create mask of voltage-controlled buses
     vcb(pq) = 0;                    %% exclude PQ buses
     k = find(vcb(gbus));            %% in-service gens at v-c buses
-    V0(gbus(k)) = gen(on(k), VG) ./ abs(V0(gbus(k))).* V0(gbus(k));
     
+    V0mag(gbus(k)) = gen(on(k), VG) ./ V0mag(gbus(k)) .* V0mag(gbus(k));
     
-    f_V = [Vang(ref) - angle(V0(ref));  % angle reference
-           Vmag(gbus) - abs(V0(gbus))]; % voltage magnitude references
+    f_V = [Vang(ref) - V0ang(ref);  % angle reference
+           Vmag(gbus) - V0mag(gbus)]; % voltage magnitude references    
     
+    [P, Q] = makeSbus_not_complex(baseMVA, bus, gen, mpopt, Vmag);
     
-    Snet = makeSbus(baseMVA, bus, gen, mpopt, Vmag);
-    
-    f_S = [ real(Snet(pq)) - Pnet(pq);
-            imag(Snet(pq)) - Qnet(pq);
-            real(Snet(pv)) - Pnet(pv)];
+    f_S = [ P(pq) - Pnet(pq);
+            Q(pq) - Qnet(pq);
+            P(pv) - Pnet(pv)];
     
     f = [f_V; f_S];
-%     has_correct_size(f, 2*(numel(Vang) - numel(bus_to_remove)));
 end
 
 function [ref, pv, pq] = remove_bus(bus, ref, pv, pq)

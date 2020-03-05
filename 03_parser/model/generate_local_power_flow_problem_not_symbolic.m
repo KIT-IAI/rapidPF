@@ -10,7 +10,7 @@
 %%% and the bus specifications:
 %%%     'create bus specifications and remove copy buses'.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [cost, ineq, eq, x0, pf, bus_specifications] = generate_local_power_flow_problem(mpc, names)
+function [cost, ineq, eq, x0, pf, bus_specifications] = generate_local_power_flow_problem_not_symbolic(mpc, names, postfix)
     buses_core = mpc.(names.regions.global);
     N_core = numel(buses_core);
     buses_local = 1:N_core;
@@ -23,17 +23,17 @@ function [cost, ineq, eq, x0, pf, bus_specifications] = generate_local_power_flo
     pf_q = @(x)create_power_flow_equation_for_q(x(entries_pf{1}), x(entries_pf{2}), x(entries_pf{3}), x(entries_pf{4}), Ybus, buses_local);
     %% bus specifications
     entries_bus_specs = build_entries(N_core, N_copy, false);
-    bus_specifications = @(x)create_bus_specifications(x(entries_bus_specs{1}), x(entries_bus_specs{2}), x(entries_bus_specs{3}), x(entries_bus_specs{4}), mpc, copy_buses_local);
+    bus_specifications = @(x)create_bus_specifications_not_symbolic(x(entries_bus_specs{1}), x(entries_bus_specs{2}), x(entries_bus_specs{3}), x(entries_bus_specs{4}), mpc, copy_buses_local);
     %% initial condition
     [Vang0, Vmag0, Pnet0, Qnet0] = create_initial_condition(mpc, copy_buses_local);
     x0 = stack_state(Vang0, Vmag0, Pnet0, Qnet0);
-    %% check sizes
+    %% sanity checks
     has_correct_size(x0, 4*N_core + 2*N_copy);
     has_correct_size(pf_p(x0), N_core);
     has_correct_size(pf_q(x0), N_core);
     has_correct_size(bus_specifications(x0), 2*N_core);
     %% generate return values
-    cost = @(x)0;
+    cost = @(x)0*sum(x);
     ineq = @(x)[];
     eq = @(x)[ pf_p(x); pf_q(x); bus_specifications(x) ];
     pf = @(x)[ pf_p(x); pf_q(x) ];

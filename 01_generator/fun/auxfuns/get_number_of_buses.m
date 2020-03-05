@@ -3,7 +3,5 @@
 function N = get_number_of_buses(mpc)
     N = size(mpc.bus, 1);
     % check 1:N numbering
-    if sum(1:N) ~= sum(mpc.bus(:,1))
-        error('This code assumse 1:N numbering in buses. Please check.');
-    end
+    assert(sum(1:N) == sum(mpc.bus(:,1)), 'This code assumse 1:N numbering in buses. Please check.')
 end

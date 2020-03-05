@@ -1,5 +1,5 @@
-function problem = generate_distributed_problem(mpc, names)
-    %% Extract Data from casefile
+function problem = generate_distributed_problem_not_symbolic(mpc, names)
+    %% Extract Data from MATPOWER casefile
     N_regions = numel(mpc.(names.regions.global));
     N_buses_in_regions = cellfun(@(x)numel(x), mpc.(names.regions.global_with_copies));
     N_copy_buses_in_regions = cellfun(@(x)numel(x), mpc.(names.copy_buses.global));
@@ -7,17 +7,21 @@ function problem = generate_distributed_problem(mpc, names)
     [costs, inequalities, equalities, states, xx0, pfs, bus_specs] = deal(cell(N_regions,1));
     %% set up the Ai's
     connection_information = get_copy_bus_information(mpc, names);
-    consensus_matrices = create_consensus_matrices(connection_information, N_buses_in_regions, N_copy_buses_in_regions);
+    AA  =   createAis(connection_information, N_buses_in_regions, N_copy_buses_in_regions);
     %% create local power flow problems
     fprintf('\n\n');
     for i = 1:N_regions
         fprintf('Creating power flow problem for system %i...', i);
-        [cost, inequality, equality, x0, pf, bus_spec] = generate_local_power_flow_problem(mpc.(names.split){i}, names);
+        if i == 1
+            [cost, inequality, equality, x0, pf, bus_spec] = generate_local_power_flow_problem_not_symbolic(mpc.(names.split){i}, names, 'trans');
+        else
+            [cost, inequality, equality, x0, pf, bus_spec] = generate_local_power_flow_problem_not_symbolic(mpc.(names.split){i}, names, strcat('dist_', num2str(i-1)));
+        end
         [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, bus_specs{i}] = deal(cost, inequality, equality, x0, pf, bus_spec);
         fprintf('done.\n')
     end
     %% ALADIN parameters
-    [Sigma, lb, ub] = deal(cell(N_regions,1));
+    [ Sigma, lb, ub ] = deal(cell(N_regions,1));
     for i = 1:N_regions
         N_core = N_core_buses_in_regions(i);
         N_copy = N_copy_buses_in_regions(i);
@@ -25,24 +29,18 @@ function problem = generate_distributed_problem(mpc, names)
         [lb_temp, ub_temp] = build_bounds_per_region(N_core, N_copy);
         [lb{i}, ub{i}] = deal(lb_temp, ub_temp);
     end
-    
-    Ncons   = size(consensus_matrices{1},1);
-    lam0    = 0.01*ones(Ncons,1);
-    
-    %% generate output according to Aladin problem specifications
-    problem.llbx = lb;
-    problem.uubx = ub;
-    problem.opts.Sig = Sigma;
-    problem.lam0 = lam0;
-    problem.b = zeros(size(lam0));
+    %% generate output
+    problem.lbx = lb;
+    problem.ubx = ub;
+    problem.Sig = Sigma;
 
-    
-    problem.locFuns.ffi = costs;
-    problem.locFuns.ggi = equalities;
-    problem.locFuns.hhi = inequalities;
+    problem.ffi = costs;
+    problem.ggi = equalities;
+    problem.hhi = inequalities;
 
-    problem.zz0 = xx0;
-    problem.AA  = consensus_matrices;
+    problem.xx  = states;
+    problem.xx0 = xx0;
+    problem.AA  = AA;
     
     problem.pf = pfs;
     problem.bus_specs = bus_specs;

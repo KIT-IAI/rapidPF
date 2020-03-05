@@ -1,6 +1,6 @@
 % start merging two case file, with local function executing
 % pre-/post-processing check
-function mpc = merge_transmission_with_distribution(mpc_trans, mpc_dist, pars)
+function mpc = merge_transmission_with_distribution(mpc_trans, mpc_dist, pars, names)
 % INPUT to the function
 % mpc_TS -- case file for transmission system with 1..N_TS bus/branch numbering
 % mpc_DS -- case file for distribution system with 1..N_DS bus/branch numbering
@@ -9,7 +9,9 @@ function mpc = merge_transmission_with_distribution(mpc_trans, mpc_dist, pars)
 % dist_connection bus -- bus number from distribution system to which the
 % transformer is connected, must be between 1 and N_dist
 % params -- transformer/line params: r, x, b, ratio, angle
-    global NAME_FOR_CONNECTIONS_FIELD NAME_FOR_CONNECTIONS_GLOBAL_FIELD
+    NAME_FOR_CONNECTIONS_FIELD = names.connections.global;
+    NAME_FOR_CONNECTIONS_GLOBAL_FIELD = names.connections.local;
+    
     trafo_trans_bus          = pars.transformer.transmission_bus;
     trafo_dist_bus           = pars.transformer.distribution_bus;
     params                   = pars.transformer.params;
@@ -22,7 +24,7 @@ function mpc = merge_transmission_with_distribution(mpc_trans, mpc_dist, pars)
     params_dist.Ngen         = get_number_of_generators(mpc_dist);   %
     params_dist.Ngen_trafo_bus = get_number_of_connected_generators(mpc_dist, trafo_dist_bus);
     
-    %% pre-processing sanity check
+    %% pre-processing: run several sanity checks
     pre_processing(mpc_trans, mpc_dist, trafo_trans_bus, trafo_dist_bus, fields_to_merge);
   
     %% main part
@@ -32,17 +34,15 @@ function mpc = merge_transmission_with_distribution(mpc_trans, mpc_dist, pars)
     % merge numbering
     mpc = merge_numbering_and_stack(mpc_trans, mpc_dist, fields_to_merge);
     % add region information
-    mpc = add_region_information(mpc, Nbus_trans, params_dist.Nbus);
+    mpc = add_region_information(mpc, Nbus_trans, params_dist.Nbus, names);
     mpc = add_edge_information(mpc, trafo_trans_bus, trafo_dist_bus, NAME_FOR_CONNECTIONS_GLOBAL_FIELD);
     % introduce transformer-branch at connection bus
     trafo_from_bus = trafo_trans_bus;
     trafo_to_bus   = trafo_dist_bus + Nbus_trans;
     mpc = add_transformer_branch(mpc, trafo_from_bus, trafo_to_bus, params);
     mpc = add_edge_information(mpc, trafo_from_bus, trafo_to_bus, NAME_FOR_CONNECTIONS_FIELD);
-    
-    %% post-processing sanity check
-    post_processing(mpc_trans, mpc, params_dist);
-
+    %% post-processing: run several sanity checks
+    post_processing(mpc_trans, mpc, params_dist, names);
 end
 
 % carry out sanity check before processing, carried out iteratively
@@ -61,17 +61,19 @@ function pre_processing_mpc(mpc, buses, msg, field_name)
     check_out_of_service(mpc);
     check_connection(mpc, buses, msg);
     check_baseMVA_within_mpc(mpc);
-    check_existence_of_field(mpc, field_name);
+    for i = 1:numel(field_name)
+        check_existence_of_field(mpc, field_name{i});
+    end
 end
 
 % check the number of buses, branches and generators in mpc_merge
 % check the working state of the merged case-file
-function post_processing(mpc_trans, mpc_merge, params_dist)
+function post_processing(mpc_trans, mpc_merge, params_dist, names)
 % INPUT
 % mpc_trans   -- case-file for transmission
 % mpc_merge   -- combined case-file after merging
 % params_dist -- parameters of distribution before the processing
-    global NAME_FOR_CONNECTIONS_FIELD
+    NAME_FOR_CONNECTIONS_FIELD = names.connections.global;
     % transmission
     Nbus_trans    =  get_number_of_buses(mpc_trans);       % number of buses in transmission casefile
     Nbranch_trans =  get_number_of_branches(mpc_trans);    % .......... branch ...
@@ -97,36 +99,24 @@ function post_processing(mpc_trans, mpc_merge, params_dist)
     check_baseMVA_within_mpc(mpc_merge);        
 end
 
-function bool = check_for_line(mpc, from_bus, to_bus)
+function check_for_line(mpc, from_bus, to_bus)
     [F_BUS, T_BUS, BR_R, BR_X, BR_B, RATE_A, RATE_B, ...
         RATE_C, TAP, SHIFT, BR_STATUS, PF, QF, PT, QT, MU_SF, MU_ST, ...
         ANGMIN, ANGMAX, MU_ANGMIN, MU_ANGMAX] = idx_brch;
     from_buses = mpc.branch(:, F_BUS);
     to_buses = mpc.branch(:, T_BUS);
-    
-    
-    if sum(find(from_buses == from_bus & to_buses == to_bus)) == 0
-        bool = false;
-        error('Something is wrong with the added transformer branch');
-    else
-        bool = true;
-    end
+    assert(sum(find(from_buses == from_bus & to_buses == to_bus)) > 0, 'post_processing:check_for_line', 'Something is wrong with the added transformer branch')
 end
 
 % check whether the gnenerators is out-of-serve, (ref: Manual Table B-2)
-function bool = check_out_of_service(mpc)
+function check_out_of_service(mpc)
 % INPUT
 % mpc -- casefile
     [GEN_BUS, PG, QG, QMAX, QMIN, VG, MBASE, GEN_STATUS, PMAX, PMIN, ...
         MU_PMAX, MU_PMIN, MU_QMAX, MU_QMIN, PC1, PC2, QC1MIN, QC1MAX, ...
         QC2MIN, QC2MAX, RAMP_AGC, RAMP_10, RAMP_30, RAMP_Q, APF] = idx_gen;
     % check whether ALL generators are in-service
-    if sum(mpc.gen(:, GEN_STATUS) <= 0) > 0
-        bool = false;
-        error('Some generator is out of service. Please check.')
-    else
-        bool = true;
-    end
+    assert(sum(mpc.gen(:, GEN_STATUS) <= 0) == 0, 'post_processing:check_out_of_service', 'Some generator is out of service. Please check.')
 end
 
 % check whether the connected bus is a PV / ref bus
@@ -136,40 +126,26 @@ function check_connection(mpc, bus, sys)
 % mpc: current casefile
 % bus: bus number for connection in mpc
 % sys: system name
-    if ~is_generator(mpc, bus)
-        error('[%s system] Transformer would be connected to a non-generation bus.', sys)
-    end
+    assert(is_generator(mpc, bus), 'post_processing:check_connection', '[%s system] Transformer would be connected to a non-generation bus.', sys)
 end
 
 % check whether baseMVAs in mpc and in Generators-Data are the same
-function bool = check_baseMVA_within_mpc(mpc)
+function check_baseMVA_within_mpc(mpc)
     [GEN_BUS, PG, QG, QMAX, QMIN, VG, MBASE, GEN_STATUS, PMAX, PMIN, ...
         MU_PMAX, MU_PMIN, MU_QMAX, MU_QMIN, PC1, PC2, QC1MIN, QC1MAX, ...
         QC2MIN, QC2MAX, RAMP_AGC, RAMP_10, RAMP_30, RAMP_Q, APF] = idx_gen;
-    if sum(mpc.gen(:, MBASE) ~= mpc.baseMVA) > 0
-%         if numel(find(mpc.gen(:, MBASE) ~= mpc.baseMVA)) > 0
-        bool = false;
-        error('Inconsistent baseMVA values detected.')
-    else
-        bool = true;
-    end
+    
+    assert(sum(mpc.gen(:, MBASE) ~= mpc.baseMVA) == 0, 'post_processing:baseMVA_inconsistent_within_mpc', 'Inconsistent baseMVA values detected.')
 end
 
 % error when these two mpcs have different baseMVA value 
-function bool = check_baseMVA_between_mpc(mpc1, mpc2)
-    if mpc1.baseMVA ~= mpc2.baseMVA
-        bool = false;
-        error('Two case files have different baseMVAs.')
-    else
-        bool = true;
-    end
+function check_baseMVA_between_mpc(mpc1, mpc2)
+    assert(mpc1.baseMVA == mpc2.baseMVA, 'post_processing:baseMVA_inconsistent_between_mpc', 'Two case files have different baseMVAs.')
 end
 
 % error when required field doesn't exist in casefile
 function check_existence_of_field(mpc, field_name)
-    if ~isfield(mpc, field_name)
-        error('The field %s doest not exist for struct %s', field_name, get_name_of_variable(mpc));
-    end
+    assert(isfield(mpc, field_name), 'post_processing:check_existence_of_field', 'The field `%s` does not exist for struct %s', field_name, get_name_of_variable(mpc))
 end
 
 % check the number of buses in merged case-file is as expected
@@ -177,34 +153,24 @@ end
 function check_number_of_buses(N_transmission_system, N_distribution_system, mpc)
     N_mpc = size(mpc.bus, 1);
     % check 1:N numbering
-    if N_transmission_system + N_distribution_system ~= N_mpc
-        error('Total number of buses is not equal to the `sum of number of buses in both subsystems` .');
-    end
+    assert(N_transmission_system + N_distribution_system == N_mpc, 'post_processing:check_number_of_buses', 'Total number of buses is not equal to the `sum of number of buses in both subsystems` .')
 end
 
 % check the number of branches in merged case-file is as expected
 % M_transmission_system + M_distribution_system +1 = size(mpc.branch,1) 
 function check_number_of_branches(M_transmission_system, M_distribution_system, mpc)
     M_mpc = size(mpc.branch, 1);
-    % check 1:N numbering
-    if M_transmission_system + M_distribution_system + 1 ~= M_mpc
-        error('Total number of branches is not equal to the `sum of number of branches in both subsystems` + 1.');
-    end
+    assert(M_transmission_system + M_distribution_system + 1 == M_mpc, 'post_processing:check_number_of_branches', 'Total number of branches is not equal to the `sum of number of branches in both subsystems` + 1.')
 end
 
 % check the number of generators in merged case-file is as expected
 % error when the Ngen_trans + Ngen_dist - Ngen_trafo_dist_bus ~= Ngen_mpc
-function bool = check_number_of_generators(Ngen_trans, Ngen_dist, Ngen_trafo_dist_bus, Ngen_mpc)
-% INPUT
-% Ngen_trans -- the number of generators in transmission
-% Ngen_dist  -- the number of generators in distribution
-% Ngen_trafo_dist_bus -- the number of generators to be removed in the
-% distribution system
-% Ngen_mpc   -- the number of generators in the mpc after merging
-    if Ngen_trans + Ngen_dist - Ngen_trafo_dist_bus == Ngen_mpc
-        bool = true;
-    else
-        bool = false;
-        error('There is something wrong the number of generators (expected %i, got %i)', Ngen_trans + Ngen_dist - Ngen_trafo_dist_bus, Ngen_mpc);
-    end
+function check_number_of_generators(Ngen_trans, Ngen_dist, Ngen_trafo_dist_bus, Ngen_mpc)
+    % INPUT
+    % Ngen_trans -- the number of generators in transmission
+    % Ngen_dist  -- the number of generators in distribution
+    % Ngen_trafo_dist_bus -- the number of generators to be removed in the
+    % distribution system
+    % Ngen_mpc   -- the number of generators in the mpc after merging
+    assert(Ngen_trans + Ngen_dist - Ngen_trafo_dist_bus == Ngen_mpc, 'post_processing:check_number_of_generators', 'There is something wrong the number of generators (expected %i, got %i).', Ngen_trans + Ngen_dist - Ngen_trafo_dist_bus, Ngen_mpc)
 end
