@@ -29,7 +29,7 @@ end
 
 function V = get_voltage(x)
     x_full = vertcat(x{:});
-    ang = x_full(:, 1);s
+    ang = x_full(:, 1);
     mag = x_full(:, 2);
     V = mag .* exp(1j * ang);
 end
