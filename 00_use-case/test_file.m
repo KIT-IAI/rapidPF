@@ -74,9 +74,9 @@ opts = struct( ...
         'muMax',2*1e6,'eps',0,'maxiter',30,'actMargin',-1e-6,'hessian','standard',...%-1e-6
         'solveQP','MA57','reg','true','locSol','ipopt','innerIter',2400,'innerAlg', ...
         'none','Hess','standard','plot',true,'slpGlob', true,'trGamma', 1e6, ...
-        'Sig','const','term_eps', 0, 'parfor', false);
+        'Sig','const','term_eps', 0, 'parfor', false, 'reuse', false);
 
-[xsol_aladin, xsol_stack_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names, opts);
+[xsol_aladin, xsol_stack_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names);
 comparison_aladin = compare_results(xsol, xsol_aladin)
 
 %% generate centralized problem
