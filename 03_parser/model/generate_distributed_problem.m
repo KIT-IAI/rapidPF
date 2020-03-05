@@ -26,17 +26,22 @@ function problem = generate_distributed_problem(mpc, names)
         [lb{i}, ub{i}] = deal(lb_temp, ub_temp);
     end
     
-    %% generate output
-    problem.lbx = lb;
-    problem.ubx = ub;
-    problem.Sig = Sigma;
+    Ncons   = size(consensus_matrices{1},1);
+    lam0    = 0.01*ones(Ncons,1);
+    
+    %% generate output according to Aladin problem specifications
+    problem.llbx = lb;
+    problem.uubx = ub;
+    problem.opts.Sig = Sigma;
+    problem.lam0 = lam0;
+    problem.b = zeros(size(lam0));
 
-    problem.ffi = costs;
-    problem.ggi = equalities;
-    problem.hhi = inequalities;
+    
+    problem.locFuns.ffi = costs;
+    problem.locFuns.ggi = equalities;
+    problem.locFuns.hhi = inequalities;
 
-    problem.xx  = states;
-    problem.xx0 = xx0;
+    problem.zz0 = xx0;
     problem.AA  = consensus_matrices;
     
     problem.pf = pfs;

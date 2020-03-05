@@ -1,7 +1,7 @@
 function f = build_consensus_constraints(problem, x)
     N_regions = numel(problem.AA);
     f = 0;
-    sizes = cellfun(@(x)numel(x), problem.xx);
+    sizes = cellfun(@(x)numel(x), problem.zz0);
     n = 0;
     for i = 1:N_regions
         A = problem.AA{i};

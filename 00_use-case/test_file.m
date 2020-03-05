@@ -63,13 +63,11 @@ mpc_split = split_and_makeYbus(mpc_split, names);
 savecase('mpc_merge_split.m', mpc_split);
 
 %% generate problem formulation for aladin
-tic
 problem = generate_distributed_problem(mpc_split, names);
 
 [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
 [xsol, xsol_stacked] = solve_distributed_problem_centralized(mpc_split, problem, names);
-% 
-% comparison_centralized = compare_results(xval, xsol)
+comparison_centralized = compare_results(xval, xsol)
 
 opts = struct( ...
         'rho0',1.5e1,'rhoUpdate',1.1,'rhoMax',1e8,'mu0',1e2,'muUpdate',2,...
@@ -82,8 +80,8 @@ opts = struct( ...
 comparison_aladin = compare_results(xsol, xsol_aladin)
 
 %% generate centralized problem
-problem_centralized = generate_centralized_power_flow(mpc_split, names);
+% problem_centralized = generate_centralized_power_flow(mpc_split, names);
 % [x_sol, x_ref] = solve_centralized_problem_centralized(problem_centralized, mpc_split, names);
-% comparison = compare_results(x_sol, x_ref)
+% comparison = compare_results(x_sol, xsol_aladin)
 
 
