@@ -1,6 +1,6 @@
 % create consensus in complex voltage at copy buses
 
-function A = createAis(copy_bus_information, number_of_buses_in_region, number_of_copy_buses_in_region)
+function A = create_consensus_matrices(copy_bus_information, number_of_buses_in_region, number_of_copy_buses_in_region)
     N_regions = numel(number_of_buses_in_region);
     N_consensus = 2*size(copy_bus_information, 1); % consensus in voltage phasors
 

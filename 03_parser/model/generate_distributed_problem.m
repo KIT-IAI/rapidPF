@@ -1,5 +1,5 @@
 function problem = generate_distributed_problem(mpc, names)
-    %% Extract Data from MATPOWER casefile
+    %% Extract Data from casefile
     N_regions = numel(mpc.(names.regions.global));
     N_buses_in_regions = cellfun(@(x)numel(x), mpc.(names.regions.global_with_copies));
     N_copy_buses_in_regions = cellfun(@(x)numel(x), mpc.(names.copy_buses.global));
@@ -7,21 +7,17 @@ function problem = generate_distributed_problem(mpc, names)
     [costs, inequalities, equalities, states, xx0, pfs, bus_specs] = deal(cell(N_regions,1));
     %% set up the Ai's
     connection_information = get_copy_bus_information(mpc, names);
-    AA  =   createAis(connection_information, N_buses_in_regions, N_copy_buses_in_regions);
+    consensus_matrices = create_consensus_matrices(connection_information, N_buses_in_regions, N_copy_buses_in_regions);
     %% create local power flow problems
     fprintf('\n\n');
     for i = 1:N_regions
         fprintf('Creating power flow problem for system %i...', i);
-        if i == 1
-            [cost, inequality, equality, state, x0, pf, bus_spec] = generate_local_power_flow_problem(mpc.(names.split){i}, names, 'trans');
-        else
-            [cost, inequality, equality, state, x0, pf, bus_spec] = generate_local_power_flow_problem(mpc.(names.split){i}, names, strcat('dist_', num2str(i-1)));
-        end
-        [costs{i}, inequalities{i}, equalities{i}, states{i}, xx0{i}, pfs{i}, bus_specs{i}] = deal(cost, inequality, equality, state, x0, pf, bus_spec);
+        [cost, inequality, equality, x0, pf, bus_spec] = generate_local_power_flow_problem(mpc.(names.split){i}, names);
+        [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, bus_specs{i}] = deal(cost, inequality, equality, x0, pf, bus_spec);
         fprintf('done.\n')
     end
     %% ALADIN parameters
-    [ Sigma, lb, ub ] = deal(cell(N_regions,1));
+    [Sigma, lb, ub] = deal(cell(N_regions,1));
     for i = 1:N_regions
         N_core = N_core_buses_in_regions(i);
         N_copy = N_copy_buses_in_regions(i);
@@ -41,7 +37,7 @@ function problem = generate_distributed_problem(mpc, names)
 
     problem.xx  = states;
     problem.xx0 = xx0;
-    problem.AA  = AA;
+    problem.AA  = consensus_matrices;
     
     problem.pf = pfs;
     problem.bus_specs = bus_specs;

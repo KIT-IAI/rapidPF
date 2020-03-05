@@ -7,7 +7,7 @@ function fun = create_power_flow_equation_for_p(Vang, Vmag, Pnet, Qnet, Y, relev
     assert(numel(Pnet) == numel(Qnet), 'inconsistent dimensions for powers');
     
     assert(numel(Pnet) == numel(relevant_buses) && numel(Qnet) == numel(relevant_buses), 'inconsistent dimensions')
-    [M_p, M_q] = build_pf_matrix(Vang, Y);
+    [M_p, ~] = build_pf_matrix(Vang, Y);
     P = Vmag .* (M_p * Vmag);
     fun = P(relevant_buses) - Pnet;
 end

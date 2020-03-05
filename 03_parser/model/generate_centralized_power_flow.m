@@ -1,4 +1,4 @@
-function problem = generate_centralized_power_flow(mpc, names)
+function problem = generate_centralized_power_flow_not_symbolic(mpc, names)
     Ybus = makeYbus(mpc);
     Nbus = size(Ybus, 1);
     
