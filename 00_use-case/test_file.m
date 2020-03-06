@@ -1,25 +1,18 @@
 clear all; close all; clc;
 
-global NAME_FOR_REGION_FIELD NAME_FOR_CONNECTIONS_FIELD NAME_FOR_AUX_FIELD NAME_FOR_SPLIT_CASE_FILE NAME_FOR_CONNECTIONS_GLOBAL_FIELD NAME_FOR_AUX_BUSES_FIELD
-NAME_FOR_REGION_FIELD = 'regions';
-NAME_FOR_CONNECTIONS_FIELD = 'connections';
-NAME_FOR_CONNECTIONS_GLOBAL_FIELD = 'connections_global';
-NAME_FOR_AUX_FIELD = 'connections_with_aux_nodes';
-NAME_FOR_SPLIT_CASE_FILE = 'split_case_files';
-NAME_FOR_AUX_BUSES_FIELD = 'copy_buses_global';
 addpath(genpath('../01_generator/'));
 addpath(genpath('../02_splitter/'));
 addpath(genpath('../03_parser/'));
 
-names.regions.global = NAME_FOR_REGION_FIELD;
-names.regions.global_with_copies = NAME_FOR_AUX_FIELD;
+names.regions.global = 'regions';
+names.regions.global_with_copies = 'connections_with_aux_nodes';
 names.regions.local = 'regions_local';
 names.regions.local_with_copies = 'regions_local_with_copies';
 names.copy_buses.local = 'copy_buses_local';
-names.copy_buses.global = NAME_FOR_AUX_BUSES_FIELD;
-names.connections.local = NAME_FOR_CONNECTIONS_GLOBAL_FIELD;
-names.connections.global = NAME_FOR_CONNECTIONS_FIELD;
-names.split = NAME_FOR_SPLIT_CASE_FILE;
+names.copy_buses.global = 'copy_buses_global';
+names.connections.local = 'connections_global';
+names.connections.global = 'connections';
+names.split = 'split_case_files';
 
 %% setup
 fields_to_merge = { 'bus', 'gen', 'branch' };
@@ -56,7 +49,7 @@ for i = 1:numel(dist_connection_buses)
 end
 
 savecase('mpc_merge.m', mpc_merge)
-%% case-file-splitter
+%% case-file-splittera
 mpc_split = add_aux_buses(mpc_merge, names);
 mpc_split = add_aux_buses_per_region(mpc_split, names);
 mpc_split = split_and_makeYbus(mpc_split, names);
@@ -75,9 +68,9 @@ opts = struct( ...
         'solveQP','MA57','reg','true','locSol','ipopt','innerIter',2400,'innerAlg', ...
         'none','Hess','standard','plot',true,'slpGlob', true,'trGamma', 1e6, ...
         'Sig','const','term_eps', 0, 'parfor', false, 'reuse', false);
-
 [xsol_aladin, xsol_stack_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names);
 comparison_aladin = compare_results(xsol, xsol_aladin)
+
 
 %% generate centralized problem
 % problem_centralized = generate_centralized_power_flow(mpc_split, names);
