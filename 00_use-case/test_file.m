@@ -66,7 +66,7 @@ savecase('mpc_merge_split.m', mpc_split);
 problem = generate_distributed_problem(mpc_split, names);
 
 [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
-[xsol, xsol_stacked] = solve_distributed_problem_centralized(mpc_split, problem, names);
+[xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc_split, problem, names);
 comparison_centralized = compare_results(xval, xsol)
 
 opts = struct( ...
