@@ -75,14 +75,8 @@ opts = struct( ...
         'solveQP','MA57','reg','true','locSol','ipopt','innerIter',2400,'innerAlg', ...
         'none','Hess','standard','plot',true,'slpGlob', true,'trGamma', 1e6, ...
         'Sig','const','term_eps', 0, 'parfor', false, 'reuse', false);
-[xsol_aladin, xsol_stack_aladin] = sol/ve_distributed_problem_with_aladin(mpc_split, problem, names);
+[xsol_aladin, xsol_stack_aladin, mpc_sol_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names);
 comparison_aladin = compare_results(xsol, xsol_aladin)
-%% pfsoln & printpf test
-elapsed_time  = 0;
-alg           = 'ALADIN';
-mpc           =  back_to_mpc(mpc_split, xsol_aladin, elapsed_time, alg);
-
-
 
 %% generate centralized problem
 % problem_centralized = generate_centralized_power_flow(mpc_split, names);

@@ -1,8 +1,10 @@
 % numerical solution back to matpower case file
-function mpc = back_to_mpc(mpc_split, xsol, et, alg)
+function mpc = back_to_mpc(mpc_split, xsol, et, iter, alg)
 % INPUT
 % mpc_split -- matpower case file (distributed)
-% xsol      -- numercal solution 
+% xsol      -- numercal solution
+% et        -- elapsed time
+% iter      -- iterations
 % alg       -- name of algorithm
 [PQ, PV, REF, NONE, BUS_I, BUS_TYPE, PD, QD, GS, BS, BUS_AREA, VM, ...
 VA, BASE_KV, ZONE, VMAX, VMIN, LAM_P, LAM_Q, MU_VMAX, MU_VMIN] = idx_bus;
@@ -21,8 +23,9 @@ VA, BASE_KV, ZONE, VMAX, VMIN, LAM_P, LAM_Q, MU_VMAX, MU_VMIN] = idx_bus;
     mpc.baseMVA    =  baseMVA;
     mpc.success    =  true;     % Optimal Solution Found
     mpc.et         =  et;       % elapsed time in seconds
-    str            =  join([alg, ' Algorithm']);
-    fprintf(str);
+    mpc.iterations =  iter;
+    str            =  join(['\n' ,alg, ' Algorithm converged in %d iterations']);
+    fprintf(str, iter);
     printpf(mpc);
 end
 

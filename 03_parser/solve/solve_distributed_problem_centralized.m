@@ -1,10 +1,16 @@
-function [xsol, xsol_stacked] = solve_distributed_problem_centralized(mpc, problem, names)
+function [xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc, problem, names)
     sizes = cellfun(@(x)numel(x), problem.zz0);
     x0 = vertcat(problem.zz0{:});
-    xsol = fsolve(@(x)build_con(x, problem, sizes), x0);
+    totTimer   = tic;
+    [xsol,~,~,OUTPUT] = fsolve(@(x)build_con(x, problem, sizes), x0);
+    elapsed_time  =  toc(totTimer);
     % deal solution back
     [xsol, xsol_stacked] = deal_solution(xsol, mpc, names);
-end
+    
+    % numerical solution back to matpower casefile
+    iter          =  OUTPUT.iterations; % number of iteration
+    alg           =  OUTPUT.algorithm;
+    mpc_sol       =  back_to_mpc(mpc, xsol, elapsed_time, iter, alg);end
 
 function eq = build_con(x, problem, buses)
     x_split = split_vector(x, buses);
