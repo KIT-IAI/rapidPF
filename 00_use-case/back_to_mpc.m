@@ -35,14 +35,3 @@ function V = get_voltage(x)
     mag = x_full(:, 2);
     V = mag .* exp(1j * ang);
 end
-% 
-% 
-% function V = get_voltage(x, N_dist)
-%     % transmission
-%     V = x{1}(1:end - N_dist,2) .* exp(1j  * x{1}(1:end - N_dist,1));
-%     % distributions
-%     for i  =  1:N_dist
-%         V = [V ;
-%              x{i+1}(1:end - 1,2) .* exp(1j  * x{i+1}(1:end - 1,1))];
-%     end
-% end
