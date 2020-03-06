@@ -1,4 +1,4 @@
-clear all; close all; clc;
+    clear all; close all; clc;
 
 global NAME_FOR_REGION_FIELD NAME_FOR_CONNECTIONS_FIELD NAME_FOR_AUX_FIELD NAME_FOR_SPLIT_CASE_FILE NAME_FOR_CONNECTIONS_GLOBAL_FIELD NAME_FOR_AUX_BUSES_FIELD
 NAME_FOR_REGION_FIELD = 'regions';
@@ -75,15 +75,12 @@ opts = struct( ...
         'solveQP','MA57','reg','true','locSol','ipopt','innerIter',2400,'innerAlg', ...
         'none','Hess','standard','plot',true,'slpGlob', true,'trGamma', 1e6, ...
         'Sig','const','term_eps', 0, 'parfor', false, 'reuse', false);
-% start time
-totTimer      = tic;
-[xsol_aladin, xsol_stack_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names);
-elapsed_time  = toc(totTimer);
-
+[xsol_aladin, xsol_stack_aladin] = sol/ve_distributed_problem_with_aladin(mpc_split, problem, names);
 comparison_aladin = compare_results(xsol, xsol_aladin)
 %% pfsoln & printpf test
-alg = 'ALADIN';
-mpc = back_to_mpc(mpc_split, xsol_aladin, elapsed_time, alg);
+elapsed_time  = 0;
+alg           = 'ALADIN';
+mpc           =  back_to_mpc(mpc_split, xsol_aladin, elapsed_time, alg);
 
 
 

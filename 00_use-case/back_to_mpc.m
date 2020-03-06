@@ -21,9 +21,8 @@ VA, BASE_KV, ZONE, VMAX, VMIN, LAM_P, LAM_Q, MU_VMAX, MU_VMIN] = idx_bus;
     mpc.baseMVA    =  baseMVA;
     mpc.success    =  true;     % Optimal Solution Found
     mpc.et         =  et;       % elapsed time in seconds
-    iteration      =  0;
-    str            =  join([alg, 'algorithm converges in %d iteration(s)']);
-    fprintf(str, iteration);
+    str            =  join([alg, ' Algorithm']);
+    fprintf(str);
     printpf(mpc);
 end
 
