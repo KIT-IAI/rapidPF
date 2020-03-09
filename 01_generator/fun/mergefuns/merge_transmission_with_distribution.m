@@ -17,26 +17,25 @@ function mpc = merge_transmission_with_distribution(mpc_trans, mpc_dist, pars, n
     params                   = pars.transformer.params;
     fields_to_merge          = pars.fields_to_merge;
     Nbus_trans               = get_number_of_buses(mpc_trans);       % number of buses in transmission casefile
+    Nconn                    = numel(trafo_trans_bus);
     
     %% attain the information of distribution before processing    
     params_dist.Nbus         = get_number_of_buses(mpc_dist);
     params_dist.Nbranch      = get_number_of_branches(mpc_dist);
     params_dist.Ngen         = get_number_of_generators(mpc_dist);   %
-    params_dist.Ngen_trafo_bus = get_number_of_connected_generators(mpc_dist, trafo_dist_bus);
-    
+    params_dist.Ngen_trafo_bus = zeros(Nconn, 1);
+    for k = 1:Nconn
+        params_dist.Ngen_trafo_bus(k) = get_number_of_connected_generators(mpc_dist, trafo_dist_bus(k));
+    end
+    params_dist.Nconn        = Nconn;
     %% pre-processing: run several sanity checks
     pre_processing(mpc_trans, mpc_dist, trafo_trans_bus, trafo_dist_bus, fields_to_merge);
-  
     %% main part
-    % replace slack bus and connection bus in distribution grid
     mpc_dist = replace_slack_and_generators(mpc_dist, trafo_dist_bus);
-    % check whether connecting bus in distribution system is the slack bus
-    % merge numbering
     mpc = merge_numbering_and_stack(mpc_trans, mpc_dist, fields_to_merge);
-    % add region information
     mpc = add_region_information(mpc, Nbus_trans, params_dist.Nbus, names);
     mpc = add_edge_information(mpc, trafo_trans_bus, trafo_dist_bus, NAME_FOR_CONNECTIONS_GLOBAL_FIELD);
-    % introduce transformer-branch at connection bus
+
     trafo_from_bus = trafo_trans_bus;
     trafo_to_bus   = trafo_dist_bus + Nbus_trans;
     mpc = add_transformer_branch(mpc, trafo_from_bus, trafo_to_bus, params);
@@ -83,16 +82,22 @@ function post_processing(mpc_trans, mpc_merge, params_dist, names)
     Nbranch_dist  =  params_dist.Nbranch; 
     Ngen_dist     =  params_dist.Ngen;    
     Ngen_trafo_dist_bus = params_dist.Ngen_trafo_bus;
+    % connections
+    Nbranch_conn  =  params_dist.Nconn;
 
     % combined model
     Ngen_mpc      =  get_number_of_generators(mpc_merge);
 
     check_number_of_buses(Nbus_trans,Nbus_dist,mpc_merge)
-    check_number_of_branches(Nbranch_trans,Nbranch_dist,mpc_merge)
+    check_number_of_branches(Nbranch_trans, Nbranch_dist, Nbranch_conn, mpc_merge)
     check_number_of_generators(Ngen_trans, Ngen_dist, Ngen_trafo_dist_bus, Ngen_mpc);
     
     edges = mpc_merge.(NAME_FOR_CONNECTIONS_FIELD){end};
-    check_for_line(mpc_merge, edges(1), edges(2));
+    from_edges = edges(:, 1);
+    to_edges = edges(:, 2);
+    for i = 1:numel(from_edges)
+        check_for_line(mpc_merge, from_edges(i), to_edges(i));
+    end
 
     % check whether new coupled case would work
     check_out_of_service(mpc_merge);
@@ -158,9 +163,9 @@ end
 
 % check the number of branches in merged case-file is as expected
 % M_transmission_system + M_distribution_system +1 = size(mpc.branch,1) 
-function check_number_of_branches(M_transmission_system, M_distribution_system, mpc)
+function check_number_of_branches(M_transmission_system, M_distribution_system, M_conn, mpc)
     M_mpc = size(mpc.branch, 1);
-    assert(M_transmission_system + M_distribution_system + 1 == M_mpc, 'post_processing:check_number_of_branches', 'Total number of branches is not equal to the `sum of number of branches in both subsystems` + 1.')
+    assert(M_transmission_system + M_distribution_system + M_conn == M_mpc, 'post_processing:check_number_of_branches', 'Total number of branches is not equal to the `sum of number of branches in both subsystems` + 1.')
 end
 
 % check the number of generators in merged case-file is as expected
@@ -172,5 +177,5 @@ function check_number_of_generators(Ngen_trans, Ngen_dist, Ngen_trafo_dist_bus, 
     % Ngen_trafo_dist_bus -- the number of generators to be removed in the
     % distribution system
     % Ngen_mpc   -- the number of generators in the mpc after merging
-    assert(Ngen_trans + Ngen_dist - Ngen_trafo_dist_bus == Ngen_mpc, 'post_processing:check_number_of_generators', 'There is something wrong the number of generators (expected %i, got %i).', Ngen_trans + Ngen_dist - Ngen_trafo_dist_bus, Ngen_mpc)
+    assert(Ngen_trans + Ngen_dist - sum(Ngen_trafo_dist_bus) == Ngen_mpc, 'post_processing:check_number_of_generators', 'There is something wrong the number of generators (expected %i, got %i).', Ngen_trans + Ngen_dist - Ngen_trafo_dist_bus, Ngen_mpc)
 end
