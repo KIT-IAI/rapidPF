@@ -48,12 +48,6 @@ Nconnections = height(conn);
 %% case-file-generator
 mpc_merge = create_skeleton_mpc({mpc_trans}, fields_to_merge, names);
 
-% mpc_trans = add_connection_info_local(mpc_trans, 1, connection_table, names);
-% for i = 1:numel(mpc_dist)
-%     mpc = add_connection_info_local(mpc_dist{i}, i+1, connection_table, names);
-%     mpc_dist{i} = mpc;
-% end
-
 tab = conn;
 Ncount = get_number_of_buses(mpc_trans);
 for i = 1:numel(mpc_dist)
@@ -73,6 +67,7 @@ mpc_split = add_copy_nodes(mpc_merge, conn, names);
 mpc_split = add_copy_nodes_to_regions(mpc_split, names);
 % mpc_split = add_aux_buses_per_region(mpc_split, names);
 mpc_split = split_and_makeYbus(mpc_split, names);
+mpc_split = add_consensus_information(mpc_split, conn, names);
 savecase('mpc_merge_split.m', mpc_split);
 
 %% generate problem formulation for aladin

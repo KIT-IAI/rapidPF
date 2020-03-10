@@ -7,7 +7,7 @@ function mpc = add_copy_nodes_to_regions(mpc, names)
     
     regions_with_copy_nodes = cell(Nregions, 1);
     for i = 1:Nregions
-        regions_with_copy_nodes{i} = [regions{i} copy_nodes{i}'];
+        regions_with_copy_nodes{i} = [regions{i} sort(copy_nodes{i})'];
     end
     mpc.(names.regions.global_with_copies) = regions_with_copy_nodes;
 end
