@@ -1,6 +1,6 @@
 % start merging two case file, with local function executing
 % pre-/post-processing check
-function mpc = merge_transmission_with_distribution(mpc_trans, mpc_dist, pars, names)
+function mpc = merge_transmission_with_distribution(mpc_master, mpc_slave, pars, names)
 % INPUT to the function
 % mpc_TS -- case file for transmission system with 1..N_TS bus/branch numbering
 % mpc_DS -- case file for distribution system with 1..N_DS bus/branch numbering
@@ -12,48 +12,48 @@ function mpc = merge_transmission_with_distribution(mpc_trans, mpc_dist, pars, n
     NAME_FOR_CONNECTIONS_FIELD = names.connections.global;
     NAME_FOR_CONNECTIONS_GLOBAL_FIELD = names.connections.local;
     
-    trafo_trans_bus          = pars.transformer.transmission_bus;
-    trafo_dist_bus           = pars.transformer.distribution_bus;
-    params                   = pars.transformer.params;
-    fields_to_merge          = pars.fields_to_merge;
-    Nbus_trans               = get_number_of_buses(mpc_trans);       % number of buses in transmission casefile
-    Nconn                    = numel(trafo_trans_bus);
+    trafo_master_bus = pars.transformer.transmission_bus;
+    trafo_slave_bus = pars.transformer.distribution_bus;
+    params = pars.transformer.params;
+    fields_to_merge = pars.fields_to_merge;
+    Nbus_trans = get_number_of_buses(mpc_master);       % number of buses in transmission casefile
+    Nconn = numel(trafo_master_bus);
     
     %% attain the information of distribution before processing    
-    params_dist.Nbus         = get_number_of_buses(mpc_dist);
-    params_dist.Nbranch      = get_number_of_branches(mpc_dist);
-    params_dist.Ngen         = get_number_of_generators(mpc_dist);   %
-    params_dist.Ngen_trafo_bus = zeros(Nconn, 1);
+    params_slave.Nbus         = get_number_of_buses(mpc_slave);
+    params_slave.Nbranch      = get_number_of_branches(mpc_slave);
+    params_slave.Ngen         = get_number_of_generators(mpc_slave);   %
+    params_slave.Ngen_trafo_bus = zeros(Nconn, 1);
     for k = 1:Nconn
-        params_dist.Ngen_trafo_bus(k) = get_number_of_connected_generators(mpc_dist, trafo_dist_bus(k));
+        params_slave.Ngen_trafo_bus(k) = get_number_of_connected_generators(mpc_slave, trafo_slave_bus(k));
     end
-    params_dist.Nconn        = Nconn;
+    params_slave.Nconn        = Nconn;
     %% pre-processing: run several sanity checks
-    pre_processing(mpc_trans, mpc_dist, trafo_trans_bus, trafo_dist_bus, fields_to_merge);
+    pre_processing(mpc_master, mpc_slave, trafo_master_bus, trafo_slave_bus, fields_to_merge);
     %% main part
-    mpc_dist = replace_slack_and_generators(mpc_dist, trafo_dist_bus);
-    mpc = merge_numbering_and_stack(mpc_trans, mpc_dist, fields_to_merge);
-    mpc = add_region_information(mpc, Nbus_trans, params_dist.Nbus, names);
-    mpc = add_edge_information(mpc, trafo_trans_bus, trafo_dist_bus, NAME_FOR_CONNECTIONS_GLOBAL_FIELD);
+    mpc_slave = replace_slack_and_generators(mpc_slave, trafo_slave_bus);
+    mpc = merge_numbering_and_stack(mpc_master, mpc_slave, fields_to_merge);
+    mpc = add_region_information(mpc, Nbus_trans, params_slave.Nbus, names);
+    mpc = add_edge_information(mpc, trafo_master_bus, trafo_slave_bus, NAME_FOR_CONNECTIONS_GLOBAL_FIELD);
 
-    trafo_from_bus = trafo_trans_bus;
-    trafo_to_bus   = trafo_dist_bus + Nbus_trans;
+    trafo_from_bus = trafo_master_bus;
+    trafo_to_bus   = trafo_slave_bus + Nbus_trans;
     mpc = add_transformer_branch(mpc, trafo_from_bus, trafo_to_bus, params);
     mpc = add_edge_information(mpc, trafo_from_bus, trafo_to_bus, NAME_FOR_CONNECTIONS_FIELD);
     %% post-processing: run several sanity checks
-    post_processing(mpc_trans, mpc, params_dist, names);
+    post_processing(mpc_master, mpc, params_slave, names);
 end
 
 % carry out sanity check before processing, carried out iteratively
-function pre_processing(mpc_trans, mpc_dist, trans_connection_buses, dist_connection_buses, field_name)
+function pre_processing(mpc_master, mpc_slave, master_connection_buses, slave_connection_buses, field_name)
 % INPUT
 % mpc_trans            -- case file for trans, in 'struct'
 % mpc_dist             -- case file for dist,  in 'struct'
 % trans_connection_buses -- buses connected to trasfo in transmission
 % dist_connection_buses  -- buses connected to trasfo in distribution
-    pre_processing_mpc(mpc_trans, trans_connection_buses, 'transmission', field_name);    
-    pre_processing_mpc(mpc_dist, dist_connection_buses, 'distribution', field_name);
-    check_baseMVA_between_mpc(mpc_trans, mpc_dist);    
+    pre_processing_mpc(mpc_master, master_connection_buses, 'transmission', field_name);    
+    pre_processing_mpc(mpc_slave, slave_connection_buses, 'distribution', field_name);
+    check_baseMVA_between_mpc(mpc_master, mpc_slave);    
 end
 
 function pre_processing_mpc(mpc, buses, msg, field_name)
@@ -67,30 +67,30 @@ end
 
 % check the number of buses, branches and generators in mpc_merge
 % check the working state of the merged case-file
-function post_processing(mpc_trans, mpc_merge, params_dist, names)
+function post_processing(mpc_master, mpc_merge, params_slave, names)
 % INPUT
 % mpc_trans   -- case-file for transmission
 % mpc_merge   -- combined case-file after merging
 % params_dist -- parameters of distribution before the processing
     NAME_FOR_CONNECTIONS_FIELD = names.connections.global;
     % transmission
-    Nbus_trans    =  get_number_of_buses(mpc_trans);       % number of buses in transmission casefile
-    Nbranch_trans =  get_number_of_branches(mpc_trans);    % .......... branch ...
-    Ngen_trans    =  get_number_of_generators(mpc_trans);  % ...........generators ...
+    Nbus_master    =  get_number_of_buses(mpc_master);       % number of buses in transmission casefile
+    Nbranch_master =  get_number_of_branches(mpc_master);    % .......... branch ...
+    Ngen_master    =  get_number_of_generators(mpc_master);  % ...........generators ...
     % distribution
-    Nbus_dist     =  params_dist.Nbus;    
-    Nbranch_dist  =  params_dist.Nbranch; 
-    Ngen_dist     =  params_dist.Ngen;    
-    Ngen_trafo_dist_bus = params_dist.Ngen_trafo_bus;
+    Nbus_slave = params_slave.Nbus;    
+    Nbranch_slave = params_slave.Nbranch; 
+    Ngen_slave = params_slave.Ngen;    
+    Ngen_trafo_slave_bus = params_slave.Ngen_trafo_bus;
     % connections
-    Nbranch_conn  =  params_dist.Nconn;
+    Nbranch_conn  =  params_slave.Nconn;
 
     % combined model
     Ngen_mpc      =  get_number_of_generators(mpc_merge);
 
-    check_number_of_buses(Nbus_trans,Nbus_dist,mpc_merge)
-    check_number_of_branches(Nbranch_trans, Nbranch_dist, Nbranch_conn, mpc_merge)
-    check_number_of_generators(Ngen_trans, Ngen_dist, Ngen_trafo_dist_bus, Ngen_mpc);
+    check_number_of_buses(Nbus_master,Nbus_slave,mpc_merge)
+    check_number_of_branches(Nbranch_master, Nbranch_slave, Nbranch_conn, mpc_merge)
+    check_number_of_generators(Ngen_master, Ngen_slave, Ngen_trafo_slave_bus, Ngen_mpc);
     
     edges = mpc_merge.(NAME_FOR_CONNECTIONS_FIELD){end};
     from_edges = edges(:, 1);

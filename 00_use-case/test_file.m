@@ -21,11 +21,11 @@ trans_connection_buses = [ 2, 3 ];
 dist_connection_buses = [ 1, 1 ];
 
 connection_array = [1 2 2 1;
-                    1 2 6 13;
-                    1 3 3 1;
+%                     1 2 6 13;
+                    1 3 3 2;
+                    2 3 2 3;
+                    2 3 13 1
                     ];
-connection_table = build_connection_table(connection_array);
-Nconnections = height(connection_table);
 
 trafo_params.r = 0;
 trafo_params.x = 0.00623;
@@ -33,12 +33,14 @@ trafo_params.b = 0;
 trafo_params.ratio = 0.985;
 trafo_params.angle = 0;
 
-[t2_1, t2_2, t3_1] = deal(trafo_params);
+[t2_1, t2_2, t3_1, t3_2] = deal(trafo_params);
 t2_1.r = 0.0021;
 t2_2.r = 0.0022;
 t3_1.r = 0.0031;
 
-trafo_params_array = { {t2_1; t2_2}; {t3_1} };
+
+connection_table = build_connection_table(connection_array, trafo_params);
+Nconnections = height(connection_table);
 
 %% global check
 % global_check(mpc_dist, trans_connection_buses, dist_connection_buses, trafo_params_array);
@@ -52,11 +54,16 @@ mpc_merge = create_skeleton_mpc({mpc_trans}, fields_to_merge, names);
 %     mpc_dist{i} = mpc;
 % end
 
-for i = 1:Nconnections-1
+tab = connection_table;
+Ncount = get_number_of_buses(mpc_trans);
+for i = 1:numel(mpc_dist)
     % loop over systems
     fprintf('\nMerging distribution system #%i \n', i);
-    merge_info = generate_merge_info_from_table(i+1, trafo_params_array{i}, connection_table, fields_to_merge);
+    merge_info = generate_merge_info_from_table(i+1, tab, fields_to_merge);
     mpc_merge = merge_transmission_with_distribution(mpc_merge, mpc_dist{i}, merge_info, names);
+    
+    tab = update_connections(tab, i+1, Ncount);
+    Ncount = Ncount + get_number_of_buses(mpc_dist{i});
 end
 
 savecase('mpc_merge.m', mpc_merge)
