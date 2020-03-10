@@ -20,7 +20,7 @@ N_dist = numel(mpc_dist);
 trans_connection_buses = [ 2, 3 ];
 dist_connection_buses = [ 1, 1 ];
 
-connection_array = [1 2 2 1;
+connection_array = [2 1 1 2;
 %                     1 2 6 13;
                     1 3 3 2;
                     2 3 2 3;
@@ -39,8 +39,8 @@ t2_2.r = 0.0022;
 t3_1.r = 0.0031;
 
 
-connection_table = build_connection_table(connection_array, trafo_params);
-Nconnections = height(connection_table);
+conn = build_connection_table(connection_array, trafo_params);
+Nconnections = height(conn);
 
 %% global check
 % global_check(mpc_dist, trans_connection_buses, dist_connection_buses, trafo_params_array);
@@ -54,7 +54,7 @@ mpc_merge = create_skeleton_mpc({mpc_trans}, fields_to_merge, names);
 %     mpc_dist{i} = mpc;
 % end
 
-tab = connection_table;
+tab = conn;
 Ncount = get_number_of_buses(mpc_trans);
 for i = 1:numel(mpc_dist)
     % loop over systems
