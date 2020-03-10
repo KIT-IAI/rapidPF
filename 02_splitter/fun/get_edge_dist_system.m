@@ -10,8 +10,8 @@ function [from_bus, to_bus] = get_edge_dist_system(mpc, N_dist_system, names)
     [from_bus, to_bus] = get_edge_dist_system_no_checks(mpc, N_dist_system, names);
     
     check_bus_numbering(from_bus, to_bus);
-    check_bus_consistency(mpc, 1, from_bus, names);
-    check_bus_consistency(mpc, N_dist_system+1, to_bus, names); % +1 is necessary to account for transmission system
+%     check_bus_consistency(mpc, 1, from_bus, names);
+%     check_bus_consistency(mpc, N_dist_system+1, to_bus, names); % +1 is necessary to account for transmission system
     
 end
 

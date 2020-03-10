@@ -68,26 +68,28 @@ end
 
 savecase('mpc_merge.m', mpc_merge)
 %% case-file-splitter
-mpc_split = add_aux_buses(mpc_merge, names);
-mpc_split = add_aux_buses_per_region(mpc_split, names);
+% mpc_split = add_aux_buses(mpc_merge, names);
+mpc_split = add_copy_nodes(mpc_merge, conn, names);
+mpc_split = add_copy_nodes_to_regions(mpc_split, names);
+% mpc_split = add_aux_buses_per_region(mpc_split, names);
 mpc_split = split_and_makeYbus(mpc_split, names);
 savecase('mpc_merge_split.m', mpc_split);
 
 %% generate problem formulation for aladin
-problem = generate_distributed_problem(mpc_split, names);
-
-[xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
-[xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc_split, problem, names);
-comparison_centralized = compare_results(xval, xsol)
-
-opts = struct( ...
-        'rho0',1.5e1,'rhoUpdate',1.1,'rhoMax',1e8,'mu0',1e2,'muUpdate',2,...
-        'muMax',2*1e6,'eps',0,'maxiter',30,'actMargin',-1e-6,'hessian','standard',...%-1e-6
-        'solveQP','MA57','reg','true','locSol','ipopt','innerIter',2400,'innerAlg', ...
-        'none','Hess','standard','plot',true,'slpGlob', true,'trGamma', 1e6, ...
-        'Sig','const','term_eps', 0, 'parfor', false, 'reuse', false);
-[xsol_aladin, xsol_stack_aladin, mpc_sol_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names);
-comparison_aladin = compare_results(xsol, xsol_aladin)
+% problem = generate_distributed_problem(mpc_split, names);
+% 
+% [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
+% [xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc_split, problem, names);
+% comparison_centralized = compare_results(xval, xsol)
+% 
+% opts = struct( ...
+%         'rho0',1.5e1,'rhoUpdate',1.1,'rhoMax',1e8,'mu0',1e2,'muUpdate',2,...
+%         'muMax',2*1e6,'eps',0,'maxiter',30,'actMargin',-1e-6,'hessian','standard',...%-1e-6
+%         'solveQP','MA57','reg','true','locSol','ipopt','innerIter',2400,'innerAlg', ...
+%         'none','Hess','standard','plot',true,'slpGlob', true,'trGamma', 1e6, ...
+%         'Sig','const','term_eps', 0, 'parfor', false, 'reuse', false);
+% [xsol_aladin, xsol_stack_aladin, mpc_sol_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names);
+% comparison_aladin = compare_results(xsol, xsol_aladin)
 
 
 %% generate centralized problem
