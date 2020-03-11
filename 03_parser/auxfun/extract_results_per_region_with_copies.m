@@ -1,27 +1,23 @@
 function [y, y_stacked] = extract_results_per_region_with_copies(mpc, names)
-%     opt = mpoption;
-%     opt.verbose = 0;
-%     opt.out.all = 0;
-%     res = runpf(mpc, opt);
-    [x, x_stacked] = extract_results_per_region(mpc, names);
-    [vang, vmag, pnet, qnet] = unstack_state(cell2mat(x));
-    
-    copy_local = mpc.(names.copy_buses.local);
+    [x, ~] = extract_results_per_region(mpc, names);
+    x_full = vertcat(x{:});
+    ang_mag_full = x_full(:, 1:2);
     copy_global = mpc.(names.copy_buses.global);
     
-    N_regions = numel(copy_local);
+    N_regions = numel(copy_global);
     [y, y_stacked] = deal(cell(N_regions, 1));
     
     for i = 1:N_regions
-        vang_copy = vang(copy_global{i});
-        vmag_copy = vmag(copy_global{i});
-        N_copies = numel(vang_copy);
-        state = x{i};
-        [vang_, vmag_, pnet_, qnet_] = unstack_state(state);
+        buses = copy_global{i};
+        assert(issorted(buses), 'copy buses in region %i are not sorted, which can cause issues.', i);
         
+        ang_mag = ang_mag_full(buses, :);
+        y{i} = [ x{i}; [ang_mag, NaN*ones(size(ang_mag))] ];
         
-        y{i} = [state; [vang_copy, vmag_copy,  NaN*ones(N_copies, 2)] ];
-        y_stacked{i} = [ vang_; vang_copy; vmag_; vmag_copy; pnet_; qnet_ ];
-    end
-    
+        % stack solution and remove NaN entries
+        [rows, cols] = size(y{i});
+        y_stacked{i} = reshape(y{i}, rows*cols, 1);
+        inds = isnan(y_stacked{i});
+        y_stacked{i}(inds) = [];
+    end 
 end

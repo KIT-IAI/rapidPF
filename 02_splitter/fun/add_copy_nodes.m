@@ -20,6 +20,11 @@ function mpc = add_copy_nodes(mpc, tab, names)
     check_size(copy_buses_global, mpc, tab, names)
     check_size(copy_buses_local, mpc, tab, names)
     
+    for i = 1:N_systems
+        copy_buses_global{i} = sort(copy_buses_global{i});
+        copy_buses_local{i} = sort(copy_buses_local{i});
+    end
+    
     mpc.(names.copy_buses.global) = copy_buses_global;
     mpc.(names.copy_buses.local) = copy_buses_local;
 end

@@ -12,8 +12,8 @@ function problem = generate_distributed_problem(mpc, names)
     fprintf('\n\n');
     for i = 1:N_regions
         fprintf('Creating power flow problem for system %i...', i);
-        [cost, inequality, equality, x0, pf, bus_spec] = generate_local_power_flow_problem(mpc.(names.split){i}, names);
-        [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, bus_specs{i}] = deal(cost, inequality, equality, x0, pf, bus_spec);
+        [cost, inequality, equality, x0, pf, bus_spec, state] = generate_local_power_flow_problem(mpc.(names.split){i}, names, num2str(i));
+        [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, bus_specs{i}, states{i}] = deal(cost, inequality, equality, x0, pf, bus_spec, state);
         fprintf('done.\n')
     end
     %% ALADIN parameters
@@ -46,6 +46,7 @@ function problem = generate_distributed_problem(mpc, names)
     
     problem.pf = pfs;
     problem.bus_specs = bus_specs;
+    problem.state = states;
 end
 
 function Sigma = build_Sigma_per_region(N_core, N_copy)
