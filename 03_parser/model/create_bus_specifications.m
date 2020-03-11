@@ -50,7 +50,7 @@ function f = create_bus_specifications(Vang, Vmag, Pnet, Qnet, mpc, local_bus_to
     
     f = [f_V; f_S];
 end
-
+%% local functions
 function [ref, pv, pq] = remove_bus(bus, ref, pv, pq)
     ref = setdiff(ref, bus);
     pv = setdiff(pv, bus);
@@ -65,19 +65,36 @@ function gen = remove_gen_entries(gen, bus, buses)
     [GEN_BUS, PG, QG, QMAX, QMIN, VG, MBASE, GEN_STATUS, PMAX, PMIN, ...
             MU_PMAX, MU_PMIN, MU_QMAX, MU_QMIN, PC1, PC2, QC1MIN, QC1MAX, ...
             QC2MIN, QC2MAX, RAMP_AGC, RAMP_10, RAMP_30, RAMP_Q, APF] = idx_gen;
-    %%
-    types = get_bus_types(bus, buses);
     
-    if unique(types) == 1
-        % do nothing
-    elseif unique(types) == 2
-        % the buses to be removed are generator buses
-        gen_entries = find(gen(:, GEN_BUS) == buses);
-        gen(gen_entries, :) = [];
-    elseif unique(types) == 3
-        error('asked to remove the slack. bad idea.')
+    types = get_bus_types(bus, buses);
+    if has_slack_entry(types)
+        error('asked to remove the slack. bad idea.');
+    elseif has_pv_entry(types)
+        % there is at least one PV bus, hence remove the corresponding gen
+        % entry
+        [~, inds] = intersect(gen(:, GEN_BUS), buses);
+        gen(inds, :) = [];
+    end
+end
+
+function bool = has_pv_entry(types)
+    [PQ, PV, REF, NONE, BUS_I, BUS_TYPE, PD, QD, GS, BS, BUS_AREA, VM, ...
+        VA, BASE_KV, ZONE, VMAX, VMIN, LAM_P, LAM_Q, MU_VMAX, MU_VMIN] = idx_bus;
+    bool = has_element(types, PV);
+end
+
+function bool = has_slack_entry(types)
+    [PQ, PV, REF, NONE, BUS_I, BUS_TYPE, PD, QD, GS, BS, BUS_AREA, VM, ...
+        VA, BASE_KV, ZONE, VMAX, VMIN, LAM_P, LAM_Q, MU_VMAX, MU_VMIN] = idx_bus;
+    bool = has_element(types, REF);
+end
+
+function bool = has_element(vec, x)
+    set = intersect(vec, x);
+    if isempty(set)
+        bool = false;
     else
-        error('the buses to be removed are not unique; please double-check.')
+        bool = true;
     end
 end
 
