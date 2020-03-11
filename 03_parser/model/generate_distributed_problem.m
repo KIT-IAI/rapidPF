@@ -6,8 +6,8 @@ function problem = generate_distributed_problem(mpc, names)
     N_core_buses_in_regions = cellfun(@(x)numel(x), mpc.(names.regions.global));
     [costs, inequalities, equalities, states, xx0, pfs, bus_specs] = deal(cell(N_regions,1));
     %% set up the Ai's
-    connection_information = get_copy_bus_information(mpc, names);
-    consensus_matrices = create_consensus_matrices(connection_information, N_buses_in_regions, N_copy_buses_in_regions);
+%     connection_information = get_copy_bus_information(mpc, names);
+    consensus_matrices = create_consensus_matrices_new(mpc.consensus, N_buses_in_regions, N_copy_buses_in_regions);
     %% create local power flow problems
     fprintf('\n\n');
     for i = 1:N_regions

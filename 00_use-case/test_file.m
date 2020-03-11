@@ -20,12 +20,15 @@ N_dist = numel(mpc_dist);
 trans_connection_buses = [ 2, 3 ];
 dist_connection_buses = [ 1, 1 ];
 
-connection_array = [2 1 1 2;
-%                     1 2 6 13;
-                    1 3 3 2;
-                    2 3 2 3;
-                    2 3 13 1
-                    ];
+connection_array = [ 1 2 2 1;
+                     1 3 3 1];
+
+% connection_array = [2 1 1 2;
+% %                     1 2 6 13;
+%                     1 3 3 2;
+%                     2 3 2 3;
+%                     2 3 13 1
+%                     ];
 
 trafo_params.r = 0;
 trafo_params.x = 0.00623;
@@ -33,10 +36,10 @@ trafo_params.b = 0;
 trafo_params.ratio = 0.985;
 trafo_params.angle = 0;
 
-[t2_1, t2_2, t3_1, t3_2] = deal(trafo_params);
-t2_1.r = 0.0021;
-t2_2.r = 0.0022;
-t3_1.r = 0.0031;
+% [t2_1, t2_2, t3_1, t3_2] = deal(trafo_params);
+% t2_1.r = 0.0021;
+% t2_2.r = 0.0022;
+% t3_1.r = 0.0031;
 
 
 conn = build_connection_table(connection_array, trafo_params);
@@ -71,20 +74,20 @@ mpc_split = add_consensus_information(mpc_split, conn, names);
 savecase('mpc_merge_split.m', mpc_split);
 
 %% generate problem formulation for aladin
-% problem = generate_distributed_problem(mpc_split, names);
+problem = generate_distributed_problem(mpc_split, names);
 % 
-% [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
-% [xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc_split, problem, names);
-% comparison_centralized = compare_results(xval, xsol)
-% 
-% opts = struct( ...
-%         'rho0',1.5e1,'rhoUpdate',1.1,'rhoMax',1e8,'mu0',1e2,'muUpdate',2,...
-%         'muMax',2*1e6,'eps',0,'maxiter',30,'actMargin',-1e-6,'hessian','standard',...%-1e-6
-%         'solveQP','MA57','reg','true','locSol','ipopt','innerIter',2400,'innerAlg', ...
-%         'none','Hess','standard','plot',true,'slpGlob', true,'trGamma', 1e6, ...
-%         'Sig','const','term_eps', 0, 'parfor', false, 'reuse', false);
-% [xsol_aladin, xsol_stack_aladin, mpc_sol_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names);
-% comparison_aladin = compare_results(xsol, xsol_aladin)
+[xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
+[xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc_split, problem, names);
+comparison_centralized = compare_results(xval, xsol)
+
+opts = struct( ...
+        'rho0',1.5e1,'rhoUpdate',1.1,'rhoMax',1e8,'mu0',1e2,'muUpdate',2,...
+        'muMax',2*1e6,'eps',0,'maxiter',30,'actMargin',-1e-6,'hessian','standard',...%-1e-6
+        'solveQP','MA57','reg','true','locSol','ipopt','innerIter',2400,'innerAlg', ...
+        'none','Hess','standard','plot',true,'slpGlob', true,'trGamma', 1e6, ...
+        'Sig','const','term_eps', 0, 'parfor', false, 'reuse', false);
+[xsol_aladin, xsol_stack_aladin, mpc_sol_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names);
+comparison_aladin = compare_results(xsol, xsol_aladin)
 
 
 %% generate centralized problem
