@@ -20,9 +20,9 @@ graph LR;
     parser --> solver2(Aladin):::solver;
     parser --> solverDot(...):::solver;
 
-    style conn fill:#ddffdd, stroke:#000000;
-    classDef case-file-x fill:#bbbbbb, stroke:#000000;
-    classDef solver fill:#FFAA33, stroke:#000000;
+    style conn fill:#ddffdd;
+    classDef case-file-x fill:#bbbbbb;
+    classDef solver fill:#FFAA33;
 ```
 
 ## Modeling assumptions
@@ -66,15 +66,5 @@ graph LR;
 
 ### Case file parser
 - The distributed problem is obtained by copying buses at the connecting lines, and then enforcing consensus at the original buses and their respective copies.
-- The state $x_i$ in every region $i$ is composed of $n_{i}^{\text{core}}$ *core entries* and $n_{i}^{\text{copy}}$ *copy entries*, where
-$$
-x_{i}^{\text{core}} = ( \theta_i^{\text{core}}, v_i^{\text{core}}, p_i^{\text{core}}, q_i^{\text{core}} ) \in \mathbb{R}^{4 n_{i}^{\text{core}}},
-$$
-and
-$$
-x_{i}^{\text{copy}} = ( \theta_i^{\text{copy}}, v_i^{\text{copy}}) \in \mathbb{R}^{2 n_{i}^{\text{copy}}}
-$$
-- The full state of region $i$ is
-$$
-x_i = (\theta_i^{\text{core}}, \theta_i^{\text{copy}}, v_i^{\text{core}}, v_i^{\text{copy}}, p_i^{\text{core}}, q_i^{\text{core}}) \in \mathbb{R}^{4 n_i^{\text{core}} + 2 n_i^{\text{copy}}}.
-$$
+- The state $x_i$ in every region $i$ is composed of $n_{i}^{\text{core}}$ *core entries* and $n_{i}^{\text{copy}}$ *copy entries*, where $x_{i}^{\text{core}} = ( \theta_i^{\text{core}}, v_i^{\text{core}}, p_i^{\text{core}}, q_i^{\text{core}} ) \in \mathbb{R}^{4 n_{i}^{\text{core}}}$, and $x_{i}^{\text{copy}} = ( \theta_i^{\text{copy}}, v_i^{\text{copy}}) \in \mathbb{R}^{2 n_{i}^{\text{copy}}}$.
+- The full state of region $i$ is $x_i = (\theta_i^{\text{core}}, \theta_i^{\text{copy}}, v_i^{\text{core}}, v_i^{\text{copy}}, p_i^{\text{core}}, q_i^{\text{core}}) \in \mathbb{R}^{4 n_i^{\text{core}} + 2 n_i^{\text{copy}}}$.
