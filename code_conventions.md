@@ -1,5 +1,6 @@
 ## Code conventions
 - one function does one single thing
+- one function retains the same level of abstraction
 - minimize the number of function arguments, e.g. `foo(mystruct)` vs. `foo(a,b,c,d,e)`
 - use *speaking* function names, e.g. `get_number_of_buses()` vs. `getNbus()`
 - use lowercase with underscore as separation, e.g. `get_number_of_buses()` vs. `getNumberOfBuses()`
