@@ -1,32 +1,73 @@
-% create consensus in complex voltage at copy buses
+function A = create_consensus_matrices(tab, number_of_buses_in_region, number_of_copy_buses_in_region)
+    assert(istable(tab), 'expecting tab to be a table.');
+    assert(mod(height(tab), 2) == 0, 'inconsistent number of consensus restrictions.')
+    assert(numel(number_of_buses_in_region) == numel(number_of_copy_buses_in_region), 'inconsistent dimensions');
+    
+    % consensus for voltage angles
+    Aang = build_consensus_matrix(tab, number_of_buses_in_region, number_of_copy_buses_in_region, 'ang');
+    % consensus for voltage magnitudes
+    Amag = build_consensus_matrix(tab, number_of_buses_in_region, number_of_copy_buses_in_region, 'mag');
+    % stack together and check for correct dimensions
+    A = stack_and_check(Aang, Amag, height(tab), number_of_buses_in_region, number_of_copy_buses_in_region);
+end
 
-function A = create_consensus_matrices(copy_bus_information, number_of_buses_in_region, number_of_copy_buses_in_region)
-    N_regions = numel(number_of_buses_in_region);
-    N_consensus = 2*size(copy_bus_information, 1); % consensus in voltage phasors
-
-    A = cell(N_regions, 1);
-    for i = 1:N_regions
-        A{i} = sparse(N_consensus, 4*number_of_buses_in_region(i));   
+function A = stack_and_check(Aang, Amag, Nconsensus, number_of_buses_in_region, number_of_copy_buses_in_region)
+    assert(numel(Aang) == numel(Amag), 'inconsistent dimensions.');
+    A = Aang;
+    Nrows = 2*Nconsensus;
+    for i = 1:numel(Amag)
+        A{i} = [ Aang{i}; Amag{i} ];
+        
+        Ncopy = number_of_copy_buses_in_region(i);
+        Ncore = number_of_buses_in_region(i) - Ncopy;
+        Ncols = 4*Ncore + 2*Ncopy;
+        
+        assert(prod(size(A{i}) == [Nrows, Ncols]) == 1, 'inconsistent dimensions for consensus matrix in region %i', i);
     end
+end
 
-    row_counter = 0;
+function A = build_consensus_matrix(tab, number_of_buses_in_region, number_of_copy_buses_in_region, Nshift)
+    A = build_consensus_matrix_core(tab, number_of_buses_in_region, Nshift);
+    A = delete_copy_bus_p_q_entries(A, number_of_copy_buses_in_region);
+end
 
-    for i = 1:size(copy_bus_information, 1)
-        from_sys = copy_bus_information(i,1);
-        from_bus = copy_bus_information(i,2);
-
-        to_sys = copy_bus_information(i,3);
-        to_bus = copy_bus_information(i,4);
+function A = build_consensus_matrix_core(tab, number_of_buses_in_region, kind)
+    kind = lower(kind);
+    Nconsensus = height(tab);
+%     assert(kind == 'ang' | kind == 'mag', 'kind %s is not supported (only `ang` or `mag`).');
+    Nregions = numel(number_of_buses_in_region);
+    A = cell(Nregions, 1);
+    for i = 1:Nregions
+        A{i} = sparse(Nconsensus, 4*number_of_buses_in_region(i));
+    end
+    
+    for i = 1:Nconsensus
+        orig_sys = tab.orig_sys(i);
+        copy_sys = tab.copy_sys(i);
+        orig_bus = tab.orig_bus_local(i);
+        copy_bus = tab.copy_bus_local(i);
+        
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         %%% the following code (implictly) assumes that the state in each
-        %%% region is stacked according to x = [vang, vmag, pnet, qnet]
+        %%% region is stacked according to x = [vang, vmag, pnet, qnet],
+        %%% hence some shifting might be necessary, depending on whether we
+        %%% build consensus for the voltage angle or voltage magnitude.
+        if kind == 'ang'
+            Norig = 0;
+            Ncopy = 0;
+        elseif kind == 'mag'
+            Norig = number_of_buses_in_region(orig_sys);
+            Ncopy = number_of_buses_in_region(copy_sys);
+        else
+            error('kind %s is not supported', kind);
+        end
         %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-        A{from_sys}((row_counter+1):(row_counter+2), [from_bus, number_of_buses_in_region(from_sys)+from_bus]) =  speye(2);  
-        A{to_sys}((row_counter+1):(row_counter+2), [to_bus, number_of_buses_in_region(to_sys)+to_bus]) = -speye(2);
-
-        row_counter = row_counter + 2;
+        orig_bus_entry = orig_bus + Norig;
+        copy_bus_entry = copy_bus + Ncopy;
+        
+        A{orig_sys}(i, orig_bus_entry) = 1;
+        A{copy_sys}(i, copy_bus_entry) = -1;
     end
-    A = delete_copy_bus_p_q_entries(A, number_of_copy_buses_in_region);
 end
 
 function A = delete_copy_bus_p_q_entries(A, copy_buses)
@@ -37,4 +78,3 @@ function A = delete_copy_bus_p_q_entries(A, copy_buses)
         A{i} = entries;
     end
 end
-

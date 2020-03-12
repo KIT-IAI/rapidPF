@@ -8,4 +8,5 @@ function names = generate_name_struct()
     names.connections.local = 'connections_global';
     names.connections.global = 'connections';
     names.split = 'split_case_files';
+    names.consensus = 'consensus';
 end

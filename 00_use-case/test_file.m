@@ -26,32 +26,14 @@ trafo_params.angle = 0;
 
 conn = build_connection_table(connection_array, trafo_params);
 Nconnections = height(conn);
-
-%% case-file-generator
-mpc_merge = create_skeleton_mpc({mpc_trans}, fields_to_merge, names);
-tab = conn;
-Ncount = get_number_of_buses(mpc_trans);
-for i = 1:numel(mpc_dist)
-    % loop over systems
-    fprintf('\nMerging distribution system #%i \n', i);
-    merge_info = generate_merge_info_from_table(i+1, tab, fields_to_merge);
-    mpc_merge = merge_transmission_with_distribution(mpc_merge, mpc_dist{i}, merge_info, names);
-    
-    tab = update_connections(tab, i+1, Ncount);
-    Ncount = Ncount + get_number_of_buses(mpc_dist{i});
-end
-
-savecase('mpc_merge.m', mpc_merge)
-%% case-file-splitter
-mpc_split = add_copy_nodes(mpc_merge, conn, names);
-mpc_split = add_copy_nodes_to_regions(mpc_split, names);
-mpc_split = split_and_makeYbus(mpc_split, names);
-mpc_split = add_consensus_information(mpc_split, conn, names);
-savecase('mpc_merge_split.m', mpc_split);
-
-%% generate problem formulation for aladin
-problem = generate_distributed_problem(mpc_split, names);
-% 
+%% main
+% case-file-generator
+mpc_merge = run_case_file_generator(mpc_trans, mpc_dist, conn, fields_to_merge, names);
+% case-file-splitter
+mpc_split = run_case_file_splitter(mpc_merge, conn, names);
+% generate problem formulation for aladin
+problem = generate_distributed_problem_for_aladin(mpc_split, names);
+% solve problem
 [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
 [xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc_split, problem, names);
 comparison_centralized = compare_results(xval, xsol)
@@ -64,7 +46,6 @@ opts = struct( ...
         'Sig','const','term_eps', 0, 'parfor', false, 'reuse', false);
 [xsol_aladin, xsol_stack_aladin, mpc_sol_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names);
 comparison_aladin = compare_results(xval, xsol_aladin)
-
 
 %% generate centralized problem
 % problem_centralized = generate_centralized_power_flow(mpc_split, names);

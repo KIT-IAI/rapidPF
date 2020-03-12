@@ -1,6 +1,6 @@
 % start merging two case file, with local function executing
 % pre-/post-processing check
-function mpc = merge_transmission_with_distribution(mpc_master, mpc_slave, pars, names)
+function mpc = merge_systems(mpc_master, mpc_slave, pars, names)
 % INPUT to the function
 % mpc_TS -- case file for transmission system with 1..N_TS bus/branch numbering
 % mpc_DS -- case file for distribution system with 1..N_DS bus/branch numbering
