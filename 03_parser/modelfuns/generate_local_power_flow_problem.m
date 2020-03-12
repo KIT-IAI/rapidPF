@@ -10,13 +10,23 @@
 %%% and the bus specifications:
 %%%     'create bus specifications and remove copy buses'.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [cost, ineq, eq, x0, pf, bus_specifications] = generate_local_power_flow_problem(mpc, names)
+function [cost, ineq, eq, x0, pf, bus_specifications, state] = generate_local_power_flow_problem(mpc, names, postfix)
     buses_core = mpc.(names.regions.global);
     N_core = numel(buses_core);
     buses_local = 1:N_core;
     copy_buses_local = mpc.(names.copy_buses.local);
     N_copy = numel(copy_buses_local);
     Ybus = makeYbus(ext2int(mpc));
+    
+    [Vang_core, Vmag_core, Pnet_core, Qnet_core] = create_state(postfix, N_core);
+    [Vang_copy, Vmag_copy, ~, ~] = create_state(strcat(postfix, '_copy'), N_copy);
+    
+    Vang = [Vang_core; Vang_copy];
+    Vmag = [Vmag_core; Vmag_copy];
+    Pnet = Pnet_core;
+    Qnet = Qnet_core;
+    
+    state = stack_state(Vang, Vmag, Pnet, Qnet);
     %% power flow equations
     entries_pf = build_entries(N_core, N_copy, true);
     pf_p = @(x)create_power_flow_equation_for_p(x(entries_pf{1}), x(entries_pf{2}), x(entries_pf{3}), x(entries_pf{4}), Ybus, buses_local);

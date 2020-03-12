@@ -6,17 +6,17 @@ addpath(genpath('../03_parser/'));
 
 names = generate_name_struct();
 %% setup
-fields_to_merge = { 'bus', 'gen', 'branch' };
-
+fields_to_merge = {'bus', 'gen', 'branch'};
 mpc_trans  = loadcase('case14');
-
 mpc_dist = { loadcase('case30')
-             loadcase('case9')
-            };
-N_dist = numel(mpc_dist);
+             loadcase('case9')  };
 
-trans_connection_buses = [ 2, 3 ];
-dist_connection_buses = [ 1, 1 ];
+connection_array = [2 1 1 2;
+%                     1 2 6 13;
+%                     1 3 3 2;
+                    2 3 2 3; 
+                    2 3 13 1;
+                    ];
 
 trafo_params.r = 0;
 trafo_params.x = 0.00623;
@@ -24,31 +24,34 @@ trafo_params.b = 0;
 trafo_params.ratio = 0.985;
 trafo_params.angle = 0;
 
-trafo_params_array = { trafo_params, trafo_params };
-
-%% global check
-global_check(mpc_dist, trans_connection_buses, dist_connection_buses, trafo_params_array);
+conn = build_connection_table(connection_array, trafo_params);
+Nconnections = height(conn);
 
 %% case-file-generator
-mpc_merge = create_skeleton_mpc(mpc_trans, fields_to_merge, names);
-
-for i = 1:numel(dist_connection_buses)
+mpc_merge = create_skeleton_mpc({mpc_trans}, fields_to_merge, names);
+tab = conn;
+Ncount = get_number_of_buses(mpc_trans);
+for i = 1:numel(mpc_dist)
+    % loop over systems
     fprintf('\nMerging distribution system #%i \n', i);
-    
-    merge_info = generate_merge_info(trans_connection_buses(i), dist_connection_buses(i), trafo_params_array{i}, fields_to_merge);
+    merge_info = generate_merge_info_from_table(i+1, tab, fields_to_merge);
     mpc_merge = merge_transmission_with_distribution(mpc_merge, mpc_dist{i}, merge_info, names);
+    
+    tab = update_connections(tab, i+1, Ncount);
+    Ncount = Ncount + get_number_of_buses(mpc_dist{i});
 end
 
 savecase('mpc_merge.m', mpc_merge)
-%% case-file-splittera
-mpc_split = add_aux_buses(mpc_merge, names);
-mpc_split = add_aux_buses_per_region(mpc_split, names);
+%% case-file-splitter
+mpc_split = add_copy_nodes(mpc_merge, conn, names);
+mpc_split = add_copy_nodes_to_regions(mpc_split, names);
 mpc_split = split_and_makeYbus(mpc_split, names);
+mpc_split = add_consensus_information(mpc_split, conn, names);
 savecase('mpc_merge_split.m', mpc_split);
 
 %% generate problem formulation for aladin
 problem = generate_distributed_problem(mpc_split, names);
-
+% 
 [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
 [xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc_split, problem, names);
 comparison_centralized = compare_results(xval, xsol)
@@ -60,7 +63,7 @@ opts = struct( ...
         'none','Hess','standard','plot',true,'slpGlob', true,'trGamma', 1e6, ...
         'Sig','const','term_eps', 0, 'parfor', false, 'reuse', false);
 [xsol_aladin, xsol_stack_aladin, mpc_sol_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names);
-comparison_aladin = compare_results(xsol, xsol_aladin)
+comparison_aladin = compare_results(xval, xsol_aladin)
 
 
 %% generate centralized problem
