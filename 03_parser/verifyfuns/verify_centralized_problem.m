@@ -1,4 +1,21 @@
 function [pf_problem_eval, consensus_eval, x_ref] = verify_centralized_problem(mpc, problem)
+% verify_centralized_problem
+%
+%   `copy the declaration of the function in here (leave the ticks unchanged)`
+%
+%   _describe what the function does in the following line_
+%
+%   # Markdown formatting is supported
+%   Equations are possible to, e.g $a^2 + b^2 = c^2$.
+%   So are lists:
+%   - item 1
+%   - item 2
+%   ```matlab
+%   function y = square(x)
+%       x^2
+%   end
+%   ```
+%   See also: [run_case_file_splitter](run_case_file_splitter.md)
     import casadi.*
     Nregions = numel(problem.AA);
     [pf_problem, pf_problem_eval, pf_eval] = deal(cell(Nregions, 1));

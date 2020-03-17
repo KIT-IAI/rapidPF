@@ -1,8 +1,21 @@
-% replace slack by PV, replace generators by PQ
-% attention: mpc should be distribution casefile
 function mpc = replace_slack_and_generators(mpc, trafo_buses)
-% mpc         -- distribution casefile
-% trasfo_bus -- the bus in TS conneted to the trafo
+% replace_slack_and_generators
+%
+%   `copy the declaration of the function in here (leave the ticks unchanged)`
+%
+%   _describe what the function does in the following line_
+%
+%   # Markdown formatting is supported
+%   Equations are possible to, e.g $a^2 + b^2 = c^2$.
+%   So are lists:
+%   - item 1
+%   - item 2
+%   ```matlab
+%   function y = square(x)
+%       x^2
+%   end
+%   ```
+%   See also: [run_case_file_splitter](run_case_file_splitter.md)
     slack_bus = find_slack_bus(mpc);   % ref
     % does any trafo_bus correspond to the slack bus?
     trafo_slack_bus = trafo_buses(trafo_buses == slack_bus);
