@@ -1,4 +1,21 @@
 function A = create_consensus_matrices(tab, number_of_buses_in_region, number_of_copy_buses_in_region)
+% create_consensus_matrices
+%
+%   `copy the declaration of the function in here (leave the ticks unchanged)`
+%
+%   _describe what the function does in the following line_
+%
+%   # Markdown formatting is supported
+%   Equations are possible to, e.g $a^2 + b^2 = c^2$.
+%   So are lists:
+%   - item 1
+%   - item 2
+%   ```matlab
+%   function y = square(x)
+%       x^2
+%   end
+%   ```
+%   See also: [run_case_file_splitter](run_case_file_splitter.md)
     assert(istable(tab), 'expecting tab to be a table.');
     assert(mod(height(tab), 2) == 0, 'inconsistent number of consensus restrictions.')
     assert(numel(number_of_buses_in_region) == numel(number_of_copy_buses_in_region), 'inconsistent dimensions');

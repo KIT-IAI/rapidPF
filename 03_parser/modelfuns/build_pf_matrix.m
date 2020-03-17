@@ -1,4 +1,21 @@
 function [M_p, M_q] = build_pf_matrix(ang, Y)
+% build_pf_matrix
+%
+%   `copy the declaration of the function in here (leave the ticks unchanged)`
+%
+%   _describe what the function does in the following line_
+%
+%   # Markdown formatting is supported
+%   Equations are possible to, e.g $a^2 + b^2 = c^2$.
+%   So are lists:
+%   - item 1
+%   - item 2
+%   ```matlab
+%   function y = square(x)
+%       x^2
+%   end
+%   ```
+%   See also: [run_case_file_splitter](run_case_file_splitter.md)
     G = real(Y);
     B = imag(Y);
     [sin_diff, cos_diff] = build_angle_differences(ang);

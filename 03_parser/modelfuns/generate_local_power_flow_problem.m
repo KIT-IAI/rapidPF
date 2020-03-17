@@ -1,3 +1,21 @@
+function [cost, ineq, eq, x0, pf, bus_specifications, state] = generate_local_power_flow_problem(mpc, names, postfix)
+% generate_local_power_flow_problem
+%
+%   `copy the declaration of the function in here (leave the ticks unchanged)`
+%
+%   _describe what the function does in the following line_
+%
+%   # Markdown formatting is supported
+%   Equations are possible to, e.g $a^2 + b^2 = c^2$.
+%   So are lists:
+%   - item 1
+%   - item 2
+%   ```matlab
+%   function y = square(x)
+%       x^2
+%   end
+%   ```
+%   See also: [run_case_file_splitter](run_case_file_splitter.md)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% The following code (implicitly) assumes that the copy buses are
 %%% always at the end of the bus numbering.
@@ -10,7 +28,6 @@
 %%% and the bus specifications:
 %%%     'create bus specifications and remove copy buses'.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function [cost, ineq, eq, x0, pf, bus_specifications, state] = generate_local_power_flow_problem(mpc, names, postfix)
     buses_core = mpc.(names.regions.global);
     N_core = numel(buses_core);
     buses_local = 1:N_core;

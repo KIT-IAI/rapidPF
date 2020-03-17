@@ -1,16 +1,20 @@
-% this file specifies the convention for how to stack the state
 function x = stack_state(ang, mag, pnet, qnet)
-%     check_dimensions(ang, mag, pnet, qnet);
+% stack_state
+%
+%   `copy the declaration of the function in here (leave the ticks unchanged)`
+%
+%   _describe what the function does in the following line_
+%
+%   # Markdown formatting is supported
+%   Equations are possible to, e.g $a^2 + b^2 = c^2$.
+%   So are lists:
+%   - item 1
+%   - item 2
+%   ```matlab
+%   function y = square(x)
+%       x^2
+%   end
+%   ```
+%   See also: [run_case_file_splitter](run_case_file_splitter.md)
     x = [ang; mag; pnet; qnet];
-end
-
-function bool = check_dimensions(ang, mag, pnet, qnet)
-    [vals{1:4}] = deal(ang, mag, pnet, qnet);
-    numels = cellfun(@(x)numel(x), vals);
-    if numel(unique(numels)) == 1
-        bool = true;
-    else
-        bool = false;
-        error('inconsistent dimensions for the state vector.');
-    end
 end

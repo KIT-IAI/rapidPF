@@ -1,14 +1,21 @@
-% start merging two case file, with local function executing
-% pre-/post-processing check
 function mpc = merge_systems(mpc_master, mpc_slave, pars, names)
-% INPUT to the function
-% mpc_TS -- case file for transmission system with 1..N_TS bus/branch numbering
-% mpc_DS -- case file for distribution system with 1..N_DS bus/branch numbering
-% trans_connection bus -- bus number from transmission system to which the
-% transformer is connected, must be between 1 and N_trans
-% dist_connection bus -- bus number from distribution system to which the
-% transformer is connected, must be between 1 and N_dist
-% params -- transformer/line params: r, x, b, ratio, angle
+% merge_systems
+%
+%   `copy the declaration of the function in here (leave the ticks unchanged)`
+%
+%   _describe what the function does in the following line_
+%
+%   # Markdown formatting is supported
+%   Equations are possible to, e.g $a^2 + b^2 = c^2$.
+%   So are lists:
+%   - item 1
+%   - item 2
+%   ```matlab
+%   function y = square(x)
+%       x^2
+%   end
+%   ```
+%   See also: [run_case_file_splitter](run_case_file_splitter.md)
     NAME_FOR_CONNECTIONS_FIELD = names.connections.global;
     NAME_FOR_CONNECTIONS_GLOBAL_FIELD = names.connections.local;
     
