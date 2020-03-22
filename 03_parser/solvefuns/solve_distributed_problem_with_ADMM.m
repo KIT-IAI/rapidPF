@@ -1,37 +1,71 @@
-function xsol = solve_distributed_problem_with_ADMM(problem, params)
+function [xsol, violation] = solve_distributed_problem_with_ADMM(problem, params)
 % solve the distributed problem
     max_iter           = params.max_iter;
     tol                = params.tol;
-    rou                = params.rou;
+    rho                = params.rou;
     AA                 = problem.AA;
     b                  = problem.b;
     state              = problem.state;
     X                  = problem.zz0;
-    % lamb_i initialize
+    A                  = horzcat(AA{:});  % Ax - b = 0, centralized
+    N_states           = get_number_of_state(state);
+
+    %  initialize
     lam0               = problem.lam0;
     N_regions          = size(X,1);
     Lambda             = {};
+    HQP                = []; % 
+
+    % regularization only for components not involved in consensus and
+    % project them back on x_k
+    gam   = 1e-3;
+    L     = diag(double(~sum(abs(A))));    
     for i = 1:N_regions
         Lambda{i} = lam0;
+       % build H and A for ctr. QP    
+        HQP = blkdiag(HQP, rho*AA{i}'*AA{i});
     end
+    HQP   = HQP + gam*L'*L;
 
     % ADMM - consensus form
     for i = 1:max_iter
         fprintf('iteration = %d\n', i);
-        % #1 solve the decoupled NLPs & #4 dual update
-        [Y, Lambda] = solve_decoupled_NLPs(problem, X, Lambda, rou);
+        xOld   = cell2mat(X);
+        % #1 solve the decoupled NLPs 
+        [Y, ~] = solve_decoupled_NLPs(problem, X, Lambda, rho);
         % #2 terminate?
-        [bool, violation] = check_terminal_condition(Y, AA, tol);
+        [bool, violation(i)] = check_terminal_condition(Y, A, tol);
         if bool
             xsol = Y;
             return;
         else
-            fprintf('norm of violation = %f\n', violation);
+            fprintf('norm of violation = %f\n', violation(i));
         end
-        % #3 solve the centralized QP
-        X = solve_centralized_QP(state,X,Y,Lambda,rou,AA,b);
+        % #3.1 old version to solve QP:
+              % X    = solve_centralized_QP(state,X,Y,Lambda,rho,AA,b);#
+        % #3.2 solve QP by KKT
+        g=[];
+        for j=1:N_regions
+           g  = [g, - rho*Y{j}'*AA{j}'*AA{j}-Lambda{j}'*AA{j}];
+        end
+        % regularization only for components not involved in consensus and
+        % project them back on x_k
+        gQP   = g' - gam*L'*L*vertcat(Y{:});
+        AQP   = A;
+        bQP   = b; 
+        x_stacked     = solve_centralized_QPnew(HQP,gQP,AQP,bQP);
+        X     = mat2cell(x_stacked, N_states);
+        % #4 lambda update
+        for j = 1:N_regions
+            Lambda{j} = Lambda{j} + rho*AA{j}*(Y{j}-X{j});
+        end        
+        % #5 update rule according to Guo 17 from remote point
+        % currently rho update is not actived
+        if norm(A*x_stacked,inf) > 0.9*norm(A*xOld,inf) && i > 1
+%            rho = rho*1.025;
+        end
     end
-    xsol = [];
+    xsol = X;
 end
 
 function [Y, Lambda] = solve_decoupled_NLPs(problem, X, Lambda, rou)
@@ -43,6 +77,7 @@ function [Y, Lambda] = solve_decoupled_NLPs(problem, X, Lambda, rou)
     AA                 = problem.AA;
     N_regions          = size(X,1);
     %options = optimoptions(@fminunc,'Display','iter','Algorithm','quasi-newton', 'MaxFunctionEvaluations', 10000);
+    %options = optimoptions(@fmincon,'Algorithm','interior-point','Display','iter','MaxFunctionEvaluations', 10000);
     options = optimoptions(@fmincon,'Algorithm','interior-point','Display','off','MaxFunctionEvaluations', 10000);
     % solve decoupled NLPs
     for i = 1 : N_regions
@@ -70,14 +105,10 @@ function [Y, Lambda] = solve_decoupled_NLPs(problem, X, Lambda, rou)
     clear global
 end
 
-function [bool, violation] = check_terminal_condition(Y, AA, tol)
+function [bool, violation] = check_terminal_condition(Y, A, tol)
 % check whether the terminal condition fullfilled
-    N_regions = size(Y,1);
-    violation = zeros(size(AA{1},1),1);
-    for i = 1 : N_regions
-        violation = violation + AA{i}*Y{i};
-    end
-    violation = norm(violation);
+    y         = cell2mat(Y');
+    violation = norm(A*y,1);
     if violation <= tol
         bool = true;
     else
@@ -106,6 +137,29 @@ function X = solve_centralized_QP(state,X,Y,Lambda,rou,AA,b)
 
     x_stacked  = fmincon(@(x)J(x),x0,[],[],Aeq,b,[],[],[],options);
     X   = mat2cell(x_stacked, N_states);
+end
+
+function x_stacked = solve_centralized_QPnew(H, g, A, b)
+    %SOLVEQP2 Solves a QP by 1st order necessary KKT condition
+    neq = size(A,1);
+    nx  = size(H,1);
+     
+    
+    % sparse solution
+    LEQS_As = sparse([H A';
+                      A zeros(neq)]);
+    LEQS_Bs = sparse([-g; b]);
+    LEQS_xs = LEQS_As\LEQS_Bs;    
+
+
+    if sum(isnan(LEQS_xs)) > 0 % regularization if no solution
+      LEQS_As    = LEQS_As + 1*abs(min(eig(LEQS_As)))*eye(size(LEQS_As))+1e-3;
+
+      LEQS_xs  = linsolve(LEQS_As,LEQS_Bs);
+    end
+
+    x_stacked    = LEQS_xs(1:nx);
+    lam     = LEQS_xs((nx+1):end); 
 end
 
 function [c, ceq] = nonlinear_constraints(x)
