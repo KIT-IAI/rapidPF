@@ -41,9 +41,9 @@ problem = generate_distributed_problem_for_aladin(mpc_split, names);
 %% ADMM test
 clc
 params.max_iter = 50;
-params.tol = 0.01;
+params.tol = 1e-5;
 params.rou = 1000;
-[x,e_admm] = solve_distributed_problem_with_ADMM(problem, params);
+[x,violation_admm, iter] = solve_distributed_problem_with_ADMM(problem, params);
 
 %% alex code
 opts.scaling = false;
@@ -54,9 +54,9 @@ solADM = run_ADMMnew(problem,opts);
 
 % terminate condition check
 A  = horzcat(problem.AA{:});
-e_alex  = [];
+violation_alex  = [];
 for i = 1:opts.maxIter
-    e_alex(i) = norm(A*solADM.logg.X(:,i),1);
+    violation_alex(i) = norm(A*solADM.logg.X(:,i),inf);
 end
 
 %% compare the x_opt
@@ -65,14 +65,15 @@ x_admm = cell2mat(x);
 e_xopt = abs(x_alex-x_admm); % percent
 
 %% plot result
-t =  1:opts.maxIter;
+t_admm =  1:iter;
+t_alex =  1:opts.maxIter;
 subplot(2,1,1)
-plot(t, e_alex,t, e_admm,'--');
+plot(t_alex, violation_alex, t_admm, violation_admm,'--');
 grid on
-xlabel('$Iteration$','interpreter','Latex');
-ylabel('$||Ax-b||_1$ ','interpreter','Latex');
+xlabel('$\text{Iteration}$','interpreter','Latex');
+ylabel('$||Ax-b||_{\infty}$ ','interpreter','Latex');
 legend('ADMMnew from Alex','ADMM from Xinliang')
 subplot(2,1,2)
 bar(e_xopt)
-xlabel('$state$','interpreter','Latex');
-ylabel('$state\quad error [%] $ ','interpreter','Latex');
+xlabel('$\text{state}$','interpreter','Latex');
+ylabel('$\text{state\quad error[abs]}$ ','interpreter','Latex');

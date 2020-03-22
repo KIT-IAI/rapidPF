@@ -1,4 +1,4 @@
-function [xsol, violation] = solve_distributed_problem_with_ADMM(problem, params)
+function [xsol, violation, iter] = solve_distributed_problem_with_ADMM(problem, params)
 % solve the distributed problem
     max_iter           = params.max_iter;
     tol                = params.tol;
@@ -37,6 +37,7 @@ function [xsol, violation] = solve_distributed_problem_with_ADMM(problem, params
         [bool, violation(i)] = check_terminal_condition(Y, A, tol);
         if bool
             xsol = Y;
+            iter = i;
             return;
         else
             fprintf('norm of violation = %f\n', violation(i));
@@ -66,6 +67,7 @@ function [xsol, violation] = solve_distributed_problem_with_ADMM(problem, params
         end
     end
     xsol = X;
+    iter = i;
 end
 
 function [Y, Lambda] = solve_decoupled_NLPs(problem, X, Lambda, rou)
@@ -108,7 +110,7 @@ end
 function [bool, violation] = check_terminal_condition(Y, A, tol)
 % check whether the terminal condition fullfilled
     y         = cell2mat(Y');
-    violation = norm(A*y,1);
+    violation = norm(A*y,inf);
     if violation <= tol
         bool = true;
     else
