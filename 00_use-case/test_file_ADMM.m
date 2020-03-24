@@ -38,6 +38,14 @@ mpc_merge = run_case_file_generator(mpc_trans, mpc_dist, conn, fields_to_merge, 
 mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 % generate problem formulation for aladin
 problem = generate_distributed_problem_for_aladin(mpc_split, names);
+%% compare against validation solution
+[xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
+
+[xsol_alex, xsol_alex_stacked, mpc_alex] = solve_distributed_problem_with_aladin_admm(mpc_split, problem, names);
+comparison_aladin = compare_results(xval, xsol_alex)
+
+[xsol_xinliang, xsol_xinliang_stacked, mpc_xinlian] = solve_distributed_problem_with_admm_xinliang(mpc_split, problem, names);
+comparison_aladin = compare_results(xval, xsol_xinliang)
 %% ADMM test
 clc
 params.max_iter = 50;
