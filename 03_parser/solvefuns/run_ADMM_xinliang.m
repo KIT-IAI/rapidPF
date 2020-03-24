@@ -1,4 +1,4 @@
-function [xsol, violation, iter] = solve_distributed_problem_with_ADMM(problem, params)
+function [xsol, violation, iter] = run_ADMM_xinliang(problem, params)
 % solve the distributed problem
     max_iter           = params.max_iter;
     tol                = params.tol;
