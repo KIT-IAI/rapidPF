@@ -1,4 +1,4 @@
-function [xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_with_admm_xinliang(mpc, problem, names, opts) 
+function [xsol, xsol_stacked, mpc_sol, loggX] = solve_distributed_problem_with_admm_xinliang(mpc, problem, names, params) 
 % solve_distributed_problem_with_aladin
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
@@ -16,14 +16,15 @@ function [xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_with_admm_xin
 %   end
 %   ```
 %   See also: [run_case_file_splitter](run_case_file_splitter.md)
-    params.max_iter = 35;
-    params.tol = 1e-5;
-    params.rou = 1000;
+%    params.max_iter = params.max_iter;
+%    params.tol = 1e-6;
+%    params.rou = params.rho;
 
-    [sol, violation, iter] = run_ADMM_xinliang(problem, params);
+
+    [sol, violation, iter, loggX] = run_ADMM_xinliang(problem, params);
     xsol = vertcat(sol{:});
     [xsol, xsol_stacked] = deal_solution(xsol, mpc, names); 
-    
+   
     %% numerical solution back to matpower casefile
     elapsed_time  =  NaN;
     alg           =  'ADMM';

@@ -1,15 +1,15 @@
-function [xsol, violation, iter] = run_ADMM_xinliang(problem, params)
+function [xsol, violation, iter, loggX] = run_ADMM_xinliang(problem, params)
 % solve the distributed problem
     max_iter           = params.max_iter;
     tol                = params.tol;
-    rho                = params.rou;
+    rho                = params.rho;
     AA                 = problem.AA;
     b                  = problem.b;
     state              = problem.state;
     X                  = problem.zz0;
     A                  = horzcat(AA{:});  % Ax - b = 0, centralized
     N_states           = get_number_of_state(state);
-
+    loggX              = [];
     %  initialize
     lam0               = problem.lam0;
     N_regions          = size(X,1);
@@ -33,6 +33,7 @@ function [xsol, violation, iter] = run_ADMM_xinliang(problem, params)
         xOld   = cell2mat(X);
         % #1 solve the decoupled NLPs 
         [Y, ~] = solve_decoupled_NLPs(problem, X, Lambda, rho);
+        loggX  = [loggX Y'];
         % #2 terminate?
         [bool, violation(i)] = check_terminal_condition(Y, A, tol);
         if bool

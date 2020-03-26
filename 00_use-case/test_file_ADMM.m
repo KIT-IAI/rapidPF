@@ -3,6 +3,8 @@ clear all; close all; clc;
 addpath(genpath('../01_generator/'));
 addpath(genpath('../02_splitter/'));
 addpath(genpath('../03_parser/'));
+addpath(genpath('../ADMM_comparison/'));
+
 
 names = generate_name_struct();
 %% setup
@@ -40,48 +42,26 @@ mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 problem = generate_distributed_problem_for_aladin(mpc_split, names);
 %% compare against validation solution
 [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
+%% ALADIN
+[xsol_aladin, xsol_stack_aladin, mpc_sol_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names);
+comparison_xinliang = compare_results(xval, xsol_aladin)
+%% compare ADMM toolboxes from alex and xinliang 
+ADMM_comparision_state_iterately(mpc_split, problem, xval, names);
 
-[xsol_alex, xsol_alex_stacked, mpc_alex] = solve_distributed_problem_with_aladin_admm(mpc_split, problem, names);
-comparison_alex = compare_results(xval, xsol_alex)
+%% compare with different rho
+ADMM_comparison_different_rho(mpc_split, problem, xval, names);
 
-[xsol_xinliang, xsol_xinliang_stacked, mpc_xinlian] = solve_distributed_problem_with_admm_xinliang(mpc_split, problem, names);
-comparison_xinliang = compare_results(xval, xsol_xinliang)
-%% ADMM test
-clc
-params.max_iter = 50;
-params.tol = 1e-5;
-params.rou = 1000;
-[x,violation_admm, iter] = solve_distributed_problem_with_ADMM(problem, params);
+%% initial point near ref
+ADMM_initial_point_near_ref(mpc_split, problem, xval, names, xsol_stack_aladin)
 
-%% alex code
-opts.scaling = false;
-opts.rho = 1000;
-opts.maxIter = 50;
-opts.rhoUpdate = false;
-solADM = run_ADMMnew(problem,opts);
+%% rho update
+ADMM_rho_update(mpc_split, problem, xval, names);
 
-% terminate condition check
-A  = horzcat(problem.AA{:});
-violation_alex  = [];
-for i = 1:opts.maxIter
-    violation_alex(i) = norm(A*solADM.logg.X(:,i),inf);
+%%
+for i = 1:numel(problem.zz0)
+    dx(i) = norm(xsol_stack_aladin{i} - problem.zz0{i}, 2);
 end
+dx = norm(dx,2);
 
-%% compare the x_opt
-x_alex = cell2mat(solADM.xxOpt');
-x_admm = cell2mat(x);
-e_xopt = abs(x_alex-x_admm); % percent
 
-%% plot result
-t_admm =  1:iter;
-t_alex =  1:opts.maxIter;
-subplot(2,1,1)
-plot(t_alex, violation_alex, t_admm, violation_admm,'--');
-grid on
-xlabel('$\text{Iteration}$','interpreter','Latex');
-ylabel('$||Ax-b||_{\infty}$ ','interpreter','Latex');
-legend('ADMMnew from Alex','ADMM from Xinliang')
-subplot(2,1,2)
-bar(e_xopt)
-xlabel('$\text{state}$','interpreter','Latex');
-ylabel('$\text{state\quad error[abs]}$ ','interpreter','Latex');
+
