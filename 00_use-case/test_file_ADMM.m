@@ -44,7 +44,7 @@ problem = generate_distributed_problem_for_aladin(mpc_split, names);
 [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
 %% ALADIN
 [xsol_aladin, xsol_stack_aladin, mpc_sol_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names);
-comparison_xinliang = compare_results(xval, xsol_aladin)
+
 %% compare ADMM toolboxes from alex and xinliang 
 ADMM_comparision_state_iterately(mpc_split, problem, xval, names);
 
