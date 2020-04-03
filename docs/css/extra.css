@@ -1,15 +1,60 @@
-.rst-content pre code, .rst-content code {
-  font-family: 'Fira Code', 'Hack', 'Roboto Mono', 'Monaco', 'Courier', monospace;
-  font-size: 0.90em;
+pre code, code {
+ font-family: 'Fira Code', 'Hack', 'Roboto Mono', 'Monaco', 'Courier', monospace;
+ font-size: 0.90em;
 }
 
 body, input {
-  font-family: 'Helvetica Neue', 'Lato', 'Arial', sans-serif;
-  font-size: 16px;
-  color: #222;
-  text-rendering: optimizeLegibility;
+ font-family: 'Helvetica Neue', 'Lato', 'Arial', sans-serif;
+ font-size: 16px;
+ color: #222;
+ text-rendering: optimizeLegibility;
 }
 
 h1, h2, h3, h4, h5 {
-  font-family: inherit;
+ font-family: inherit;
 }
+
+table {
+  background-color: #EEEEEE;
+  width: 100%;
+  text-align: left;
+  /* border-collapse: collapse; */
+  /* border: 1px solid 747474; */
+  border-bottom: 1px solid #ddd;
+ }
+ table td, table th {
+  padding: 4px 4px;
+  border-bottom: 1px solid #ddd;
+ }
+ table tbody td {
+  font-size: inherit;
+ }
+ table tr:nth-child(even) {
+  background: #FFFFFF;
+ }
+ table thead {
+  background: #747474;
+ }
+ table thead th {
+  font-size: inherit;
+  font-weight: bold;
+  color: #FFFFFF;
+ }
+ table tfoot {
+  font-size: 14px;
+  font-weight: normal;
+  color: #FFFFFF;
+ }
+ table tfoot td {
+  font-size: 14px;
+ }
+ table tfoot .links {
+  text-align: right;
+ }
+ table tfoot .links a{
+  display: inline-block;
+  background: #747474;
+  color: #FFFFFF;
+  padding: 2px 8px;
+  border-radius: 5px;
+ }

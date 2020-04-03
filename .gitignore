@@ -1,6 +1,12 @@
+COPYING
+makefile
+matdoc.py
+matdocparser.py
+
 /site
 /public
 
+matdocparser.pyc
 *.ASV
 *.DS_store
 *.asv

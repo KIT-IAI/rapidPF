@@ -1,4 +1,10 @@
+[![pipeline status](https://iai-vcs.iai.kit.edu/advancedcontrol/code/morenet/morenet/badges/master/pipeline.svg)](https://iai-vcs.iai.kit.edu/advancedcontrol/code/morenet/morenet/commits/master)
+[![documentation](https://img.shields.io/badge/docs-stable-blue)](http://iai-webserv.iai.kit.edu/morenet/)
+
+
 # Morenet -- Documentation
+
+[__The official documentation can be found here.__](http://iai-webserv.iai.kit.edu/morenet/)
 
 The code consists of
 - a case file generator,

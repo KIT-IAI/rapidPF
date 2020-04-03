@@ -1,21 +1,7 @@
 # merge_systems
-`copy the declaration of the function in here (leave the ticks unchanged)`
+`mpc = merge_systems(mpc_master, mpc_slave, pars, names)`
 
-_describe what the function does in the following line_
+_Merge the master system and the slave system to another case file `mpc`_
 
-##  Markdown formatting is supported
-Equations are possible to, e.g $a^2 + b^2 = c^2$.
-So are lists:
-
-+   item 1
-    
-+   item 2
-    
-```matlab
-function y = square(x)
-
-        x^2
-end
-```
-See also: [run_case_file_splitter](run_case_file_splitter.md)
+The physical information about the connecting transformer is stored in `pars`.
 

@@ -1,0 +1,17 @@
+default:
+    image: timueh/mkdocs_with_mat2md:latest
+    before_script:
+        - ./before_script.sh
+
+stages:
+    - documentation
+
+documentation:
+    stage: documentation
+    script:
+        - ./mat2md.sh
+        - ./upload_doc.sh
+        
+    only:
+        - bring_doc_to_life
+        - master
