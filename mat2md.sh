@@ -1,4 +1,6 @@
-#!/bin/zsh
+#!/bin/bash
+
+rm -r docs/mfiles
 
 SRC_FOLDERS=("01_generator" "02_splitter" "03_parser")
 
@@ -8,7 +10,8 @@ for SRC in "${SRC_FOLDERS[@]}"; do
     echo "--------------------------------------------"
 
     cd $SRC
-    for i in `find . -iname '*.m'`
+    # find all m-files in current folder but ignore the folder 'auxfuns'
+    for i in `find . -iname '*.m' -not -path './auxfuns/*'`
     do
         cp $i ../;
     done
@@ -17,5 +20,4 @@ for SRC in "${SRC_FOLDERS[@]}"; do
     rm *.m
 done
 
-mkdocs build
-mkdocs serve
+mkdocs build --clean

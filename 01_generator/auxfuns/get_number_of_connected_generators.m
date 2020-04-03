@@ -1,20 +1,13 @@
-function n = get_number_of_connected_generators(mpc, bus)
+function N = get_number_of_connected_generators(mpc, bus)
 % get_number_of_connected_generators
 %
-%   `copy the declaration of the function in here (leave the ticks unchanged)`
+%   `N = get_number_of_connected_generators(mpc, bus)`
 %
-%   _describe what the function does in the following line_
+%   _Get number of generators in case file `mpc` connected to `bus`_
 %
-%   # Markdown formatting is supported
-%   Equations are possible to, e.g $a^2 + b^2 = c^2$.
-%   So are lists:
-%   - item 1
-%   - item 2
-%   ```matlab
-%   function y = square(x)
-%       x^2
-%   end
-%   ```
-%   See also: [run_case_file_splitter](run_case_file_splitter.md)
-    n = numel( find_generator_gen_entry(mpc, bus) );
+%   ## See also:
+%   - [get_number_of_branches](get_number_of_branches.md)
+%   - [get_number_of_buses](get_number_of_buses.md)
+%   - [get_number_of_generators](get_number_of_generators.md)
+    N = numel( find_generator_gen_entry(mpc, bus) );
 end

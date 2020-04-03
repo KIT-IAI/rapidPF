@@ -1,21 +1,26 @@
 function names = generate_name_struct()
 % generate_name_struct
 %
-%   `copy the declaration of the function in here (leave the ticks unchanged)`
+%   `names = generate_name_struct()`
 %
-%   _describe what the function does in the following line_
+%   _Generate a struct that contains naming conventions._
 %
-%   # Markdown formatting is supported
-%   Equations are possible to, e.g $a^2 + b^2 = c^2$.
-%   So are lists:
-%   - item 1
-%   - item 2
-%   ```matlab
-%   function y = square(x)
-%       x^2
-%   end
-%   ```
-%   See also: [run_case_file_splitter](run_case_file_splitter.md)
+%   ## Inputs
+%
+%   Input | Type | Description 
+%   :--- | :--- | :--- 
+%   n/a |
+%
+%   </br>
+%   ## Outputs
+%
+%   Output | Type | Description
+%   :--- | :--- | :---
+%   `names` | `struct` | struct containing naming conventions
+%
+%   </br>
+%   ## See also
+%   </br>
     names.regions.global = 'regions';
     names.regions.global_with_copies = 'connections_with_aux_nodes';
     names.regions.local = 'regions_local';

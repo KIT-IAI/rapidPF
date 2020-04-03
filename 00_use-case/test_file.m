@@ -5,6 +5,9 @@ addpath(genpath('../02_splitter/'));
 addpath(genpath('../03_parser/'));
 
 names = generate_name_struct();
+
+global use_fmincon
+use_fmincon = true;
 %% setup
 fields_to_merge = {'bus', 'gen', 'branch'};
 mpc_trans  = loadcase('case14');

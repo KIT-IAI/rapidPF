@@ -1,38 +1,63 @@
-# myProject
+# Morenet
 
-My awesome documentation.
+!!! warning "Documentation = work in progress"
+    __The documentation is currently being written.
+    It's work in progress.__
 
-## Commands
+The morenet project provides `Matlab` code for distributed power flow problems.
+The power flow problem is *the* cornerstone problem in power systems analysis: find all (complex) quantities in an AC electrical network in steady state.
+Mathematically, the power flow problem is a system of nonlinear equations
 
-* `mkdocs new [dir-name]` - Create a new project.
-* `mkdocs serve` - Start the live-reloading docs server.
-* `mkdocs build` - Build the documentation site.
-* `mkdocs help` - Print this help message.
+$$g(x) = 0$$
 
-```matlab
-function f = foo(x)
-    x^2
-end
-```
-
-$a^3$
+that can be solved by the Newton method, for instance.
+However, the power flow problem can also be solved in a distributed fashion,
 
 $$
-E(\mathbf{v}, \mathbf{h}) = -\sum_{i,j}w_{ij}v_i h_j - \sum_i b_i v_i - \sum_j c_j h_j
-$$
-
-\[3 < 4\]
-
 \begin{align}
-    p(v_i=1|\mathbf{h}) & = \sigma\left(\sum_j w_{ij}h_j + b_i\right) \\
-    p(h_j=1|\mathbf{v}) & = \sigma\left(\sum_i w_{ij}v_i + c_j\right)
+g_{i}(x_i) &= 0, \\\
+\sum_{i = 1}^{n} A_i x_i &= 0,
 \end{align}
+$$
+where $i \in \{ 1, \dots, n\}$ corresponds to the $i$-th subproblem.
+In plain words, the distributed power flow problem means
+
+> to solve a power flow problem within each region $i$ whilst ensuring that the neighboring power flows satisfy the overall power flow equations.
+
+There are several advantages of distributed approaches:
+
+- distribute computational effort,
+- preserves privacy,
+- increases reliability,
+- and adds flexibility.
+
+This documentation accompanies the [`Matlab` code](https://iai-vcs.iai.kit.edu/advancedcontrol/code/morenet/morenet), providing also several examples.
+
+## What to expect
+The code allows to *formulate* distributed power flow problems easily.
+Specifically, the features of the code include:
+
+- Starting from several individual case files, generate a merged case file for given connections.
+- Formulate distributed power flow problems in terms of function handles.
+- Solve distributed power flow problems using the [Aladin toolbox.](https://github.com/alexe15/ALADIN.m)
+- Fully compliant with `matpower` case files, hence allowing to use all of the built-in `matpower` functions.
+
+## What *not *to expect
+
+- An introduction to the power flow problem as such. There are excellent references for this, for example [this one](https://www.tandfonline.com/doi/full/10.1080/0740817X.2016.1189626?casa_token=PcNIfyUVkpEAAAAA%3Auyjxp1a-UdKfMpngiDeV6V5zfxy-H1j8ZNc60XAujhsq4lO7w_O-qst2Idu3nnf0PasCrvMx9Ae00ic)
+- *Optimal* power flow problems.
+- A collection of numerical routines to *solve* distributed power flow problems.
+- A visualizer of `matpower` case files; use [STAC](https://immersive.erc.monash.edu/STAC/) for this.
 
 
+## Installation
 
-## Project layout
+- Install [`Matlab`](https://www.mathworks.com).
+- Add [`Matpower`](https://matpower.org/) to your `Matlab` installation
+- Add [`Aladin`](https://github.com/alexe15/ALADIN.m) to your `Matlab` installation.
 
-    mkdocs.yml    # The configuration file.
-    docs/
-        index.md  # The documentation homepage.
-        ...       # Other markdown pages, images and other files.
+!!! note "Use of `matpower`"
+    The code relies heavily on `Matpower`, especially on the idea of a `matpower case file` (or `mpc`).
+    This bulky name is nothing but a standardized `Matlab` struct, with the advantage that it has become a *de facto* standard for Matlab-based power systems research.
+    Also, `mpc` can be converted within `matpower` to/from IEEE CDF or PSS/E RAW, see the `Matpower` docs for details.
+

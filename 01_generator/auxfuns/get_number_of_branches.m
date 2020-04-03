@@ -1,20 +1,13 @@
 function N = get_number_of_branches(mpc)
 % get_number_of_branches
 %
-%   `copy the declaration of the function in here (leave the ticks unchanged)`
+%   `N = get_number_of_branches(mpc)`
 %
-%   _describe what the function does in the following line_
+%   _Get number of branches in case file `mpc`_
 %
-%   # Markdown formatting is supported
-%   Equations are possible to, e.g $a^2 + b^2 = c^2$.
-%   So are lists:
-%   - item 1
-%   - item 2
-%   ```matlab
-%   function y = square(x)
-%       x^2
-%   end
-%   ```
-%   See also: [run_case_file_splitter](run_case_file_splitter.md)
+%   ## See also:
+%   - [get_number_of_buses](get_number_of_buses.md)
+%   - [get_number_of_connected_generators](get_number_of_connected_generators.md)
+%   - [get_number_of_generators](get_number_of_generators.md)
     N = size(mpc.branch, 1);
 end

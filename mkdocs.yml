@@ -1,52 +1,35 @@
 site_name: Morenet documentation
-site_url: https://iai-vcs.iai.kit.edu/advancedcontrol/code/morenet/morenet
+site_url: http://http://iai-webserv.iai.kit.edu/morenet
 site_description: Documentation for the morenet project
 site_author: Tillmann Mühlpfordt
 docs_dir: docs/
 
 repo_name: advancedcontrol/code/morenet/morenet
 repo_url: https://iai-vcs.iai.kit.edu/advancedcontrol/code/morenet/morenet
-edit_uri: ""
-
+repo_name: 'GitLab'
+   
 theme:
-    name: readthedocs
-    highlightjs: true
-    hljs_languages:
-        - matlab
+    name: material
     navigation_depth: 2
-    font:
-        - text: false
-        - code: false
 
 extra_css:
-    - css/extra.css
+    - 'css/extra.css'
 
 markdown_extensions:
-  # - codehilite:
-  #     linenums: True
-  - pymdownx.arithmatex
-  - smarty
-  # - markdown_katex
-      # no_inline_svg: false
-      # insert_fonts_css: true
-  # - pymdownx.betterem:
-  #     smart_enable: all
-  # - pymdownx.caret
-  # - pymdownx.critic
-  # - pymdownx.details
-  # - pymdownx.inlinehilite
-  # - pymdownx.magiclink
-  # - pymdownx.mark
-  # - pymdownx.smartsymbols
-  # - pymdownx.superfences:
-  # - pymdownx.tasklist:
-  #     custom_checkbox: true
-  # - pymdownx.tilde
+    - pymdownx.arithmatex
+    - smarty
+    - tables
+    - toc
+    - admonition
+    - codehilite:
+        linenums: True
+    
 
-#plugins:
-#  - markdownmermaid
+plugins:
+    - search
+    - awesome-pages:
+        collapse_single_pages: true
 
 extra_javascript:
-  - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML
-  - https://unpkg.com/mermaid@7.1.2/dist/mermaid.min.js
+    - https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-MML-AM_CHTML
 
