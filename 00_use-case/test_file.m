@@ -1,4 +1,6 @@
-clear all; close all; clc;
+clear all;
+% close all;
+clc;
 
 addpath(genpath('../01_generator/'));
 addpath(genpath('../02_splitter/'));
@@ -10,15 +12,15 @@ global use_fmincon
 use_fmincon = true;
 %% setup
 fields_to_merge = {'bus', 'gen', 'branch'};
-mpc_trans  = loadcase('case14');
-mpc_dist = { loadcase('case30')
-             loadcase('case9')  };
+mpc_trans  = loadcase('case118');
+mpc_dist = { loadcase('case118')
+             loadcase('case118')  };
 
-connection_array = [2 1 1 2;
+connection_array = [2 1 1 8;
 %                     1 2 6 13;
 %                     1 3 3 2;
-                    2 3 2 3; 
-                    2 3 13 1;
+                    2 3 10 100; 
+                    2 3 32 70;
                     ];
 
 trafo_params.r = 0;
@@ -38,14 +40,14 @@ mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 problem = generate_distributed_problem_for_aladin(mpc_split, names);
 % solve problem
 [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
-[xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc_split, problem, names);
-comparison_centralized = compare_results(xval, xsol)
+% [xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc_split, problem, names);
+% comparison_centralized = compare_results(xval, xsol)
 
 opts = struct( ...
         'rho0',1.5e1,'rhoUpdate',1.1,'rhoMax',1e8,'mu0',1e2,'muUpdate',2,...
-        'muMax',2*1e6,'eps',0,'maxiter',30,'actMargin',-1e-6,'hessian','standard',...%-1e-6
+        'muMax',2*1e6,'eps',0,'maxiter',16,'actMargin',-1e-6,'hessian','standard',...%-1e-6
         'solveQP','MA57','reg','true','locSol','ipopt','innerIter',2400,'innerAlg', ...
-        'none','Hess','standard','plot',true,'slpGlob', true,'trGamma', 1e6, ...
+        'none','Hess','standard','slpGlob', true,'trGamma', 1e6, ...
         'Sig','const','term_eps', 0, 'parfor', false, 'reuse', false);
 [xsol_aladin, xsol_stack_aladin, mpc_sol_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names);
 comparison_aladin = compare_results(xval, xsol_aladin)

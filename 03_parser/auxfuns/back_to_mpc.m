@@ -36,7 +36,6 @@ VA, BASE_KV, ZONE, VMAX, VMIN, LAM_P, LAM_Q, MU_VMAX, MU_VMIN] = idx_bus;
     mpc.iterations =  iter;
     str            =  join(['\n' ,alg, ' Algorithm converged in %d iterations']);
     fprintf(str, iter);
-    printpf(mpc);
 end
 
 function V = get_voltage(x)
