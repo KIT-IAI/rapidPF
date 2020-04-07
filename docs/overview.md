@@ -22,6 +22,7 @@ Specifically the input to the case file generator consists of several case files
 The output of the case file generator is, again, a case file, which is then fed to the case file splitter.
 The splitter adds information to each individual case file about neighboring buses.
 This is then fed to the caes file parser (in the form of a case file) whose output is a mathematial problem formulation in terms of function handles.
+The case file parser also generates sensitivities of the power flow problem.
 
 ## Allowed connections
 Systems can be connected in arbitrary ways at generation buses, for instance:

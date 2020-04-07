@@ -1,5 +1,5 @@
 # Example
-This is a beginning-to-end-example about how to solve distributed power flow with (the Aladin toolbox)[https://github.com/alexe15/ALADIN.m].
+This is a beginning-to-end-example about how to solve distributed power flow with [the Aladin toolbox](https://github.com/alexe15/ALADIN.m).
 [Click here](#entire-code) to see the plain code.
 
 ## Setup

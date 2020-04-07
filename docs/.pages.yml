@@ -1,6 +1,10 @@
 title: Page title
 arrange:
     - index.md
+    - installation.md
+    - overview.md
+    - example.md
     - assumptions.md
+    - problem-formulation.md
     - mfiles
     

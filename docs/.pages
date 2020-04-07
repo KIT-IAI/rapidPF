@@ -1,5 +1,6 @@
 arrange:
     - index.md
+    - installation.md
     - overview.md
     - example.md
     - assumptions.md
