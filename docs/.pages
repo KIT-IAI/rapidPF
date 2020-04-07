@@ -5,4 +5,5 @@ arrange:
     - example.md
     - assumptions.md
     - problem-formulation.md
+    - sensitivities.md
     - mfiles

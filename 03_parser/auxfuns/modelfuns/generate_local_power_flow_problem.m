@@ -1,4 +1,4 @@
-function [cost, ineq, eq, x0, pf, bus_specifications, state] = generate_local_power_flow_problem(mpc, names, postfix)
+function [cost, ineq, eq, x0, pf, bus_specifications, Jac, grad_cost, Hessian, state] = generate_local_power_flow_problem(mpc, names, postfix)
 % generate_local_power_flow_problem
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
@@ -36,12 +36,14 @@ function [cost, ineq, eq, x0, pf, bus_specifications, state] = generate_local_po
     Ybus = makeYbus(ext2int(mpc));
     
     [Vang_core, Vmag_core, Pnet_core, Qnet_core] = create_state(postfix, N_core);
-    [Vang_copy, Vmag_copy, ~, ~] = create_state(strcat(postfix, '_copy'), N_copy);
+    [Vang_copy, Vmag_copy, Pnet_copy, Qnet_copy] = create_state(strcat(postfix, '_copy'), N_copy);
     
     Vang = [Vang_core; Vang_copy];
     Vmag = [Vmag_core; Vmag_copy];
     Pnet = Pnet_core;
     Qnet = Qnet_core;
+    P_ = [Pnet_core; Pnet_copy];
+    Q_ = [Qnet_core; Qnet_copy];
     
     state = stack_state(Vang, Vmag, Pnet, Qnet);
     %% power flow equations
@@ -54,6 +56,11 @@ function [cost, ineq, eq, x0, pf, bus_specifications, state] = generate_local_po
     %% initial condition
     [Vang0, Vmag0, Pnet0, Qnet0] = create_initial_condition(mpc, copy_buses_local);
     x0 = stack_state(Vang0, Vmag0, Pnet0, Qnet0);
+    %% sensitivities
+    Jac_pf = @(x)jacobian_power_flow(x(entries_pf{1}), x(entries_pf{2}), x(entries_pf{3}), x(entries_pf{4}), Ybus, copy_buses_local);
+    Jac_bus = jacobian_bus_specifications(mpc, copy_buses_local);
+    grad_cost = @(x)zeros(4*N_core + 2*N_copy, 1);
+    Hessian = @(x, kappa, rho)jacobian_num(@(y)[Jac_pf(y); Jac_bus]'*kappa, x, 4*N_core + 2*N_copy, 4*N_core + 2*N_copy);
     %% check sizes
     has_correct_size(x0, 4*N_core + 2*N_copy);
     has_correct_size(pf_p(x0), N_core);
@@ -64,6 +71,7 @@ function [cost, ineq, eq, x0, pf, bus_specifications, state] = generate_local_po
     ineq = @(x)[];
     eq = @(x)[ pf_p(x); pf_q(x); bus_specifications(x) ];
     pf = @(x)[ pf_p(x); pf_q(x) ];
+    Jac = @(x)[Jac_pf(x); Jac_bus];
 end
 
 function entries = build_entries(N_core, N_copy, with_core)

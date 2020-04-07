@@ -53,21 +53,30 @@ function f = create_bus_specifications(Vang, Vmag, Pnet, Qnet, mpc, local_bus_to
     vcb = ones(size(V0ang));           %% create mask of voltage-controlled buses
     vcb(pq) = 0;                    %% exclude PQ buses
     k = find(vcb(gbus));            %% in-service gens at v-c buses
-    
     V0mag(gbus(k)) = gen(on(k), VG) ./ V0mag(gbus(k)) .* V0mag(gbus(k));
-    
-    f_V = [Vang(ref) - V0ang(ref);  % angle reference
-           Vmag(gbus) - V0mag(gbus)]; % voltage magnitude references    
     
     [P, Q] = makeSbus_not_complex(baseMVA, bus, gen, mpopt, Vmag);
     
-    f_S = [ P(pq) - Pnet(pq);
-            Q(pq) - Qnet(pq);
-            P(pv) - Pnet(pv)];
+    gbus = setdiff(gbus, ref);
+    assert(isempty(setdiff(pv, gbus)));
     
-    f = [f_V; f_S];
+    if issorted(pv) && issorted(pq)
+          % generate bus specifications according to bus types
+          f = [ Vang(ref)  - V0ang(ref), Vmag(ref) - V0mag(ref);    % slack
+              Pnet(pv) - P(pv), Vmag(gbus) - V0mag(gbus);           % pv buses
+              Pnet(pq) - P(pq), Qnet(pq) - Q(pq) ];                 % pq buses
+          % re-arrange f such that the ordering is according to the bus numbering
+          f = reshape_to_bus_numbering(f, [ref; pv; pq]);
+    end
+        
 end
 %% local functions
+function f = reshape_to_bus_numbering(f, bus_types)
+    [~, sort_to_bus_numbering] = sort(bus_types);
+    f = f(sort_to_bus_numbering, :);
+    f = reshape(f', 2*numel(bus_types), 1);
+end
+
 function [ref, pv, pq] = remove_bus(bus, ref, pv, pq)
     ref = setdiff(ref, bus);
     pv = setdiff(pv, bus);

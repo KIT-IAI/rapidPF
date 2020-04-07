@@ -25,4 +25,8 @@ function [vang, vmag, pnet, qnet] = create_initial_condition(mpc, copy_buses)
         pnet(copy_buses) = [];
         qnet(copy_buses) = [];
     end
+    
+    if nargout == 1
+        vang = stack_state(vang, vmag, pnet, qnet);
+    end
 end
