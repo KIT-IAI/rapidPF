@@ -22,7 +22,7 @@ So what can we do now currently?
       - No HVDC lines are supported. (#17)
    - Problem solution
       - Aladin
-         - Casadi + Ipopt wrk out of the box
+         - Casadi + Ipopt work out of the box
          - fmincon + user-provided sensitivities work; switch to [separate branch](https://github.com/alexe15/ALADIN.m/tree/abstractify) in the Aladin repository (#21)
       - ADMM
          - Investigated thoroughly by @uthgg with not-so-positive outcome, see #16.
@@ -33,7 +33,8 @@ So what can we do now currently?
    - Documentation
       - Continue to fill.
    - Problem formulation
-      - *Experimental idea:* reformulate the feasibility problem as an (unconstrained) least-squares problem. Usually, it is a good idea to shift nasty expressions from the constraints to the cost function. This, however, requires also to compute new sensitivities.
+      - reformulate the feasibility problem as an (unconstrained) least-squares problem. Usually, it is a good idea to shift nasty expressions from the constraints to the cost function, see [this document](docs/morenet_least_squares.pdf) for further details.
+      - currently, the problem formulation
    - Problem solution
       - Play with different test systems and characterized convergence properties.
       - [Interface ipopt directly from Matlab](https://projects.coin-or.org/Ipopt/wiki/MatlabInterface) to have another solver to test against. Hopefully, this is faster than fmincon.
