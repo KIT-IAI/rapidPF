@@ -106,6 +106,8 @@ To do so, there are a couple of immediate next steps
     \item Familiarize with nonlinear least-squares (Gauss-Newton, Levenberg-Marquardt, etc)
     \item Solve a prototypical distributed power flow problem.
     \item Use the Jacobian matrix that is given analytically as a return value from \href{https://iai-vcs.iai.kit.edu/advancedcontrol/code/morenet/morenet/-/blob/master/03_parser/generate_distributed_problem.m}{\texttt{generate$\_$distributed$\_$problem}}.
+    \item Work out how the Aladin algorithm simplifies in the absence of both equality and inequality constraints. (Note that inequality constraints in the form of lower/upper bounds might still be necessary, i.e. $\underline{x} \leq x \leq \overline{x}$)
+    \item Exploit the problem structure as much as possible. As a general rule, the bigger the problem, the more it pays off to exploit sparsity etc.
 \end{itemize}
 \autoref{tab:knowledge-base} lists the experience we have gained thus far.
 The goal is to fill out everything that is related to least squares.
