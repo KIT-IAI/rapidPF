@@ -1,4 +1,4 @@
-function [cost, ineq, eq, x0, pf, bus_specifications, Jac, grad_cost, Hessian, state] = generate_local_power_flow_problem(mpc, names, postfix)
+function [cost, ineq, eq, x0, pf, bus_specifications, Jac, grad_cost, Hessian, state, dims] = generate_local_power_flow_problem(mpc, names, postfix)
 % generate_local_power_flow_problem
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
@@ -72,6 +72,8 @@ function [cost, ineq, eq, x0, pf, bus_specifications, Jac, grad_cost, Hessian, s
     eq = @(x)[ pf_p(x); pf_q(x); bus_specifications(x) ];
     pf = @(x)[ pf_p(x); pf_q(x) ];
     Jac = @(x)[Jac_pf(x); Jac_bus];
+    dims.eq = 4*N_core;
+    dims.ineq = [];
 end
 
 function entries = build_entries(N_core, N_copy, with_core)
