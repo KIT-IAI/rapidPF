@@ -16,6 +16,9 @@
 \usepackage{libertine}
 \usepackage{multirow}
 
+\usepackage{tikz}
+\usetikzlibrary{trees}
+
 \newcommand{\n}{n}
 
 \newcommand{\nregions}{\n^{\text{reg}}}
@@ -133,4 +136,53 @@ This is somewhat painful to \href{https://projects.coin-or.org/Ipopt/wiki/Matlab
     \end{tabular}
 \end{table}
 
+\tikzstyle{every node}=[draw=black,thick,anchor=west]
+\begin{figure}
+    \centering
+    \begin{tikzpicture}[%
+      grow via three points={one child at (0.5,-0.7) and
+      two children at (0.5,-0.7) and (0.5,-1.4)},
+      edge from parent path={(\tikzparentnode.south) |- (\tikzchildnode.west)}]
+      \node {\textbf{Original Problem~\ref{eq:dist-power-flow-problem}}}
+        child { node {\textbf{Distributed Feasibility Problem}~\ref{eq:dist-feasibility-problem}}
+            child { node{ADMM}
+                child { node{CasADi with Ipopt}}
+            }
+            child [missing] {}
+            child { node{Aladin}
+                child { node{CasADi with Ipopt}}
+                child { node{fmincon}}
+                child { node{Ipopt}}
+                child { node{Gurobi}}
+                child { node{CPLEX}}
+                child { node{...}}
+            }
+        }
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}
+        child [missing] {}	
+        child { node {\textbf{Distributed Least-squares Problem}~\ref{eq:dist-least-squares-problem}}
+            child { node{ADMM}
+                child { node{CasADi with Ipopt}}
+            }
+            child [missing] {}
+            child { node{Aladin}
+                child { node{CasADi with Ipopt}}
+                child { node{fmincon}}
+                child { node{Ipopt}}
+                child { node{Gurobi}}
+                child { node{CPLEX}}
+                child { node{...}}
+            }
+        };
+    \end{tikzpicture}
+    \caption{Algorithm tree}
+    \label{fig:Algorithm-tree}
+\end{figure}
 \end{document}
