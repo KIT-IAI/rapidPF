@@ -68,7 +68,7 @@ In principle, Problem~\ref{eq:dist-power-flow-problem} can be solved by Newton's
 However, we would like to explore alternatives to Newton's method, such as distributed optimization.
 
 \section{Problem solution}
-Currently, we solve Problem~\ref{eq:dist-power-flow-problem} as a distributed \emph{feasibility} probem, namely
+Currently, we solve Problem~\ref{eq:dist-power-flow-problem} as a \emph{distributed feasibility problem}, namely
 \begin{subequations}
     \label{eq:dist-feasibility-problem}
     \begin{align}
@@ -84,11 +84,11 @@ Currently, we solve Problem~\ref{eq:dist-power-flow-problem} as a distributed \e
 \end{subequations}
 From our experience so far, we can say that Aladin is a viable method, but ADMM is not.
 Solving a distributed feasibility problem, however, is not the only way.
-We can also think of solving Problem~\ref{eq:dist-power-flow-problem} as a distributed least-squares problem of the form
+We can also think of solving Problem~\ref{eq:dist-power-flow-problem} as a \emph{distributed least-squares problem} of the form
 \begin{subequations}
     \label{eq:dist-least-squares-problem}
     \begin{align}
-        \underset{\stateCore_i, \stateCopy_i \, \forall i \in  \{1, \dots, \nregions\}}{\operatorname{min}} \: \norm{\begin{bmatrix}
+        \underset{\stateCore_i, \stateCopy_i \, \forall i \in  \{1, \dots, \nregions\}}{\operatorname{min}} \sum_{i = 1}^{\nregions}  \: \norm{\begin{bmatrix}
             \pf_i( \stateCore_i, \stateCopy_i ) \\
             \busspecs_i ( \stateCore_i )
         \end{bmatrix}}^2 \quad \operatorname{s.t.} ~ \sum_{i = 1}^{\nregions} A_i \begin{bmatrix}
@@ -112,29 +112,41 @@ To do so, there are a couple of immediate next steps
     \item Work out how the Aladin algorithm simplifies in the absence of both equality and inequality constraints. (Note that inequality constraints in the form of lower/upper bounds might still be necessary, i.e. $\underline{x} \leq x \leq \overline{x}$)
     \item Exploit the problem structure as much as possible. As a general rule, the bigger the problem, the more it pays off to exploit sparsity etc.
 \end{itemize}
-\autoref{tab:knowledge-base} lists the experience we have gained thus far.
-The goal is to fill out everything that is related to least squares.
 
 Another thing to explore is to interface Ipopt directly from Matlab.
 This is somewhat painful to \href{https://projects.coin-or.org/Ipopt/wiki/MatlabInterface}{set up} but might be worth the speed up anyhow.
 
-\begin{table}
-    \centering
-    \caption{Our experience so far with solving Problem~\ref{eq:dist-power-flow-problem}. A ``---'' indicates further investigations are required.\label{tab:knowledge-base}}
-    \begin{tabular}{llllp{4cm}}
-        \toprule
-        Method & Solver & Number of iterations & Wall clock time & Remark\\
-        \midrule
-        ADMM & Casadi \& Ipopt & many & not acceptable\\
-        \midrule
-        \multirow{5}{*}{Aladin} & Casadi \& Ipopt & few & acceptable & does not scale well to larger problems ($N \approx 100$)\\
-         & fmincon \& Jacobian & few & acceptable & tends to become slow for larger problems ($N \approx 300$)\\
-         & Ipopt \& Jacobian & --- & --- & ---\\
-         \midrule
-        Least squares & --- & --- & --- & ---\\
-        \bottomrule
-    \end{tabular}
-\end{table}
+\autoref{fig:Algorithm-tree} shows all possible \emph{paths} that are worth taking.
+Insights thus far are
+
+\begin{itemize}
+    \item The path ``feasibility problem~\eqref{eq:dist-feasibility-problem} $>$ ADMM'' is a dead end; this is a valuable insight in itself.
+    \item The path ``feasibility problem~\eqref{eq:dist-feasibility-problem} $>$ Aladin'' works with
+    \begin{itemize}
+        \item Casadi \& Ipopt for small problems ($< 300$ buses total) in a reasonable time; Casadi is the main bottleneck, Ipopt is not.
+        \item fmincon for medium-sized problems ($< 1000$ buses total); fmincon becomes simply too slow.
+    \end{itemize}
+    \item The path ``least-squares problem~\eqref{eq:dist-least-squares-problem} $>$ ADMM'' has not been explored yet.
+    \item The path ``least-squares problem~\eqref{eq:dist-least-squares-problem} $>$ Aladin'' is being investigated, and promising.
+\end{itemize}
+
+% \begin{table}
+%     \centering
+%     \caption{Our experience so far with solving Problem~\ref{eq:dist-power-flow-problem}. A ``---'' indicates further investigations are required.\label{tab:knowledge-base}}
+%     \begin{tabular}{llllp{4cm}}
+%         \toprule
+%         Method & Solver & Number of iterations & Wall clock time & Remark\\
+%         \midrule
+%         ADMM & Casadi \& Ipopt & many & not acceptable\\
+%         \midrule
+%         \multirow{5}{*}{Aladin} & Casadi \& Ipopt & few & acceptable & does not scale well to larger problems ($N \approx 100$)\\
+%          & fmincon \& Jacobian & few & acceptable & tends to become slow for larger problems ($N \approx 300$)\\
+%          & Ipopt \& Jacobian & --- & --- & ---\\
+%          \midrule
+%         Least squares & --- & --- & --- & ---\\
+%         \bottomrule
+%     \end{tabular}
+% \end{table}
 
 \tikzstyle{every node}=[draw=black,thick,anchor=west]
 \begin{figure}
@@ -143,8 +155,8 @@ This is somewhat painful to \href{https://projects.coin-or.org/Ipopt/wiki/Matlab
       grow via three points={one child at (0.5,-0.7) and
       two children at (0.5,-0.7) and (0.5,-1.4)},
       edge from parent path={(\tikzparentnode.south) |- (\tikzchildnode.west)}]
-      \node {\textbf{Original Problem~\ref{eq:dist-power-flow-problem}}}
-        child { node {\textbf{Distributed Feasibility Problem}~\ref{eq:dist-feasibility-problem}}
+      \node {\textbf{Original problem~\eqref{eq:dist-power-flow-problem}}}
+        child { node {\textbf{Distributed feasibility problem}~\eqref{eq:dist-feasibility-problem}}
             child { node{ADMM}
                 child { node{CasADi with Ipopt}}
             }
@@ -153,8 +165,8 @@ This is somewhat painful to \href{https://projects.coin-or.org/Ipopt/wiki/Matlab
                 child { node{CasADi with Ipopt}}
                 child { node{fmincon}}
                 child { node{Ipopt}}
-                child { node{Gurobi}}
-                child { node{CPLEX}}
+                child { node{WORHP}}
+                child { node{KNITRO}}
                 child { node{...}}
             }
         }
@@ -167,7 +179,7 @@ This is somewhat painful to \href{https://projects.coin-or.org/Ipopt/wiki/Matlab
         child [missing] {}
         child [missing] {}
         child [missing] {}	
-        child { node {\textbf{Distributed Least-squares Problem}~\ref{eq:dist-least-squares-problem}}
+        child { node {\textbf{Distributed least-squares problem}~\eqref{eq:dist-least-squares-problem}}
             child { node{ADMM}
                 child { node{CasADi with Ipopt}}
             }
@@ -176,13 +188,12 @@ This is somewhat painful to \href{https://projects.coin-or.org/Ipopt/wiki/Matlab
                 child { node{CasADi with Ipopt}}
                 child { node{fmincon}}
                 child { node{Ipopt}}
-                child { node{Gurobi}}
-                child { node{CPLEX}}
+                child { node{WORHP}}
+                child { node{KNITRO}}
                 child { node{...}}
             }
         };
     \end{tikzpicture}
-    \caption{Algorithm tree}
-    \label{fig:Algorithm-tree}
+    \caption{Variants of tackling the distributed power flow problem~\eqref{eq:dist-power-flow-problem}.\label{fig:Algorithm-tree}}
 \end{figure}
 \end{document}
