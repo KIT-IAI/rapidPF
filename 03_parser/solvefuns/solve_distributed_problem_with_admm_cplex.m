@@ -1,4 +1,4 @@
-function [xsol, xsol_stacked, mpc_sol, logg] = solve_distributed_problem_with_aladin(mpc, problem, names, opts) 
+function [xsol, xsol_stacked, mpc_sol, loggX] = solve_distributed_problem_with_admm_cplex(mpc, problem, names, params) 
 % solve_distributed_problem_with_aladin
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
@@ -16,19 +16,17 @@ function [xsol, xsol_stacked, mpc_sol, logg] = solve_distributed_problem_with_al
 %   end
 %   ```
 %   See also: [run_case_file_splitter](run_case_file_splitter.md)
-    if nargin == 3
-        opts = [];
-    end
-    sol = run_ALADINnew(problem, opts);
-    xsol = vertcat(sol.xxOpt{:});
+%    params.max_iter = params.max_iter;
+%    params.tol = 1e-6;
+%    params.rou = params.rho;
+
+
+    [sol, violation, iter, loggX] = run_ADMM_cplex(problem, params);
+    xsol = vertcat(sol{:});
     [xsol, xsol_stacked] = deal_solution(xsol, mpc, names); 
-    
+   
     %% numerical solution back to matpower casefile
-    timers = sol.timers;
-    iter          =  sol.iter.i - 1; % number of iteration
-    elapsed_time  =  timers.totTime - timers.setupT;
-    alg           =  'ALADIN';
-    logg.X        =  sol.iter.logg.X;
-    logg.iter     =  sol.iter.i - 1;
+    elapsed_time  =  NaN;
+    alg           =  'ADMM';
     mpc_sol       =  back_to_mpc(mpc, xsol, elapsed_time, iter, alg);
 end

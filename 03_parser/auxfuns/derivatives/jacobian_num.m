@@ -4,7 +4,7 @@ function jac = jacobian_num(f, x, nf, nx, epsilon)
     % nf -- number of entries in `f`
     % nx -- number of entries in `x`
     if nargin == 4
-        epsilon = 1e-8;
+        epsilon = 1e-10;
     end
     epsilon_inv = 1/epsilon;
     jac = zeros(nf, nx);

@@ -1,4 +1,4 @@
-function problem = generate_distributed_problem(mpc, names)
+function problem = generate_distributed_problem(mpc, names, problem_type)
 % generate_distributed_problem
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
@@ -26,7 +26,7 @@ function problem = generate_distributed_problem(mpc, names)
     fprintf('\n\n');
     for i = 1:N_regions
         fprintf('Creating power flow problem for system %i...', i);
-        [cost, inequality, equality, x0, pf, bus_spec, Jac, grad, Hessian, state, dim] = generate_local_power_flow_problem(mpc.(names.split){i}, names, num2str(i));
+        [cost, inequality, equality, x0, pf, bus_spec, Jac, grad, Hessian, state, dim] = generate_local_power_flow_problem(mpc.(names.split){i}, names, num2str(i), problem_type);
         [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, bus_specs{i}, states{i}, Jacs{i}, grads{i}, Hessians{i}, dims{i}] = deal(cost, inequality, equality, x0, pf, bus_spec, state, Jac, grad, Hessian, dim);
         fprintf('done.\n')
     end

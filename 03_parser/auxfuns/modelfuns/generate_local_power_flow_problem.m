@@ -1,4 +1,4 @@
-function [cost, ineq, eq, x0, pf, bus_specifications, Jac, grad_cost, Hessian, state, dims] = generate_local_power_flow_problem(mpc, names, postfix)
+function [cost, ineq, eq, x0, pf, bus_specifications, Jac, grad_cost, Hessian, state, dims] = generate_local_power_flow_problem(mpc, names, postfix, problem_type)
 % generate_local_power_flow_problem
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
@@ -57,23 +57,37 @@ function [cost, ineq, eq, x0, pf, bus_specifications, Jac, grad_cost, Hessian, s
     [Vang0, Vmag0, Pnet0, Qnet0] = create_initial_condition(mpc, copy_buses_local);
     x0 = stack_state(Vang0, Vmag0, Pnet0, Qnet0);
     %% sensitivities
-    Jac_pf = @(x)jacobian_power_flow(x(entries_pf{1}), x(entries_pf{2}), x(entries_pf{3}), x(entries_pf{4}), Ybus, copy_buses_local);
+    Jac_pf  = @(x)jacobian_power_flow(x(entries_pf{1}), x(entries_pf{2}), x(entries_pf{3}), x(entries_pf{4}), Ybus, copy_buses_local);
     Jac_bus = jacobian_bus_specifications(mpc, copy_buses_local);
-    grad_cost = @(x)zeros(4*N_core + 2*N_copy, 1);
-    Hessian = @(x, kappa, rho)jacobian_num(@(y)[Jac_pf(y); Jac_bus]'*kappa, x, 4*N_core + 2*N_copy, 4*N_core + 2*N_copy);
+    Jac_g_ls    = @(x)[Jac_pf(x); Jac_bus];
     %% check sizes
     has_correct_size(x0, 4*N_core + 2*N_copy);
     has_correct_size(pf_p(x0), N_core);
     has_correct_size(pf_q(x0), N_core);
     has_correct_size(bus_specifications(x0), 2*N_core);
     %% generate return values
-    cost = @(x)0;
-    ineq = @(x)[];
-    eq = @(x)[ pf_p(x); pf_q(x); bus_specifications(x) ];
-    pf = @(x)[ pf_p(x); pf_q(x) ];
-    Jac = @(x)[Jac_pf(x); Jac_bus];
-    dims.eq = 4*N_core;
-    dims.ineq = [];
+    if strcmp(problem_type,'feasibility')
+        grad_cost = @(x)zeros(4*N_core + 2*N_copy, 1);
+        Hessian = @(x, kappa, rho)jacobian_num(@(y)[Jac_pf(y); Jac_bus]'*kappa, x,  4*N_core + 2*N_copy, 4*N_core+ 2*N_copy);
+        cost = @(x) 0;
+        ineq = @(x)[];
+        eq = @(x)[ pf_p(x); pf_q(x); bus_specifications(x) ];
+        pf = @(x)[ pf_p(x); pf_q(x) ];
+        Jac = Jac_g_ls;
+        dims.eq = 4*N_core;
+        dims.ineq = [];
+    elseif strcmp(problem_type,'least-squares')
+        g_ls    =  @(x)[pf_p(x); pf_q(x); bus_specifications(x)];
+        grad_cost = @(x)(2*Jac_g_ls(x)'* g_ls(x));
+        Hessian =  @(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x));%@(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x)); %@(x, kappa, rho)jacobian_num(@(y)(grad_cost(y)), x, 4*N_core + 2*N_copy, 4*N_core + 2*N_copy);
+        cost = @(x)(g_ls(x)'*g_ls(x));
+        ineq = @(x)[];
+        eq = @(x)[];
+        pf = @(x)[ pf_p(x); pf_q(x) ];
+        Jac = @(x)[];
+        dims.eq = [];
+        dims.ineq = [];
+    end
 end
 
 function entries = build_entries(N_core, N_copy, with_core)

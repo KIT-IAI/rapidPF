@@ -19,7 +19,10 @@ function [x, x_stacked] = extract_results_per_region(mpc, names)
     opt = mpoption;
     opt.verbose = 0;
     opt.out.all = 0;
-    res = runpf(mpc, opt);
+    [res, flag] = runpf(mpc, opt);
+    if ~flag
+        error('current merged casefile is infeasible')
+    end
     [vang, vmag, pnet, qnet] = extract_results(res);
     regions = mpc.(names.regions.global);
     N_regions = numel(regions);
