@@ -57,14 +57,25 @@ function Sigma = build_Sigma(Nbus, weights)
 end
 
 function [lb, ub] = build_bounds_per_region(N_core, N_copy)
-    ang_lb = -pi/4;
-    ang_ub = pi/4;
-    mag_lb = 0.5;
-    mag_ub = 1.5;
-    p_lb = -10;
-    p_ub = 10;
-    q_lb = -10;
-    q_ub = 10;
+%     ang_lb = -pi/4;
+%     ang_ub = pi/4;
+%     mag_lb = 0.5;
+%     mag_ub = 1.5;
+%     p_lb = -10;
+%     p_ub = 10;
+%     q_lb = -10;
+%     q_ub = 10;
+
+
+
+    ang_lb = -10;
+    ang_ub = 10; 
+    mag_lb = 0.1;
+    mag_ub = 10; 
+    p_lb = -100; 
+    p_ub = 100;  
+    q_lb = -100; 
+    q_ub = 100;  
     
     [lb, ub] = build_bounds(N_core, N_copy, [ang_lb; mag_lb; p_lb; q_lb], [ang_ub; mag_ub; p_ub; q_ub]);
 end

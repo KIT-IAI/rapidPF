@@ -1,4 +1,6 @@
 COPYING
+COPYING
+COPYING
 makefile
 matdoc.py
 matdocparser.py
@@ -288,6 +290,14 @@ TSWLatexianTemp*
 
 # Makeindex log files
 *.lpz
+
+## WORHP license
+*.lic
+
+## datafile
+*.csv 
+*.xml
+*.iml
 
 # REVTeX puts footnotes in the bibliography by default, unless the nofootinbib
 # option is specified. Footnotes are the stored in a file with suffix Notes.bib.
