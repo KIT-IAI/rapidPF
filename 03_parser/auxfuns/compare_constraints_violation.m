@@ -58,7 +58,7 @@ function plot_violation_results(violation)
     % limit setting
     Max      = max([iter_pf, iter_bus], [], 'all')*2;
     Min      = min([iter_pf, iter_bus], [], 'all')/2;        
-    limit    = [1, iter+1,  Min, Max];
+    limit    = [1, iter,  Min, Max];
     % legend str setting
 
     for i = 1:N_region
@@ -69,29 +69,32 @@ function plot_violation_results(violation)
     figure('units','normalized','outerposition',[0.2 0.2 0.8 0.8])
     subplot(3,1,1)
     % violation of power flow
-    semilogy(iter_pf')
+    semilogy(iter_pf','Marker', 'x')
     axis(limit)
+    set(gca, 'XTick', 1:iter)
     xlabel('$\mathrm{Iteration}$','fontsize',12,'interpreter','latex')
-    ylabel('$||g^{pf}_i(x_i)||^2_2$','fontsize',12,'interpreter','latex')
+    ylabel('$\|g^{pf}_i(x_i)\|^2_2$','fontsize',12,'interpreter','latex')
     legend(legendCell,'fontsize',12, 'interpreter','latex')
     grid on
     
     subplot(3,1,2)
     % violation of bus bus_specs
-    semilogy(iter_bus')
+    semilogy(iter_bus', 'Marker', 'x')
     axis(limit)
+    set(gca, 'XTick', 1:iter)
     xlabel('$\mathrm{Iteration}$','fontsize',12,'interpreter','latex')
-    ylabel('$||g^{bus}_i(x_i)||^2_2$','fontsize',12,'interpreter','latex')
+    ylabel('$\|g^{bus}_i(x_i)\|^2_2$','fontsize',12,'interpreter','latex')
     legend(legendCell,'fontsize',12, 'interpreter','latex')
     grid on
     
     subplot(3,1,3)
     % comparison of two kinds of constraints
-    semilogy([1:iter],sum(iter_pf),[1:iter],sum(iter_bus))
+    semilogy([1:iter],sum(iter_pf),[1:iter],sum(iter_bus), 'Marker', 'x')
     axis(limit)
+    set(gca, 'XTick', 1:iter)
     xlabel('$\mathrm{Iteration}$','fontsize',12,'interpreter','latex')
     ylabel('$\mathrm{Violation\;of\;different\;constraints}$','fontsize',12,'interpreter','latex')
-    legend('$||g^{bus}_i(x_i)||^2_2$','$||g^{bus}_i(x_i)||^2_2$','fontsize',12,'interpreter','latex')
+    legend('$\|g^{bus}_i(x_i)\|^2_2$','$\|g^{bus}_i(x_i)\|^2_2$','fontsize',12,'interpreter','latex')
     grid on
 %% plot per region
     plot_per_region(pf_norm,pf_percent,sytnax,'pf') 
