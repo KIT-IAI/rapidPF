@@ -95,33 +95,40 @@ The output is, again, a case file that has a lot of extra information.
 
 ### Case file parser
 
-Finally, the case file parser takes the output from the splitter, and generates a problem formulation, using [`generate_distributed_problem_for_aladin`](mfiles/03_parser/generate_distributed_problem_for_aladin.md)
+Finally, the case file parser takes the output from the splitter, and generates a problem formulation, using [`generate_distributed_problem_for_aladin`](mfiles/03_parser/generate_distributed_problem_for_aladin.md).
+Note that we can need to specify whether we create a `feasibility` or a `least-squares` problem formulation.
 
 ```matlab
-problem = generate_distributed_problem_for_aladin(mpc_split, names);
+problem = generate_distributed_problem_for_aladin(mpc_split, names, 'least-squares');
 ```
 
 The problem formulation is a struct that contains all relevant equations.
 
+Finally, we need to add a numerical solver (`fmincon`, `fminunc`, `worhp`, `Casadi+Ipopt`)
+
+```matlab
+% add a solver
+problem.solver = 'fmincon';
+```
+
 ## Problem solution
 
-Having created a valid problem formulation, we can, for instance, use the [Aladin toolbox](https://github.com/alexe15/ALADIN.m) to solve the problem.
+Having created a valid problem formulation, we rely on the [Aladin toolbox](https://github.com/alexe15/ALADIN.m) to solve the problem.
 Aladin requires a set of parameters (using the default values is also possible, and usually a good idea).
 We use the function [`solve_distributed_problem_with_aladin`](mfiles/03_parser/solve_distributed_problem_with_aladin.md)
 
 ```matlab
-opts = struct( ...
-        'rho0',1.5e1,'rhoUpdate',1.1,'rhoMax',1e8,'mu0',1e2,'muUpdate',2,...
-        'muMax',2*1e6,'eps',0,'maxiter',30,'actMargin',-1e-6,'hessian','standard',...%-1e-6
-        'solveQP','MA57','reg','true','locSol','ipopt','innerIter',2400,'innerAlg', ...
-        'none','Hess','standard','plot',true,'slpGlob', true,'trGamma', 1e6, ...
-        'Sig','const','term_eps', 0, 'parfor', false, 'reuse', false);
-[xsol_aladin, xsol_stack_aladin, mpc_sol_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names);
+opts = struct('maxiter',50, 'solveQP','MA57');
+opts.reg ='false';
+opts.rho0= 1e2;
+
+[xsol_aladin, xsol_stack_aladin, mpc_sol_aladin, logg] = solve_distributed_problem_with_aladin(mpc_split, problem, names, opts);
 ```
 
-The function returns three outputs: `xsol_aladin` and `xsol_stack_aladin` are both cells with as many entries as there are regions.
+The function returns four outputs: `xsol_aladin` and `xsol_stack_aladin` are both cells with as many entries as there are regions.
 In each entry, the state of region $i$ is stored: in `xsol_aladin` it is a matrix form with as many rows as there are buses in the region, and the four columns being the voltage angle, the voltage magnitude, the net active power, and the net reactive power; in `xsol_stack_aladin`, each entry is the vertically stacked equivalent of `xsol_aladin`.
 The third output, `mpc_sol_aladin`, is a valid case file that can be used for further inspection.
+The fourth output contains logging information from the Aladin toolbox.
 
 ## Comparison
 
@@ -146,6 +153,17 @@ The following code does just that
 ```matlab
 [xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc_split, problem, names);
 comparison_centralized = compare_results(xval, xsol)
+```
+
+## Post-processing
+
+There are two handy functions for post-processing,
+These functions provide a graphical impression of the overall constraint violations for both the power flow equations and the consensus violations.
+Also, there is a graphical representation of how the systems are connected.
+
+```matlab
+compare_constraints_violation(problem, logg);
+compare_power_flow_between_regions(mpc_sol_aladin, mpc_merge.connections, mpc_split.regions, conn(:,1:2));
 ```
 
 ## Entire code
@@ -183,18 +201,20 @@ mpc_merge = run_case_file_generator(mpc_master, mpc_slaves, conn, fields_to_merg
 % case-file-splitter
 mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 % generate problem formulation for aladin
-problem = generate_distributed_problem_for_aladin(mpc_split, names);
+problem = generate_distributed_problem_for_aladin(mpc_split, names, 'least-squares');
+% add a solver
+problem.solver = 'fmincon';
 % solve problem
 [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
 [xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc_split, problem, names);
 comparison_centralized = compare_results(xval, xsol)
 
-opts = struct( ...
-        'rho0',1.5e1,'rhoUpdate',1.1,'rhoMax',1e8,'mu0',1e2,'muUpdate',2,...
-        'muMax',2*1e6,'eps',0,'maxiter',30,'actMargin',-1e-6,'hessian','standard',...%-1e-6
-        'solveQP','MA57','reg','true','locSol','ipopt','innerIter',2400,'innerAlg', ...
-        'none','Hess','standard','plot',true,'slpGlob', true,'trGamma', 1e6, ...
-        'Sig','const','term_eps', 0, 'parfor', false, 'reuse', false);
-[xsol_aladin, xsol_stack_aladin, mpc_sol_aladin] = solve_distributed_problem_with_aladin(mpc_split, problem, names);
-comparison_aladin = compare_results(xval, xsol_aladin)
+opts = struct('maxiter',50, 'solveQP','MA57');
+opts.reg ='false';
+opts.rho0= 1e2;
+
+[xsol_aladin, xsol_stack_aladin, mpc_sol_aladin, logg] = solve_distributed_problem_with_aladin(mpc_split, problem, names, opts);
+
+comparison_aladin = compare_results(xval, xsol_aladin);
+compare_constraints_violation(problem, logg);
 ```

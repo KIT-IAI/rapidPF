@@ -2,8 +2,6 @@
 
 ### fmincon
 
-### CasADi
+### CasADi & Ipopt
 
 ### WORHP
-
-### IPOPT

@@ -55,11 +55,8 @@ Specifically, the features of the code include:
 - Add [`Matpower`](https://matpower.org/) to your `Matlab` installation
 - Add [`Aladin`](https://github.com/alexe15/ALADIN.m) to your `Matlab` installation.
 
-<<<<<<< HEAD
 !!! note "Use of `matpower`"
     The code relies heavily on `Matpower`, especially on the idea of a `matpower case file` (or `mpc`).
     This bulky name is nothing but a standardized `Matlab` struct, with the advantage that it has become a *de facto* standard for Matlab-based power systems research.
     Also, `mpc` can be converted within `matpower` to/from IEEE CDF or PSS/E RAW, see the `Matpower` docs for details.
-=======
->>>>>>> add-sens-example
 

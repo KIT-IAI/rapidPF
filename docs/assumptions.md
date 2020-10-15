@@ -6,7 +6,7 @@
 
 ### Case file generator
 - The slack bus of the *master system* is the slack bus of the overall system. 
-- Systems can be connected in arbitrary ways at generation buses, for instance:
+- Systems can be connected in arbitrary ways at generation buses (i.e. slack buses and/or PV buses), for instance:
 
 [![](https://mermaid.ink/img/eyJjb2RlIjoiZ3JhcGggTFI7XG4gICBtYXN0ZXIoTWFzdGVyKSAtLT4gc2xhdmUxKFNsYXZlIDEpO1xuICAgbWFzdGVyIC0tPiBzbGF2ZTIoU2xhdmUgMik7IiwibWVybWFpZCI6eyJ0aGVtZSI6ImRlZmF1bHQifSwidXBkYXRlRWRpdG9yIjpmYWxzZX0)](https://mermaid-js.github.io/mermaid-live-editor/#/edit/eyJjb2RlIjoiZ3JhcGggTFI7XG4gICBtYXN0ZXIoTWFzdGVyKSAtLT4gc2xhdmUxKFNsYXZlIDEpO1xuICAgbWFzdGVyIC0tPiBzbGF2ZTIoU2xhdmUgMik7IiwibWVybWFpZCI6eyJ0aGVtZSI6ImRlZmF1bHQifSwidXBkYXRlRWRpdG9yIjpmYWxzZX0)
 
@@ -22,8 +22,9 @@
     It is currently not supported to connect several lines between the *same* buses.
 
 - In the *to*-system we replace the generation bus by a `PQ` bus with zero generation and original demand.
-  - If the connecting generation bus in the *to*-system is the slack bus, then this slack in the distribution system is replaced by a `PQ` bus with zero generation/demand.
-  - On the other hand, if the connecting generationbus in the *to*-system is a `PV` bus, then this `PV` bus is replaced by a `PQ` bus, and the slack bus in the distribution system is replaced by a `PV` bus.
+  - If the connecting generation bus in the *to*-slave-system is the slack bus, then this slack in the slave system is replaced by a `PQ` bus with zero generation/demand.
+  - On the other hand, if the connecting generation bus in the *to*-system is a `PV` bus, then this `PV` bus is replaced by a `PQ` bus
+  - If no connecting bus in the *to*-slave-system is the slack bus, then the slave system's slack bus is replaced by a `PV` bus; the respective set points for the active power and the voltage magnitude are taken from the `Matpower` case file entries in `mpc.gen`.
 - If the master system has $N_{m}$ nodes, and if each slave system $i$ has $N_{s, i}$ nodes for $i \in \{ 1, \dots, d \}$, then the overall system is going to have $N = N_{m} + N_{s_1} + \dots + N_{s, d}$ nodes.
 - The entries for the generated active/reactive power from the fields `mpc.gen()` are ignored.
 - The numbering of the overall system (= master + slaves) goes from $1$ to $N$, where $N$ is the number of buses in the overall system, see above.
