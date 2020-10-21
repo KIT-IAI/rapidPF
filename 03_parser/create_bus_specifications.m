@@ -98,7 +98,7 @@ function gen = remove_gen_entries(gen, bus, buses)
     elseif has_pv_entry(types)
         % there is at least one PV bus, hence remove the corresponding gen
         % entry
-        [~, inds] = intersect(gen(:, GEN_BUS), buses);
+        inds = ismember(gen(:, GEN_BUS), buses);
         gen(inds, :) = [];
     end
 end
