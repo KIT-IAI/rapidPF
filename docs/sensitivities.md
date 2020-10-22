@@ -5,15 +5,15 @@ This section shows how the power flow sensitivities can be used.
 All gradient-based optimization methods require sensitivities.
 By *sensitivities* we mean one (or all) of the following:
 
-    - gradients,
-    - Jacobians, and/or
-    - Hessians.
+- gradients,
+- Jacobians, and/or
+- Hessians.
 
 Broadly speaking, there are three ways to obtain sensitivities:
 
-    - symbolically,
-    - numerically,
-    - by automatic differentiation,
+- symbolically,
+- numerically,
+- by automatic differentiation,
 
 with each method having its own pros and cons.
 The case file parser does not just provide the mathematical [problem formulation](problem-formulation.md) in terms of function handles, but also sensitivities.
@@ -21,7 +21,7 @@ The case file parser does not just provide the mathematical [problem formulation
 ## Computation
 
 !!! note "Naming for sensitivities"
-    The naming of the sensitivities is inspired by the naming conventions from [Aladin](https://github.com/alexe15/ALADIN.m/)
+    The naming of the sensitivities is inspired by the naming conventions from [Aladin](https://github.com/alexe15/ALADIN.m/).
 
 Letting `problem` be the output of the case file parser, you find it has an entry `sens`
 
@@ -38,7 +38,7 @@ ans =
 ```
 
 which has again three entries.
-The following tables gives some background information.
+The following table gives some background information.
 
 | Entry | Meaning | Definition | Exact
 | --- | --- | --- | --- |
@@ -46,7 +46,7 @@ The following tables gives some background information.
 | `JJac` | Jacobian of each local power flow problem | $J_{g_i}(x_i, z_i)$ where $g_i(x_i, z_i) = \begin{bmatrix} g^{\text{pf}}_i( x_i, z_i ) \\ g^{\text{bus}}_i ( x_i )) \end{bmatrix}$ | Yes |
 | `HH` | Hessian of each local problem for Aladin problem formulation ([see Algorithm 1 here](https://ieeexplore.ieee.org/stamp/stamp.jsp?arnumber=8450020))| $\nabla^2 B_i$ with $B_i = f_i(x_i) + \kappa_i^\top g_i(x_i, z_i)$, where $\kappa_i$ are the Lagrange multipliers w.r.t. the equality constraints $g_i$ | No |
 
-The Hessian is computed numerically using central differences per default.
+The Hessian is computed numerically using central differences per default for the feasibility formulation, and by the Gauss-Newton method for the least-squares formulation.
 
 These sensitivities should be supplied to numerical solvers to increase both accuracy and speed.
 

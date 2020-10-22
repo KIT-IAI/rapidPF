@@ -41,6 +41,7 @@ Specifically, the features of the code include:
 - Formulate distributed power flow problems in terms of function handles.
 - Solve distributed power flow problems using the [Aladin toolbox.](https://github.com/alexe15/ALADIN.m)
 - Fully compliant with `matpower` case files, hence allowing to use all of the built-in `matpower` functions.
+- Insightful post-processing features.
 
 ## What *not *to expect
 
@@ -51,9 +52,7 @@ Specifically, the features of the code include:
 
 ## Installation
 
-- Install [`Matlab`](https://www.mathworks.com).
-- Add [`Matpower`](https://matpower.org/) to your `Matlab` installation
-- Add [`Aladin`](https://github.com/alexe15/ALADIN.m) to your `Matlab` installation.
+[See here.](installation.md)
 
 !!! note "Use of `matpower`"
     The code relies heavily on `Matpower`, especially on the idea of a `matpower case file` (or `mpc`).
