@@ -20,17 +20,17 @@ function compare_constraints_violation(problem, logg)
         for j = 1:iter
             % compute violation in current iteration and region
             x_i                     = X(n:m,j);
-            violation.iter.pf(i,j)  = norm(pf{i}(x_i),2)^2;
-            violation.iter.bus(i,j) = norm(bus_specs{i}(x_i),2)^2;
+            violation.iter.pf(i,j)  = norm(pf{i}(x_i), inf);
+            violation.iter.bus(i,j) = norm(bus_specs{i}(x_i), inf);
         end
         N_previous_state        = m;
         % violation at minimizer, j = iter
         pf_norm                 = pf{i}(x_i) .* pf{i}(x_i);
         bus_norm                = bus_specs{i}(x_i) .* bus_specs{i}(x_i);
-        violation.pf_norm            = vertcat(violation.pf_norm,  pf_norm);
-        violation.bus_norm           = vertcat(violation.bus_norm, bus_norm);
-        violation.pf_percent         = vertcat(violation.pf_percent, pf_norm/violation.iter.pf(i,iter));
-        violation.bus_percent        = vertcat(violation.bus_percent, bus_norm/violation.iter.bus(i,iter));
+        violation.pf_norm       = vertcat(violation.pf_norm,  pf_norm);
+        violation.bus_norm      = vertcat(violation.bus_norm, bus_norm);
+        violation.pf_percent    = vertcat(violation.pf_percent, pf_norm/violation.iter.pf(i,iter));
+        violation.bus_percent   = vertcat(violation.bus_percent, bus_norm/violation.iter.bus(i,iter));
         % index, N_data = 2 * Nbus_core   
         N_data                  = numel(pf{i}(x_i));
         index                   = 1:N_data;
@@ -73,7 +73,7 @@ function plot_violation_results(violation)
     axis(limit)
     set(gca, 'XTick', 1:iter)
     xlabel('$\mathrm{Iteration}$','fontsize',12,'interpreter','latex')
-    ylabel('$\|g^{pf}_i(x_i)\|^2_2$','fontsize',12,'interpreter','latex')
+    ylabel('$\|g^{pf}_i(x_i)\|_{\infty}$','fontsize',12,'interpreter','latex')
     legend(legendCell,'fontsize',12, 'interpreter','latex')
     grid on
     
@@ -83,13 +83,13 @@ function plot_violation_results(violation)
     axis(limit)
     set(gca, 'XTick', 1:iter)
     xlabel('$\mathrm{Iteration}$','fontsize',12,'interpreter','latex')
-    ylabel('$\|g^{bus}_i(x_i)\|^2_2$','fontsize',12,'interpreter','latex')
+    ylabel('$\|g^{bus}_i(x_i)\|_{\infty}$','fontsize',12,'interpreter','latex')
     legend(legendCell,'fontsize',12, 'interpreter','latex')
     grid on
     
     subplot(3,1,3)
     % comparison of two kinds of constraints
-    semilogy([1:iter],sum(iter_pf),[1:iter],sum(iter_bus), 'Marker', 'x')
+    semilogy([1:iter],sum(iter_pf), [1:iter], sum(iter_bus), 'Marker', 'x')
     axis(limit)
     set(gca, 'XTick', 1:iter)
     xlabel('$\mathrm{Iteration}$','fontsize',12,'interpreter','latex')
