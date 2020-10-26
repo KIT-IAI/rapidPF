@@ -30,5 +30,6 @@ function [xsol, xsol_stacked, mpc_sol, logg] = solve_distributed_problem_with_al
     alg           =  'ALADIN';
     logg.X        =  sol.iter.logg.X;
     logg.iter     =  sol.iter.i - 1;
+    logg.cons_violations = sol.iter.logg.consViol;
     mpc_sol       =  back_to_mpc(mpc, xsol, elapsed_time, iter, alg);
 end

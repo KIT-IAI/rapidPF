@@ -37,6 +37,9 @@ function compare_constraints_violation(problem, logg)
         violation.sytnax.region = vertcat(violation.sytnax.region,ones(N_data,1)*i);
         violation.sytnax.pf     = vertcat(violation.sytnax.pf,compose('g_{pf,%-d}',index)');
         violation.sytnax.bus    = vertcat(violation.sytnax.bus,compose('g_{bus,%-d}',index)');
+        
+        violation.consensus     = logg.cons_violations(2:end);
+        assert(length(violation.consensus) == logg.iter)
     end
 %      violation       = data_processing(violation);
 %     plot_violation_results_table(violation, iter);
@@ -52,6 +55,7 @@ function plot_violation_results(violation)
     bus_norm      = violation.bus_norm;
     pf_percent    = violation.pf_percent;
     bus_percent   = violation.bus_percent;
+    consensus_vio = violation.consensus;
     N_region = size(iter_pf, 1);
     iter     = size(iter_pf, 2);
     sytnax   = violation.sytnax;
@@ -88,13 +92,12 @@ function plot_violation_results(violation)
     grid on
     
     subplot(3,1,3)
-    % comparison of two kinds of constraints
-    semilogy([1:iter],sum(iter_pf), [1:iter], sum(iter_bus), 'Marker', 'x')
+    % consensus violation
+    semilogy([1:iter],consensus_vio, 'Marker', 'x')
     axis(limit)
     set(gca, 'XTick', 1:iter)
     xlabel('$\mathrm{Iteration}$','fontsize',12,'interpreter','latex')
-    ylabel('$\mathrm{Violation\;of\;different\;constraints}$','fontsize',12,'interpreter','latex')
-    legend('$\|g^{bus}_i(x_i)\|^2_2$','$\|g^{bus}_i(x_i)\|^2_2$','fontsize',12,'interpreter','latex')
+    ylabel('Consensus violation','fontsize',12,'interpreter','latex')
     grid on
 %% plot per region
     plot_per_region(pf_norm,pf_percent,sytnax,'pf') 
