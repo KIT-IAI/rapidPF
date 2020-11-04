@@ -1,0 +1,30 @@
+function error = deviation_violation_iter_plot(mpc, xval, logg, names,xsol_aladin) 
+    for j = 1:logg.iter
+            [X, ~] = deal_solution(logg.X(:,j), mpc, names);
+            e         = table2array(compare_results(xval, X));
+            error(j)     = max(e(:,2)); % norm-inf of all regions
+    end
+    iter_plot(error,logg.cons_violations(2:end));
+end
+
+function iter_plot(error, cons_violations)
+    figure('Name','compare different initial points')
+    subplot(2,1,1)
+    semilogy(error)
+    grid on
+    xlabel('$\mathrm{Iteration}$','interpreter','Latex');
+    ylabel('$||x^k-x^*||_2$','interpreter','Latex');
+    lgd = legend('$0.01$','$0.1$','$1$','$3$','$10$','interpreter','Latex');
+    title(lgd,'$||x_0-x^*||_2$','interpreter','Latex')
+    
+    subplot(2,1,2)
+    semilogy(cons_violations)
+    grid on
+    xlabel('$\mathrm{Iteration}$','interpreter','Latex');
+    ylabel('$||Ax-b||_{\infty}$ ','interpreter','Latex');
+    lgd = legend('$0.01$','$0.1$','$1$','$3$','$10$','interpreter','Latex');
+    title(lgd,'$||x_0-x^*||_2$','interpreter','Latex')
+
+end
+
+
