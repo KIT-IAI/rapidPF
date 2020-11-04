@@ -1,6 +1,6 @@
-site_name: Morenet documentation
+site_name: rapidPF documentation
 site_url: http://http://iai-webserv.iai.kit.edu/morenet
-site_description: Documentation for the morenet project
+site_description: Documentation for rapidPF
 site_author: Tillmann Mühlpfordt
 docs_dir: docs/
 
