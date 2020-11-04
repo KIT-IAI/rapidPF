@@ -1,4 +1,4 @@
-function compare_constraints_violation(problem, logg)
+function violation = compare_constraints_violation(problem, logg)
     state     = problem.state;
     pf        = problem.pf;          % constraints function from power flow
     bus_specs = problem.bus_specs;
