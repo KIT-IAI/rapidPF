@@ -1,10 +1,5 @@
-# Morenet
+# RapidPF -- Rapid prototyping for distributed power flow problems
 
-!!! warning "Documentation = work in progress"
-    __The documentation is currently being written.
-    It's work in progress.__
-
-The morenet project provides `Matlab` code for distributed power flow problems.
 The power flow problem is *the* cornerstone problem in power systems analysis: find all (complex) quantities in an AC electrical network in steady state.
 Mathematically, the power flow problem is a system of nonlinear equations
 
@@ -30,8 +25,6 @@ There are several advantages of distributed approaches:
 - preserves privacy,
 - increases reliability,
 - and adds flexibility.
-
-This documentation accompanies the [`Matlab` code](https://iai-vcs.iai.kit.edu/advancedcontrol/code/morenet/morenet), providing also several examples.
 
 ## What to expect
 The code allows to *formulate* distributed power flow problems easily.

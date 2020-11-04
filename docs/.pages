@@ -1,6 +1,5 @@
 arrange:
     - index.md
-    - introduction.md
     - installation.md
     - overview.md
     - example.md
