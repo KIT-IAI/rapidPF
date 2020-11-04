@@ -1,7 +1,7 @@
 # Assumptions
 
 !!! note "Naming convention"
-    We distinguish between a *master system* and several *slave systems*.
+    We distinguish between a *master system* and several *worker systems*.
     The sole difference is that the *master system* contains the reference bus.
 
 ### Case file generator
@@ -22,12 +22,12 @@
     It is currently not supported to connect several lines between the *same* buses.
 
 - In the *to*-system we replace the generation bus by a `PQ` bus with zero generation and original demand.
-  - If the connecting generation bus in the *to*-slave-system is the slack bus, then this slack in the slave system is replaced by a `PQ` bus with zero generation/demand.
+  - If the connecting generation bus in the *to*-worker-system is the slack bus, then this slack in the worker system is replaced by a `PQ` bus with zero generation/demand.
   - On the other hand, if the connecting generation bus in the *to*-system is a `PV` bus, then this `PV` bus is replaced by a `PQ` bus
-  - If no connecting bus in the *to*-slave-system is the slack bus, then the slave system's slack bus is replaced by a `PV` bus; the respective set points for the active power and the voltage magnitude are taken from the `Matpower` case file entries in `mpc.gen`.
-- If the master system has $N_{m}$ nodes, and if each slave system $i$ has $N_{s, i}$ nodes for $i \in \{ 1, \dots, d \}$, then the overall system is going to have $N = N_{m} + N_{s_1} + \dots + N_{s, d}$ nodes.
+  - If no connecting bus in the *to*-worker-system is the slack bus, then the worker system's slack bus is replaced by a `PV` bus; the respective set points for the active power and the voltage magnitude are taken from the `Matpower` case file entries in `mpc.gen`.
+- If the master system has $N_{m}$ nodes, and if each worker system $i$ has $N_{s, i}$ nodes for $i \in \{ 1, \dots, d \}$, then the overall system is going to have $N = N_{m} + N_{s_1} + \dots + N_{s, d}$ nodes.
 - The entries for the generated active/reactive power from the fields `mpc.gen()` are ignored.
-- The numbering of the overall system (= master + slaves) goes from $1$ to $N$, where $N$ is the number of buses in the overall system, see above.
+- The numbering of the overall system (= master + workers) goes from $1$ to $N$, where $N$ is the number of buses in the overall system, see above.
 - The master system contains bus numbers $1$ to $N_m$. The numbering of the buses in the remaining systems is done according to order of appearance.
 - All case files have the same `baseMVA`.
 - The voltage magnitude settings in `mpc.gen` must be equivalent.

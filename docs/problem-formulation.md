@@ -32,9 +32,9 @@ Suppose we have a grid that looks like as follows
 There are a total of \(12\) buses in the system. The dashed lines
 indicate the three different regions: buses \(\{ 1, 2, 3 \}\) belong to
 what we call the master system, buses \(\{4, 5, 6, 7 \}\) belong to what
-we call the (first) slave system, and buses \(\{ 8, 9, 10, 11, 12 \}\)
-belong to the (second) slave system. Hence, we distinguish between
-*master* and *slave* systems; these local or regional systems (or just
+we call the (first) worker system, and buses \(\{ 8, 9, 10, 11, 12 \}\)
+belong to the (second) worker system. Hence, we distinguish between
+*master* and *worker* systems; these local or regional systems (or just
 *subsystems*) make up the overall power system.
 
 For the overall system the power flow problem means to compute the
@@ -68,7 +68,7 @@ prototypical power flow problem we just described the *centralized*
 power flow problem.
 
 The idea of *distributed* power flow is to solve *local* power flow
-problems within each system (= the master system, and all of the slave
+problems within each system (= the master system, and all of the worker
 systems), independent of each other, and iterate for as long as
 necessary until the solution of the centralized problem is obtained.
 Iteration here means to find consensus on the physical values of the
@@ -76,11 +76,11 @@ exchanged power between the subsystems.
 
 Before making this idea mathematically precise we introduce some more
 Nomenclature. Suppose we are seated in the master system, the one
-composed of buses \(\{1, 2, 3 \}\). From our perspective both slave
+composed of buses \(\{1, 2, 3 \}\). From our perspective both worker
 systems are our *neighbors*. More precisely, we know only that bus \(4\)
-(located in the first slave system) is our connection to the first slave
-system. Likewise, bus \(8\) (located in the second slave system) is our
-connection to the second slave system. To distinguish between these
+(located in the first worker system) is our connection to the first worker
+system. Likewise, bus \(8\) (located in the second worker system) is our
+connection to the second worker system. To distinguish between these
 different kinds of buses we call the buses \(\{1, 2, 3 \}\) the *core*
 nodes of the master system, and buses \(\{ 4, 8\}\) the *copy* nodes.
 Importantly, all other nodes do not exist for us; they are ignored.
@@ -95,7 +95,7 @@ copy nodes do not belong to our jurisdiction), then we have to *assume*
 values for them. This can be thought of as copying the buses into the
 shaded are denoted as “\(\text{copy + core nodes}\),” hence the name.
 
-Taking on the perspective of the first slave system we see: our core
+Taking on the perspective of the first worker system we see: our core
 nodes are \(\{ 4, 5, 6, 7 \}\), and there is just one copy bus \(1\),
 the first bus in the master system. Our world looks as follows.
 

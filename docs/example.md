@@ -32,11 +32,11 @@ We first generate a name struct that acts as a de-facto global variable for nami
 names = generate_name_struct();
 ```
 
-Next, we specify the master and slave systems by loading their case files.
+Next, we specify the master and worker systems by loading their case files.
 
 ```matlab
 mpc_master  = loadcase('case14');
-mpc_slaves = { loadcase('case30'); loadcase('case9')  };
+mpc_workers = { loadcase('case30'); loadcase('case9')  };
 ```
 
 Additionally, we need to specify *who* is connected to *whom*.
@@ -73,11 +73,11 @@ Having done the setup, we are now ready to use the three main blocks: the case f
 
 
 ### Case file generator
-Calling the case file generator means to specify the master and the slaves together with the connection table, and what fields shall be merged.
+Calling the case file generator means to specify the master and the workers together with the connection table, and what fields shall be merged.
 The most convenient way is to call [`run_case_file_generator`](mfiles/01_generator/run_case_file_generator.md)
 
 ```matlab
-mpc_merge = run_case_file_generator(mpc_master, mpc_slaves, conn, fields_to_merge, names);
+mpc_merge = run_case_file_generator(mpc_master, mpc_workers, conn, fields_to_merge, names);
 ```
 
 The output is a case file that has a lot of extra information.
@@ -179,7 +179,7 @@ names = generate_name_struct();
 %% setup
 fields_to_merge = {'bus', 'gen', 'branch'};
 mpc_master  = loadcase('case14');
-mpc_slaves = { loadcase('case30')
+mpc_workers = { loadcase('case30')
              loadcase('case9')  };
 
 connection_array = [2 1 1 2;
@@ -197,7 +197,7 @@ conn = build_connection_table(connection_array, trafo_params);
 
 %% main
 % case-file-generator
-mpc_merge = run_case_file_generator(mpc_master, mpc_slaves, conn, fields_to_merge, names);
+mpc_merge = run_case_file_generator(mpc_master, mpc_workers, conn, fields_to_merge, names);
 % case-file-splitter
 mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 % generate problem formulation for aladin
