@@ -147,14 +147,6 @@ To compare the results we call [`compare_results`](mfiles/03_parser/compare_resu
 comparison_aladin = compare_results(xval, xsol_aladin)
 ```
 
-In addition, we can solve the distributed problem also in a centralized fashion (and compare the results).
-The following code does just that
-
-```matlab
-[xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc_split, problem, names);
-comparison_centralized = compare_results(xval, xsol)
-```
-
 ## Post-processing
 
 There are two handy functions for post-processing,
@@ -163,7 +155,6 @@ Also, there is a graphical representation of how the systems are connected.
 
 ```matlab
 compare_constraints_violation(problem, logg);
-compare_power_flow_between_regions(mpc_sol_aladin, mpc_merge.connections, mpc_split.regions, conn(:,1:2));
 ```
 
 ## Entire code
@@ -204,10 +195,8 @@ mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 problem = generate_distributed_problem_for_aladin(mpc_split, names, 'least-squares');
 % add a solver
 problem.solver = 'fmincon';
-% solve problem
+% validate problem formulation
 [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
-[xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc_split, problem, names);
-comparison_centralized = compare_results(xval, xsol)
 
 opts = struct('maxiter',50, 'solveQP','MA57');
 opts.reg ='false';
@@ -215,6 +204,6 @@ opts.rho0= 1e2;
 
 [xsol_aladin, xsol_stack_aladin, mpc_sol_aladin, logg] = solve_distributed_problem_with_aladin(mpc_split, problem, names, opts);
 
-comparison_aladin = compare_results(xval, xsol_aladin);
+comparison_aladin = compare_results(xval, xsol_aladin)
 compare_constraints_violation(problem, logg);
 ```
