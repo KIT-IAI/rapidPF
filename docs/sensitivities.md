@@ -63,7 +63,7 @@ So, purely for cross validation, let's solve a power flow problem using the info
 mpc = ext2int(loadcase('case30'));
 mpc.(names.regions.global) = 1:30;
 mpc.(names.copy_buses.local) = [];
-[cost, ineq, eq, x0, pf, bus_specifications, Jac] = generate_local_power_flow_problem(mpc, names, 'not_required');
+[cost, ineq, eq, x0, pf, bus_specifications, Jac] = generate_local_power_flow_problem(mpc, names, 'not_required', 'feasibility');
 ```
 
 Lines 2 and 3 are needed purely for code convention routines: they introduce a sense of global numbering, and specify *no* neighors.
@@ -76,34 +76,60 @@ tol = 1e-10;
 i = 0;
 
 while norm(eq(x)) > tol && i < 10
-    x = x - myjac(x) \ eq(x);
+    x = x - Jac(x) \ eq(x);
     norm(eq(x))
     i = i + 1;
 end
 ```
-Letting this run in a file `test_jacobian.m`, we get the following output.
+Putting this together for [our example](example.md) system we have
 
 ```matlab
->> test_jacobian
+clear all; close all; clc;
 
-ans =
+addpath(genpath('../01_generator/'));
+addpath(genpath('../02_splitter/'));
+addpath(genpath('../03_parser/'));
 
-    0.0335
+names = generate_name_struct();
+%% setup
+fields_to_merge = {'bus', 'gen', 'branch'};
+mpc_master  = loadcase('case14');
+mpc_slaves = { loadcase('case30')
+             loadcase('case9')  };
 
+connection_array = [2 1 1 2;
+                    2 3 2 3; 
+                    2 3 13 1;
+                    ];
 
-ans =
+trafo_params.r = 0;
+trafo_params.x = 0.00623;
+trafo_params.b = 0;
+trafo_params.ratio = 0.985;
+trafo_params.angle = 0;
 
-   1.1689e-04
+conn = build_connection_table(connection_array, trafo_params);
 
+%% main
+% case-file-generator
+mpc_merge = run_case_file_generator(mpc_master, mpc_slaves, conn, fields_to_merge, names);
+% case-file-splitter
+mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 
-ans =
+mpc = ext2int(loadcase('case30'));
+mpc.(names.regions.global) = 1:30;
+mpc.(names.copy_buses.local) = [];
+[cost, ineq, eq, x0, pf, bus_specifications, Jac] = generate_local_power_flow_problem(mpc, names, 'my_postfix', 'feasibility');
 
-   1.6313e-09
+x = x0;
+tol = 1e-10;
+i = 0;
 
-
-ans =
-
-   2.1533e-14
+while norm(eq(x)) > tol && i < 10
+    x = x - Jac(x) \ eq(x);
+    norm(eq(x))
+    i = i + 1;
+end
 ```
 
 

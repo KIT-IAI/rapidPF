@@ -1,4 +1,5 @@
-# RapidPF -- Rapid prototyping for distributed power flow problems
+# RapidPF
+## Rapid prototyping for distributed power flow problems
 
 The power flow problem is *the* cornerstone problem in power systems analysis: find all (complex) quantities in an AC electrical network in steady state.
 Mathematically, the power flow problem is a system of nonlinear equations
