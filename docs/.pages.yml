@@ -3,6 +3,7 @@ arrange:
     - index.md
     - introduction.md
     - installation.md
+    - getting-started.md
     - overview.md
     - example.md
     - assumptions.md

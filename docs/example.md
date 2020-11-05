@@ -149,13 +149,16 @@ comparison_aladin = compare_results(xval, xsol_aladin)
 
 ## Post-processing
 
-There are two handy functions for post-processing,
-These functions provide a graphical impression of the overall constraint violations for both the power flow equations and the consensus violations.
-Also, there is a graphical representation of how the systems are connected.
+There is a handy function for post-processing,
+This function provides a graphical impression of the overall constraint violations for both the power flow equations and the consensus violations.
 
 ```matlab
 compare_constraints_violation(problem, logg);
 ```
+
+For this example the violation of the power flow equations, the bus specifications, and the consensus constraints are shown below per Aladin iteration.
+
+![Simulation results for example](figs/example-results.png)
 
 ## Entire code
 
