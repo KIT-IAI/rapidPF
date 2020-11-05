@@ -1,4 +1,4 @@
-## Installation
+# Installation
 
 - Install [`Matlab`](https://www.mathworks.com).
 - Add [`Matpower`](https://matpower.org/) to your `Matlab` installation

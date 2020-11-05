@@ -24,6 +24,7 @@ equivalent to the original power flow problem. Instead of often done
 splitting of lines we simply copy neighboring buses within regions.
 
 With rapidPF, the distributed power flow problem can be solved in two different problem formulations:
+
 - as a distributed feasibility problem,
 - or as a distributed least-squares problem.
 
