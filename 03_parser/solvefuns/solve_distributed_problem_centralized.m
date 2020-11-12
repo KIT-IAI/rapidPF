@@ -1,4 +1,4 @@
-function [xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc, problem, names)
+function [xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc, problem, names, problem_type)
 % solve_distributed_problem_centralized
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
@@ -19,15 +19,20 @@ function [xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(m
     sizes = cellfun(@(x)numel(x), problem.zz0);
     x0 = vertcat(problem.zz0{:});
     totTimer   = tic;
-    [xsol,~,~,OUTPUT] = fsolve(@(x)build_con(x, problem, sizes), x0);
+    if strcmp(problem_type, 'feasibility')
+        [xsol,~,~,OUTPUT] = fsolve(@(x)build_con(x, problem, sizes), x0);
+    else
+        error('Currently, only the feasibility problem can be solved centrally.');
+    end
     elapsed_time  =  toc(totTimer);
     % deal solution back
     [xsol, xsol_stacked] = deal_solution(xsol, mpc, names);
     
-    % numerical solution back to matpower casefile
+    % numerical solution bapwdck to matpower casefile
     iter          =  OUTPUT.iterations; % number of iteration
     alg           =  OUTPUT.algorithm;
-    mpc_sol       =  back_to_mpc(mpc, xsol, elapsed_time, iter, alg);end
+    mpc_sol       =  back_to_mpc(mpc, xsol, elapsed_time, iter, alg);
+end
 
 function eq = build_con(x, problem, buses)
     x_split = split_vector(x, buses);
