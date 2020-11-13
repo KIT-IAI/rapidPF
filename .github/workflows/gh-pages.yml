@@ -3,8 +3,6 @@ name: github-pages
 on:
   push:
     branches:
-      - gh-actions
-      - gh-actions-till
       - master
 
 jobs:
@@ -37,10 +35,6 @@ jobs:
         run: ./mat2md.sh
       - name: Build pages
         run: mkdocs build
-      - name: Show result in docs
-        run: ls docs/
-      - name: Show result in site
-        run: ls site/
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
