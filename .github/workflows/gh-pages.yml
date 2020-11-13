@@ -7,12 +7,18 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
         with:
           submodules: "recursive"
           fetch-depth: 0
+      - uses: actions/checkout@v2
+        with:
+          repository: "https://github.com/timueh/docker-mkdocs"
+          path: "matdoc"
+      - name: Copy matdoc
+        run: |
+          cp matdoc/matdoc/* .
       - name: Setup Python
         uses: actions/setup-python@v1
         with:
