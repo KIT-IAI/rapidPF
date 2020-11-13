@@ -19,5 +19,3 @@ for SRC in "${SRC_FOLDERS[@]}"; do
     make all mfiledir=docs/mfiles/$SRC
     rm *.m
 done
-
-mkdocs build --clean
