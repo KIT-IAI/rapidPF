@@ -15,7 +15,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/checkout@v2
         with:
-          repository: "https://github.com/timueh/docker-mkdocs"
+          repository: "timueh/docker-mkdocs"
           path: "matdoc"
       - name: Copy matdoc
         run: |
