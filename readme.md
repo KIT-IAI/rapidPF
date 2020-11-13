@@ -1,4 +1,4 @@
-![Documentation](https://github.com/KIT-IAI/rapidPF/workflows/github-pages/badge.svg)
+[![Documentation Build](https://github.com/KIT-IAI/rapidPF/workflows/github-pages/badge.svg)](https://github.com/KIT-IAI/rapidPF/actions?query=workflow%3Agithub-pages)
 [![documentation](https://img.shields.io/badge/docs-stable-blue)](https://kit-iai.github.io/rapidPF/)
 
 
