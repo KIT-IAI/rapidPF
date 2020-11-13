@@ -30,6 +30,7 @@ jobs:
           python3 -m pip install --upgrade pip
           python3 -m pip install mkdocs
           python3 -m pip install mkdocs-material
+          python3 -m pip install mkdocs-awesome-pages-plugin
       - name: Collect Matlab Files
         run: ./mat2md.sh
       - name: Build pages
