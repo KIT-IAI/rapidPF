@@ -77,8 +77,13 @@ function mpc_split = split_case_file(mpc, N, names)
     mpc_split.(NAME_FOR_AUX_BUSES_FIELD) = mpc.(NAME_FOR_AUX_BUSES_FIELD){N};
     mpc_split.(NAME_FOR_COPY_BUSES_LOCAL) = mpc.(NAME_FOR_COPY_BUSES_LOCAL){N};
     
-
+    
+    % gencost entries
+    [MODEL, STARTUP, SHUTDOWN, NCOST, COST] = idx_cost;
+    gen_cost_entries = sum(mpc.gen(:, GEN_BUS) == buses, 2);
+    gen_cost_entry_rows = find(gen_entries == 1);
+    mpc_split.gencost = mpc.gencost(gen_cost_entry_rows, :);
     if isfield(mpc, 'gencost')
-        error('there is a gencost field that is not accounted for in the code.')
+        warning('There is a gencost field. OPF probems are still in beta development mode. Handle with care')
     end
 end

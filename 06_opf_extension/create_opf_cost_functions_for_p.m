@@ -1,5 +1,5 @@
-function f = create_bus_specifications(Vang, Vmag, Pnet, Qnet, mpc, local_bus_to_remove)
-% create_bus_specifications
+function fun = create_opf_cost_functions_for_p(Pnet, gencosts, mpc, local_bus_to_remove)
+% create_power_flow_equation_for_p
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
 %
@@ -16,71 +16,79 @@ function f = create_bus_specifications(Vang, Vmag, Pnet, Qnet, mpc, local_bus_to
 %   end
 %   ```
 %   See also: [run_case_file_splitter](run_case_file_splitter.md)
-    [PQ, PV, REF, NONE, BUS_I, BUS_TYPE, PD, QD, GS, BS, BUS_AREA, VM, ...
+fun = 0;
+
+% copied from create_bus_specifications
+[PQ, PV, REF, NONE, BUS_I, BUS_TYPE, PD, QD, GS, BS, BUS_AREA, VM, ...
         VA, BASE_KV, ZONE, VMAX, VMIN, LAM_P, LAM_Q, MU_VMAX, MU_VMIN] = idx_bus;
-    [GEN_BUS, PG, QG, QMAX, QMIN, VG, MBASE, GEN_STATUS, PMAX, PMIN, ...
+[GEN_BUS, PG, QG, QMAX, QMIN, VG, MBASE, GEN_STATUS, PMAX, PMIN, ...
         MU_PMAX, MU_PMIN, MU_QMAX, MU_QMIN, PC1, PC2, QC1MIN, QC1MAX, ...
         QC2MIN, QC2MAX, RAMP_AGC, RAMP_10, RAMP_30, RAMP_Q, APF] = idx_gen;
-    check_dimension(Vang, Vmag, Pnet, Qnet);
-    
-    if nargin == 5
-        local_bus_to_remove = [];
-    end
-    %%
-    mpopt = mpoption;
+
+if nargin == 5
+    local_bus_to_remove = [];
+end
+mpopt = mpoption;
     mpc = ext2int(mpc, mpopt);
     % if isfield(mpc, 'gencost')
     % [baseMVA, bus, gen, gencost] = deal(mpc.baseMVA, mpc.bus, mpc.gen, mpc.gencost);
     % else
-    [baseMVA, bus, gen] = deal(mpc.baseMVA, mpc.bus, mpc.gen);
+    [baseMVA, bus, gen, gencost] = deal(mpc.baseMVA, mpc.bus, mpc.gen, mpc.gencost);
         
     % end
     [ref, pv, pq] = bustypes_ref(bus, gen);
     
     if ~isempty(local_bus_to_remove)
         [ref, pv, pq] = remove_bus(local_bus_to_remove, ref, pv, pq);
-        % remove bus entries
-        bus_without_copies = remove_bus_entries(bus, local_bus_to_remove);
-        % remove gen entries
-        gen_without_copies = remove_gen_entries(gen, bus, local_bus_to_remove);
-        % changes for OPF
-        if isfield(mpc, 'gencost')
-            % remove gen cost entries. ToDo!!!! 
-           gencost_without_copies = remove_gen_cost_entries(gen, mpc.gencost, bus, local_bus_to_remove);
-        end
-        bus = bus_without_copies;
-        gen = gen_without_copies;
-        gencost = gencost_without_copies;
-    end
-    
-    on = find(gen(:, GEN_STATUS) > 0);      %% which generators are on?
-    gbus = gen(on, GEN_BUS);                %% what buses are they at?
-    
-    V0ang = bus(:, VA) * pi / 180;
-    V0mag = bus(:, VM);
-    assert(numel(V0ang) == numel(V0mag), 'inconsistent dimensions');
-    
-    vcb = ones(size(V0ang));           %% create mask of voltage-controlled buses
-    vcb(pq) = 0;                    %% exclude PQ buses
-    k = find(vcb(gbus));            %% in-service gens at v-c buses
-    V0mag(gbus(k)) = gen(on(k), VG) ./ V0mag(gbus(k)) .* V0mag(gbus(k));
-    
-    [P, Q] = makeSbus_not_complex(baseMVA, bus, gen, mpopt, Vmag);
-    
-    gbus = setdiff(gbus, ref);
-    assert(isempty(setdiff(pv, gbus)));
-    
-    if issorted(pv) && issorted(pq)
-          % generate bus specifications according to bus types
-          f = [ Vang(ref)  - V0ang(ref), Vmag(ref) - V0mag(ref);    % slack
-              Pnet(pv) - P(pv), Vmag(gbus) - V0mag(gbus);           % pv buses
-              Pnet(pq) - P(pq), Qnet(pq) - Q(pq) ];                 % pq buses
-          % re-arrange f such that the ordering is according to the bus numbering
-          f = reshape_to_bus_numbering(f, [ref; pv; pq]);
-    end
+       % remove gen cost entries.
+       gencost_without_copies = remove_gen_cost_entries(gen, gencost, bus, local_bus_to_remove);
+       % end
+       % bus = bus_without_copies;
+       % gen = gen_without_copies;
+        gencosts = gencost_without_copies;
         
+            
+    end
+
+N_generators = size(gencosts, 1);
+for i = 1:N_generators
+    if gencosts(i, 1) == 1
+        warning('Cost model 1 is not supported. Handle solution with care!')
+        fun = fun + calculate_fi_wrt_model_1(i, Pnet, gencosts, fun);
+    elseif gencosts(i, 1) == 2
+        fun = fun + calculate_fi_wrt_model_2(i, Pnet, gencosts, fun);
+    else
+        assert('Model of generator costs is not supported')
+    end
 end
-%% local functions
+end
+
+function fun = calculate_fi_wrt_model_1(i, Pnet, gencosts, funvalue)
+% return cost under linear cost model
+n_cost_coefficients = gencosts(i, 4);
+if ~(gencosts(i, 4 + 1) > Pnet(i) || Pnet(i) > gencosts(i, 4 + 2 * n_cost_coefficients - 1))
+    for j = 1 : n_cost_coefficients/2
+        if gencosts(i, 4 + j) <= Pnet(i) && Pnet(i) < gencosts(i, 4 + j + 2)
+            fun = funvalue + gencosts(i, 4 + j + 1) + (Pnet(i) - gencosts(i, 4 + j)) ...
+                * (gencosts(i, 4 + j + 3) - gencosts(i, 4 + j + 1))/ ...
+                (gencosts(i, 4 + j + 2) - gencosts(i, 4 + j));
+        end
+    end
+elseif Pnet(i) <= gencosts(i, 4 + 1)
+    fun = funvalue + gencosts(i, 4 + 1 +1);
+elseif Pnet(i) > gencosts(i, 4 + 2 * n_cost_coefficients - 1)
+    fun = funvalue + gencosts(i, 4 + 2 * n_cost_coefficients);
+end
+end
+
+function fun = calculate_fi_wrt_model_2(i, Pnet, gencosts, funvalue)
+n_cost_coefficients = gencosts(i, 4);
+for j = 1 : n_cost_coefficients - 1
+    fun = funvalue + gencosts(i, 4 + j)*Pnet(i)^(n_cost_coefficients - j);
+end
+    fun = fun + gencosts(i, 4 + n_cost_coefficients);
+end
+
 function f = reshape_to_bus_numbering(f, bus_types)
     [~, sort_to_bus_numbering] = sort(bus_types);
     f = f(sort_to_bus_numbering, :);
@@ -154,4 +162,3 @@ function types = get_bus_types(bus, buses)
         VA, BASE_KV, ZONE, VMAX, VMIN, LAM_P, LAM_Q, MU_VMAX, MU_VMIN] = idx_bus;
     types = bus(buses, BUS_TYPE);
 end
-

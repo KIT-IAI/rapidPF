@@ -50,32 +50,6 @@ function [cost, ineq, eq, x0, pf, bus_specifications, Jac, grad_cost, Hessian, s
     entries_pf = build_entries(N_core, N_copy, true);
     pf_p = @(x)create_power_flow_equation_for_p(x(entries_pf{1}), x(entries_pf{2}), x(entries_pf{3}), x(entries_pf{4}), Ybus, buses_local);
     pf_q = @(x)create_power_flow_equation_for_q(x(entries_pf{1}), x(entries_pf{2}), x(entries_pf{3}), x(entries_pf{4}), Ybus, buses_local);
-    %% optimal power flow cost functions
-    %--- probably not needed because lagranian multipliers are not needed
-    %from MATPOWER, only objective function needs to be copied ---%
-    nb   = size(mpc.bus, 1);    %% number of buses
-    nl   = size(mpc.branch, 1); %% number of branches
-    ng   = size(mpc.gen, 1);    %% number of dispatchable injections
-%    if size(mpc.bus,2) < MU_VMIN
-%        mpc.bus = [mpc.bus zeros(nb, MU_VMIN-size(mpc.bus,2)) ];
-%    end
-%    if size(mpc.gen,2) < MU_QMIN
-%        mpc.gen = [ mpc.gen zeros(ng, MU_QMIN-size(mpc.gen,2)) ];
-%    end
-%    if size(mpc.branch,2) < MU_ANGMAX
-%        mpc.branch = [ mpc.branch zeros(nl, MU_ANGMAX-size(mpc.branch,2)) ];
-%    end
-
-% for MATPOWER OPF ...
-%    [mpc_opf, mpopt] = opf_args(mpc); % only respect most simple opf formulation so far
-%    mpc_opf = ext2int(mpc_opf, mpopt);
-%    om = opf_setup(mpc_opf, mpopt);
-
-%    f_fcn = @(x)opf_costfcn(x, om);
-    opf_p = @(x) create_opf_cost_functions_for_p(x(entries_pf{3}), mpc.gencost, mpc, copy_buses_local);
-    %% optimal power flow inequalities
-%    not useful, as I first thougth that power limits are written as inequalities    
-%    ineq_p = @(x) create_opf_ineqs(x(entries_pf{3}), mpc.gen); 
     %% bus specifications
     entries_bus_specs = build_entries(N_core, N_copy, false);
     bus_specifications = @(x)create_bus_specifications(x(entries_bus_specs{1}), x(entries_bus_specs{2}), x(entries_bus_specs{3}), x(entries_bus_specs{4}), mpc, copy_buses_local);
@@ -86,10 +60,6 @@ function [cost, ineq, eq, x0, pf, bus_specifications, Jac, grad_cost, Hessian, s
     Jac_pf  = @(x)jacobian_power_flow(x(entries_pf{1}), x(entries_pf{2}), x(entries_pf{3}), x(entries_pf{4}), Ybus, copy_buses_local);
     Jac_bus = jacobian_bus_specifications(mpc, copy_buses_local);
     Jac_g_ls    = @(x)[Jac_pf(x); Jac_bus];
-    %% sensitivities opf
-    gradient_costs = @(x) create_opf_cost_gradient_for_p(x(entries_pf{3}), mpc.gencost);
-    hessian_costs = @(x) create_hessian_for_cost_p(x(entries_pf{3}), mpc.gencost);
-    % hess_ineq_p = @(x) zeros(length(mpc.gen{:, 1}), length(mpc.gen{:, 1}));
     %% check sizes
     has_correct_size(x0, 4*N_core + 2*N_copy);
     has_correct_size(pf_p(x0), N_core);
@@ -97,20 +67,15 @@ function [cost, ineq, eq, x0, pf, bus_specifications, Jac, grad_cost, Hessian, s
     has_correct_size(bus_specifications(x0), 2*N_core);
     %% generate return values
     if strcmp(problem_type,'feasibility')
-        cost = @(x) opf_p(x);
-        grad_cost = @(x)gradient_costs(x);
-        % grad_cost = @(x) zeros(4*N_core + 2*N_copy, 1);
-        % TODO modify for OPF -> add second derivative of f
+        grad_cost = @(x)zeros(4*N_core + 2*N_copy, 1);
         Hessian = @(x, kappa, rho)jacobian_num(@(y)[Jac_pf(y); Jac_bus]'*kappa, x,  4*N_core + 2*N_copy, 4*N_core+ 2*N_copy);
-        % cost = @(x) opf_p(x);
-        ineq = @(x) [];
+        cost = @(x) 0;
+        ineq = @(x)[];
         eq = @(x)[ pf_p(x); pf_q(x); bus_specifications(x) ];
         pf = @(x)[ pf_p(x); pf_q(x) ];
-        % TODO modify to gradient of cost (and later of h)
         Jac = Jac_g_ls;
         dims.eq = 4*N_core;
-        dims.ineq = []; 
-       % dims.ineq = length(mpc.gencost(:, 1));
+        dims.ineq = [];
     elseif strcmp(problem_type,'least-squares')
         g_ls    =  @(x)[pf_p(x); pf_q(x); bus_specifications(x)];
         grad_cost = @(x)(2*Jac_g_ls(x)'* g_ls(x));
