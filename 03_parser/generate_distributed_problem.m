@@ -18,7 +18,7 @@ function problem = generate_distributed_problem(mpc, names, problem_type)
 %   See also: [run_case_file_splitter](run_case_file_splitter.md)
     % extract Data from casefile
     [N_regions, N_buses_in_regions, N_copy_buses_in_regions, ~] = get_relevant_information(mpc, names);
-    [costs, inequalities, equalities, states, xx0, pfs, bus_specs, Jacs, grads, Hessians, dims] = deal(cell(N_regions,1));
+    [costs,  inequalities, equalities, xx0, grads, Jacs, Hessians, states, dims] = deal(cell(N_regions,1));
     connection_table = mpc.(names.consensus);
     % set up the Ai's
     consensus_matrices = create_consensus_matrices(connection_table, N_buses_in_regions, N_copy_buses_in_regions);
@@ -26,8 +26,10 @@ function problem = generate_distributed_problem(mpc, names, problem_type)
     fprintf('\n\n');
     for i = 1:N_regions
         fprintf('Creating power flow problem for system %i...', i);
-        [cost, inequality, equality, x0, pf, bus_spec, Jac, grad, Hessian, state, dim] = generate_local_power_flow_problem(mpc.(names.split){i}, names, num2str(i), problem_type);
-        [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, bus_specs{i}, states{i}, Jacs{i}, grads{i}, Hessians{i}, dims{i}] = deal(cost, inequality, equality, x0, pf, bus_spec, state, Jac, grad, Hessian, dim);
+        [cost, inequality, equality, x0, grad, eq_jac, ineq_jac, Hessian, state, dim] = generate_local_power_flow_problem(mpc.(names.split){i}, names, num2str(i), problem_type);
+        % combine Jacobians of inequalities and equalities in single Jacobian
+        Jac = @(x)[eq_jac(x); ineq_jac(x)];
+        [costs{i},  inequalities{i}, equalities{i}, xx0{i}, grads{i}, Jacs{i}, Hessians{i}, states{i}, dims{i}] = deal(cost, inequality, equality, x0, grad, Jac, Hessian, state, dim);
         fprintf('done.\n')
     end
     %% generate output
@@ -44,8 +46,6 @@ function problem = generate_distributed_problem(mpc, names, problem_type)
     problem.zz0 = xx0;
     problem.AA  = consensus_matrices;
     
-    problem.pf = pfs;
-    problem.bus_specs = bus_specs;
     problem.state = states;
 end
     
