@@ -1,5 +1,5 @@
-function mpc = mpc_merge
-%MPC_MERGE
+function mpc = mpc_merge_split
+%MPC_MERGE_SPLIT
 
 %% MATPOWER Case Format : Version 2
 mpc.version = '2';

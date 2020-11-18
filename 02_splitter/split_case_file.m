@@ -79,11 +79,11 @@ function mpc_split = split_case_file(mpc, N, names)
     
     
     % gencost entries
-    [MODEL, STARTUP, SHUTDOWN, NCOST, COST] = idx_cost;
-    gen_cost_entries = sum(mpc.gen(:, GEN_BUS) == buses, 2);
-    gen_cost_entry_rows = find(gen_entries == 1);
-    mpc_split.gencost = mpc.gencost(gen_cost_entry_rows, :);
     if isfield(mpc, 'gencost')
+        [MODEL, STARTUP, SHUTDOWN, NCOST, COST] = idx_cost;
+        gen_cost_entries = sum(mpc.gen(:, GEN_BUS) == buses, 2);
+        gen_cost_entry_rows = find(gen_entries == 1);
+        mpc_split.gencost = mpc.gencost(gen_cost_entry_rows, :);
         warning('There is a gencost field. OPF probems are still in beta development mode. Handle with care')
     end
 end
