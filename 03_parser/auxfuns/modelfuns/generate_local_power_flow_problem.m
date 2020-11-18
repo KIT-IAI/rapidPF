@@ -1,4 +1,4 @@
-function [cost, ineq, eq, x0, grad_cost, eq_jac, ineq_jac, Hessian, state, dims] = generate_local_power_flow_problem(mpc, names, postfix, problem_type)
+function [cost, ineq, eq, x0, grad_cost, eq_jac, ineq_jac, lagrangian_hessian, state, dims] = generate_local_power_flow_problem(mpc, names, postfix, problem_type)
 % generate_local_power_flow_problem
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
@@ -25,50 +25,45 @@ function [cost, ineq, eq, x0, grad_cost, eq_jac, ineq_jac, Hessian, state, dims]
     copy_buses_local = mpc.(names.copy_buses.local);
     N_copy = numel(copy_buses_local);
     
-    [Vang_core, Vmag_core, Pnet_core, Qnet_core] = create_state(postfix, N_core);
-    [Vang_copy, Vmag_copy, Pnet_copy, Qnet_copy] = create_state(strcat(postfix, '_copy'), N_copy);
     
-    Vang = [Vang_core; Vang_copy];
-    Vmag = [Vmag_core; Vmag_copy];
-    Pnet = Pnet_core;
-    Qnet = Qnet_core;
-    
-    state = stack_state(Vang, Vmag, Pnet, Qnet);
    %% optimal power flow cost + gradient + hessian
-   [cost, grad_cost, hess_cost, eq, eq_jac, ineq, ineq_jac] = build_local_cost_function(mpc, names);
+   [cost, grad_cost, eq, eq_jac, ineq, ineq_jac, lagrangian_hessian, state] = build_local_cost_function(mpc, names, postfix);
     
     %% initial conditions
-    % x0 = ...
+    x0 = rand()
     %% lower and upper bounds
     % [lb, ub] = ...
+    
+    %% dimensions
+    dims = [];
     %% generate return values
-    if strcmp(problem_type,'feasibility')
-        cost = @(x) opf_p(x);
-        grad_cost = @(x)gradient_costs(x);
-        % grad_cost = @(x) zeros(4*N_core + 2*N_copy, 1);
-        % TODO modify for OPF -> add second derivative of f
-        Hessian = @(x, kappa, rho)jacobian_num(@(y)[Jac_pf(y); Jac_bus]'*kappa, x,  4*N_core + 2*N_copy, 4*N_core+ 2*N_copy);
-        % cost = @(x) opf_p(x);
-        ineq = @(x) [];
-        eq = @(x)[ pf_p(x); pf_q(x); bus_specifications(x) ];
-        pf = @(x)[ pf_p(x); pf_q(x) ];
-        % TODO modify to gradient of cost (and later of h)
-        Jac = Jac_g_ls;
-        dims.eq = 4*N_core;
-        dims.ineq = []; 
-       % dims.ineq = length(mpc.gencost(:, 1));
-    elseif strcmp(problem_type,'least-squares')
-        g_ls    =  @(x)[pf_p(x); pf_q(x); bus_specifications(x)];
-        grad_cost = @(x)(2*Jac_g_ls(x)'* g_ls(x));
-        Hessian =  @(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x));%@(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x)); %@(x, kappa, rho)jacobian_num(@(y)(grad_cost(y)), x, 4*N_core + 2*N_copy, 4*N_core + 2*N_copy);
-        cost = @(x)(g_ls(x)'*g_ls(x));
-        ineq = @(x)[];
-        eq = @(x)[];
-        pf = @(x)[ pf_p(x); pf_q(x) ];
-        Jac = @(x)[];
-        dims.eq = [];
-        dims.ineq = [];
-    end
+%     if strcmp(problem_type,'feasibility')
+%         cost = @(x) opf_p(x);
+%         grad_cost = @(x)gradient_costs(x);
+%         % grad_cost = @(x) zeros(4*N_core + 2*N_copy, 1);
+%         % TODO modify for OPF -> add second derivative of f
+%         Hessian = @(x, kappa, rho)jacobian_num(@(y)[Jac_pf(y); Jac_bus]'*kappa, x,  4*N_core + 2*N_copy, 4*N_core+ 2*N_copy);
+%         % cost = @(x) opf_p(x);
+%         ineq = @(x) [];
+%         eq = @(x)[ pf_p(x); pf_q(x); bus_specifications(x) ];
+%         pf = @(x)[ pf_p(x); pf_q(x) ];
+%         % TODO modify to gradient of cost (and later of h)
+%         Jac = Jac_g_ls;
+%         dims.eq = 4*N_core;
+%         dims.ineq = []; 
+%        % dims.ineq = length(mpc.gencost(:, 1));
+%     elseif strcmp(problem_type,'least-squares')
+%         g_ls    =  @(x)[pf_p(x); pf_q(x); bus_specifications(x)];
+%         grad_cost = @(x)(2*Jac_g_ls(x)'* g_ls(x));
+%         Hessian =  @(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x));%@(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x)); %@(x, kappa, rho)jacobian_num(@(y)(grad_cost(y)), x, 4*N_core + 2*N_copy, 4*N_core + 2*N_copy);
+%         cost = @(x)(g_ls(x)'*g_ls(x));
+%         ineq = @(x)[];
+%         eq = @(x)[];
+%         pf = @(x)[ pf_p(x); pf_q(x) ];
+%         Jac = @(x)[];
+%         dims.eq = [];
+%         dims.ineq = [];
+%     end
 end
 
 function entries = build_entries(N_core, N_copy, with_core)

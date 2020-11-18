@@ -14,10 +14,12 @@ names                = generate_name_struct();
 mpc.fields_to_merge = {'bus', 'gen', 'branch', 'gencost'};
 %mpc.fields_to_merge = {'bus', 'gen', 'branch'};
 mpc.trans = loadcase('case5');
-mpc.dist = { loadcase('case5')  
+mpc.dist = { loadcase('case5');
+             loadcase('case5')
                     };
 
-mpc.connection_array = [ 1 2 1 5];
+mpc.connection_array = [ 1 2 1 5;
+                         2 3 4 1];
 
 % compatibility tests
 % Opf data is provided ??
@@ -79,8 +81,8 @@ end
 mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 
 %% run opf of merged file
-runopf(mpc_merge);
-runpf(mpc_merge);
+% runopf(mpc_merge);
+% runpf(mpc_merge);
 %% setup distributed opf
 % start values from pf
 
