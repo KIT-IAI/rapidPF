@@ -1,5 +1,5 @@
-function [cost, ineq, eq, x0, grad_cost, eq_jac, ineq_jac, lagrangian_hessian, state, dims] = generate_local_power_flow_problem(mpc, names, postfix, problem_type)
-% generate_local_power_flow_problem
+function [cost, ineq, eq, x0, grad_cost, eq_jac, ineq_jac, lagrangian_hessian, state, dims, lb, ub] = build_local_opf(mpc, names, postfix)
+% build_local_opf
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
 %
@@ -19,12 +19,7 @@ function [cost, ineq, eq, x0, grad_cost, eq_jac, ineq_jac, lagrangian_hessian, s
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%% The following code (implicitly) assumes that the copy buses are
 %%% always at the end of the bus numbering.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    buses_core = mpc.(names.regions.global);
-    Ncore = numel(buses_core);
-    copy_buses_local = mpc.(names.copy_buses.local);
-    Ncopy = numel(copy_buses_local);
-    
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
     %% preparation
     [mpc_opf, om, local_buses_to_remove, mpopt] = prepare_case_file(mpc, names);
     [constraint_function, lagrangian_hessian] = build_local_constraint_function(mpc_opf, om, mpopt);
@@ -37,26 +32,9 @@ function [cost, ineq, eq, x0, grad_cost, eq_jac, ineq_jac, lagrangian_hessian, s
     %% symbolic state
     state = build_local_state(mpc_opf, names, postfix);
     %% initial conditions
-    x0 = rand()
+    x0 = build_local_initial_conditions(om)
     %% lower and upper bounds
-    % [lb, ub] = ...
-    
+    [lb, ub] = build_local_bounds(om);
     %% dimensions of state, equalities, inequalities
     dims = build_local_dimensions(mpc_opf, ineq);
-end
-
-function entries = build_entries(N_core, N_copy, with_core)
-    if with_core
-        N = N_copy;
-    else
-        N = 0;
-    end
-        
-    entries = cell(4, 1);
-    dummy = { 1:N+N_core, 1:N+N_core, 1:N_core, 1:N_core };
-    nums = kron([N_core + N_copy; N_core], ones(2, 1));
-    nums_cum = [0 ; cumsum(nums)];
-    for i = 1:4
-        entries{i} = dummy{i} + nums_cum(i);
-    end
 end

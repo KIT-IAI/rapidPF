@@ -17,5 +17,5 @@ function problem = generate_distributed_problem_for_aladin(mpc, names, problem_t
 %   ```
 %   See also: [run_case_file_splitter](run_case_file_splitter.md)
     problem = generate_distributed_problem(mpc, names, problem_type);
-    problem = add_aladin_specifics(problem, mpc, names);
+    problem = add_aladin_specifics_opf(problem, mpc, names);
 end

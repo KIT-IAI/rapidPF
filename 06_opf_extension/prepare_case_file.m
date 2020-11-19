@@ -1,5 +1,4 @@
 function [mpc_opf, om, copy_buses_local, mpopt] = prepare_case_file(mpc, names)
-    %%
     [GEN_BUS, PG, QG, QMAX, QMIN, VG, MBASE, GEN_STATUS, PMAX, PMIN, ...
             MU_PMAX, MU_PMIN, MU_QMAX, MU_QMIN, PC1, PC2, QC1MIN, QC1MAX, ...
             QC2MIN, QC2MAX, RAMP_AGC, RAMP_10, RAMP_30, RAMP_Q, APF] = idx_gen;
@@ -7,7 +6,6 @@ function [mpc_opf, om, copy_buses_local, mpopt] = prepare_case_file(mpc, names)
     mpc = ext2int(mpc);
     copy_buses_local = mpc.(names.copy_buses.local);
     copy_bus_types = get_bus_types(mpc.bus, copy_buses_local);
-    
     %% turn off generators at copy nodes
     for i = 1:length(copy_bus_types)
         if copy_bus_types(i) == 2 || copy_bus_types(i) == 3
@@ -21,7 +19,7 @@ function [mpc_opf, om, copy_buses_local, mpopt] = prepare_case_file(mpc, names)
     % we need to account for that
     mpc.order.state = 'e';
     %% return values
-    [mpc_opf, mpopt] = opf_args(mpc); % only respect most simple opf formulation so far
+    [mpc_opf, mpopt] = opf_args(mpc);
     mpc_opf = ext2int(mpc_opf);
     om = opf_setup(mpc_opf, mpopt);
 end
