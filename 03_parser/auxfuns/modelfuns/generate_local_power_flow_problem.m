@@ -21,49 +21,28 @@ function [cost, ineq, eq, x0, grad_cost, eq_jac, ineq_jac, lagrangian_hessian, s
 %%% always at the end of the bus numbering.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     buses_core = mpc.(names.regions.global);
-    N_core = numel(buses_core);
+    Ncore = numel(buses_core);
     copy_buses_local = mpc.(names.copy_buses.local);
-    N_copy = numel(copy_buses_local);
+    Ncopy = numel(copy_buses_local);
     
-    
-   %% optimal power flow cost + gradient + hessian
-   [cost, grad_cost, eq, eq_jac, ineq, ineq_jac, lagrangian_hessian, state] = build_local_cost_function(mpc, names, postfix);
-    
+    %% preparation
+    [mpc_opf, om, local_buses_to_remove, mpopt] = prepare_case_file(mpc, names);
+    [constraint_function, lagrangian_hessian] = build_local_constraint_function(mpc_opf, om, mpopt);
+    %% cost function + cost gradient
+    [cost, grad_cost] = build_local_cost_function(om);
+    %% equalities + Jacobian
+    [eq, eq_jac] = build_local_equalities(constraint_function, local_buses_to_remove);
+    %% inequalities + Jacobian
+    [ineq, ineq_jac] = build_local_inequalities(constraint_function);
+    %% symbolic state
+    state = build_local_state(mpc_opf, names, postfix);
     %% initial conditions
     x0 = rand()
     %% lower and upper bounds
     % [lb, ub] = ...
     
-    %% dimensions
-    dims = [];
-    %% generate return values
-%     if strcmp(problem_type,'feasibility')
-%         cost = @(x) opf_p(x);
-%         grad_cost = @(x)gradient_costs(x);
-%         % grad_cost = @(x) zeros(4*N_core + 2*N_copy, 1);
-%         % TODO modify for OPF -> add second derivative of f
-%         Hessian = @(x, kappa, rho)jacobian_num(@(y)[Jac_pf(y); Jac_bus]'*kappa, x,  4*N_core + 2*N_copy, 4*N_core+ 2*N_copy);
-%         % cost = @(x) opf_p(x);
-%         ineq = @(x) [];
-%         eq = @(x)[ pf_p(x); pf_q(x); bus_specifications(x) ];
-%         pf = @(x)[ pf_p(x); pf_q(x) ];
-%         % TODO modify to gradient of cost (and later of h)
-%         Jac = Jac_g_ls;
-%         dims.eq = 4*N_core;
-%         dims.ineq = []; 
-%        % dims.ineq = length(mpc.gencost(:, 1));
-%     elseif strcmp(problem_type,'least-squares')
-%         g_ls    =  @(x)[pf_p(x); pf_q(x); bus_specifications(x)];
-%         grad_cost = @(x)(2*Jac_g_ls(x)'* g_ls(x));
-%         Hessian =  @(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x));%@(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x)); %@(x, kappa, rho)jacobian_num(@(y)(grad_cost(y)), x, 4*N_core + 2*N_copy, 4*N_core + 2*N_copy);
-%         cost = @(x)(g_ls(x)'*g_ls(x));
-%         ineq = @(x)[];
-%         eq = @(x)[];
-%         pf = @(x)[ pf_p(x); pf_q(x) ];
-%         Jac = @(x)[];
-%         dims.eq = [];
-%         dims.ineq = [];
-%     end
+    %% dimensions of state, equalities, inequalities
+    dims = build_local_dimensions(mpc_opf, ineq);
 end
 
 function entries = build_entries(N_core, N_copy, with_core)
