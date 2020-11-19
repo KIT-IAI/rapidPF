@@ -36,5 +36,5 @@ function [cost, ineq, eq, x0, grad_cost, eq_jac, ineq_jac, lagrangian_hessian, s
     %% lower and upper bounds
     [lb, ub] = build_local_bounds(om);
     %% dimensions of state, equalities, inequalities
-    dims = build_local_dimensions(mpc_opf, ineq);
+    dims = build_local_dimensions(mpc_opf, eq, ineq);
 end

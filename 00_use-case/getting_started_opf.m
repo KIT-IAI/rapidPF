@@ -90,7 +90,7 @@ mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 % generate distributed problem
 problem = generate_distributed_opf_for_aladin(mpc_split, names, 'feasibility');
 problem.solver = 'fmincon';
-[xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
+% [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
 
 % solve distributed ALADIN
 
