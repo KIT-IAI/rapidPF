@@ -1,5 +1,5 @@
-function problem = add_aladin_specifics(problem, mpc, names)
-% add_aladin_specifics
+function problem = add_aladin_specifics_pf(problem, mpc, names)
+% add_aladin_specifics_pf
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
 %

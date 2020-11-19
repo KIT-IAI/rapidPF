@@ -1,5 +1,5 @@
-function problem = generate_distributed_problem_for_aladin(mpc, names, problem_type)
-% generate_distributed_problem_for_aladin
+function problem = generate_distributed_pf_for_aladin(mpc, names, problem_type)
+% generate_distributed_opf_for_aladin
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
 %
@@ -16,6 +16,6 @@ function problem = generate_distributed_problem_for_aladin(mpc, names, problem_t
 %   end
 %   ```
 %   See also: [run_case_file_splitter](run_case_file_splitter.md)
-    problem = generate_distributed_problem(mpc, names, problem_type);
-    problem = add_aladin_specifics_opf(problem, mpc, names);
+    problem = generate_distributed_pf(mpc, names, problem_type);
+    problem = add_aladin_specifics_pf(problem, mpc, names);
 end

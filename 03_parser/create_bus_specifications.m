@@ -50,7 +50,9 @@ function f = create_bus_specifications(Vang, Vmag, Pnet, Qnet, mpc, local_bus_to
         end
         bus = bus_without_copies;
         gen = gen_without_copies;
-        gencost = gencost_without_copies;
+        if isfield(mpc, 'gencost')
+            gencost = gencost_without_copies;
+        end
     end
     
     on = find(gen(:, GEN_STATUS) > 0);      %% which generators are on?

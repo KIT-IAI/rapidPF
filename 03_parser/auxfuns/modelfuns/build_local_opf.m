@@ -32,7 +32,7 @@ function [cost, ineq, eq, x0, grad_cost, eq_jac, ineq_jac, lagrangian_hessian, s
     %% symbolic state
     state = build_local_state(mpc_opf, names, postfix);
     %% initial conditions
-    x0 = build_local_initial_conditions(om)
+    x0 = build_local_initial_conditions(om);
     %% lower and upper bounds
     [lb, ub] = build_local_bounds(om);
     %% dimensions of state, equalities, inequalities

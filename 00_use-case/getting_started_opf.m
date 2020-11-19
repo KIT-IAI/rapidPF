@@ -1,13 +1,13 @@
-
-clc
-clear
-close all
+clc;
+clear;
+close all;
 
 addpath(genpath('../00_use-case/'));
 addpath(genpath('../01_generator/'));
 addpath(genpath('../02_splitter/'));
 addpath(genpath('../03_parser/'));
 addpath(genpath('../04_solver_extension'));
+addpath(genpath('../06_opf_extension'));
 
 %% setup
 names                = generate_name_struct();
@@ -88,7 +88,7 @@ mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 
 
 % generate distributed problem
-problem = generate_distributed_problem_for_aladin(mpc_split, names, 'feasibility');
+problem = generate_distributed_opf_for_aladin(mpc_split, names, 'feasibility');
 problem.solver = 'fmincon';
 [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
 

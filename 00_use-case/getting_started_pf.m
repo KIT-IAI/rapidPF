@@ -43,7 +43,7 @@ mpc_merge = run_case_file_generator(mpc_trans, mpc_dist, conn, fields_to_merge, 
 % case-file-splitter
 mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 % generate distributed problem
-problem = generate_distributed_problem_for_aladin(mpc_split, names, problem_type);
+problem = generate_distributed_pf_for_aladin(mpc_split, names, problem_type);
 problem.solver = solver;
 if strcmp(solver, 'Casadi+Ipopt') && strcmp(problem_type, 'feasibility')
     problem = rmfield(problem,'sens');
