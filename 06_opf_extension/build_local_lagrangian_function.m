@@ -1,13 +1,13 @@
 function [L, dLdx, d2Ldx] = build_local_lagrangian_function(f, df, g, dg, h, dh)
 %BUILD_LOCAL_LAGRANGIAN_FUNCTION Bulds the Lagrangian of the local mpc file
-%   lambda, mu are a column vectors
+%   kappa is [lambda; mu] with lambda, mu are column vectors
 % dg is the transposed of g, i.e. dimension nx_x \times n_eq 
 % dh is the transposed jacobian of h
 % L = f + lambda'g + mu'h
 % dL = grad_f + lambda'(Jac_g)' + mu'(Jac_h)'
-L = @(x, lambda_g, mu_h) f(x) + lambda_g'*g(x) + mu_h'*h(x);
-dLdx = @(x, lambda_g, mu_h) df(x)  + (lambda_g'*dg(x)')' + (mu_h'*dh(x)')';
-d2Ldx = @(x, lambda_g, mu_h, rho) get_Hess(dLdx, x, lambda_g, mu_h);
+L = @(x, kappa, Neq) f(x) + kappa(1:Neq)'*g(x) + kappa(Neq+1:end)'*h(x);
+dLdx = @(x, kappa, Neq) df(x)  + (kappa(1:Neq)'*dg(x)')' + (kappa(Neq+1:end)'*dh(x)')';
+d2Ldx = @(x, kappa, rho, Neq) get_Hess(dLdx, x, kappa(1:Neq), kappa(Neq + 1: end));
 
 end
 
