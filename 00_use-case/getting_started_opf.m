@@ -12,10 +12,14 @@ addpath(genpath('../06_opf_extension'));
 %% setup
 names                = generate_name_struct();
 mpc.fields_to_merge = {'bus', 'gen', 'branch', 'gencost'};
+
+mpc_temp = loadcase('case5');
+mpc_temp.gencost(:, 4) = 3;
+mpc_temp.gencost(:, 6:7) = rand();
 %mpc.fields_to_merge = {'bus', 'gen', 'branch'};
-mpc.trans = loadcase('case5');
-mpc.dist = { loadcase('case5');
-             loadcase('case5')
+mpc.trans = mpc_temp;
+mpc.dist = { mpc_temp;
+             mpc_temp
                     };
 
 mpc.connection_array = [ 1 2 1 5;
@@ -94,7 +98,7 @@ problem.solver = 'fmincon';
 
 % solve distributed ALADIN
 
-opts = struct('maxiter',50, 'solveQP','MA57');
+opts = struct('maxiter',50);
 opts.reg ='false';
 opts.rho0= 1e2;
     

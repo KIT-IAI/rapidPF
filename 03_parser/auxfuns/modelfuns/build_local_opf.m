@@ -24,7 +24,7 @@ function [cost, ineq, eq, x0, grad_cost, eq_jac, ineq_jac, lagrangian_hessian, s
     [mpc_opf, om, local_buses_to_remove, mpopt] = prepare_case_file(mpc, names);
     [constraint_function, ~] = build_local_constraint_function(mpc_opf, om, mpopt);
     %% cost function + cost gradient
-    [cost, grad_cost] = build_local_cost_function(om);
+    [cost, grad_cost, hess_cost] = build_local_cost_function(om);
     %% equalities + Jacobian
     [eq, eq_jac] = build_local_equalities(constraint_function, local_buses_to_remove);
     %% inequalities + Jacobian
