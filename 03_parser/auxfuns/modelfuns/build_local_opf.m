@@ -22,7 +22,7 @@ function [cost, ineq, eq, x0, grad_cost, eq_jac, ineq_jac, lagrangian_hessian, s
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
     %% preparation
     [mpc_opf, om, local_buses_to_remove, mpopt] = prepare_case_file(mpc, names);
-    [constraint_function, lagrangian_hessian] = build_local_constraint_function(mpc_opf, om, mpopt);
+    [constraint_function, ~] = build_local_constraint_function(mpc_opf, om, mpopt);
     %% cost function + cost gradient
     [cost, grad_cost] = build_local_cost_function(om);
     %% equalities + Jacobian
@@ -31,6 +31,8 @@ function [cost, ineq, eq, x0, grad_cost, eq_jac, ineq_jac, lagrangian_hessian, s
     [ineq, ineq_jac] = build_local_inequalities(constraint_function);
     %% symbolic state
     state = build_local_state(mpc_opf, names, postfix);
+    %% hessian of Lagrangian
+    [~, ~, lagrangian_hessian] = build_local_lagrangian_function(cost, grad_cost, eq, eq_jac, ineq, ineq_jac);
     %% initial conditions
     x0 = build_local_initial_conditions(om);
     %% lower and upper bounds
