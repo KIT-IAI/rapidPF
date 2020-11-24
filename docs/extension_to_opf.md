@@ -34,13 +34,17 @@ As rapidOPF is an extension to rapidPF both version share the same basis of code
 
 Steps 1. and 2. almost do not change at all despited for extending the merged and splitting casefiles by the field 'gencost'. 
 
-The main changes happen during step 3. and 4. as the cost functions, power balance equations and line flow limits are not hard coded as it is done in rapidPF but are calculated by using the internal opf functions from MATPOWER.
+The main changes happen during step 3. and 4. as the cost functions, power balance equations and line flow limits are not hard coded as it is done in rapidPF but are calculated by using the internal opf functions from [MATPOWER](https://matpower.org/docs/manual.pdf).
 
-## Extensions to Code
+## Extensions to existing Code
 New files:
 
-* [$\texttt{prepare\_case\_file.m}$](#preparation-of-splitted-casefile)
+* $\texttt{generate\_distributed\_opf.m}$
+* $\texttt{create\_consensus\_matrices\_opf.m}$
+* $\texttt{build\_local\_opf.m}$
+* [$\texttt{prepare\_case\_file.m}$](#textttprepare_case_filem)
 * [$\texttt{build\_local\_state.m}$](#local-decision-variable)
+* $\texttt{create\_state\_mp}$
 * $\texttt{build\_local\_dims.m}$
 * $\texttt{build\_local\_cost\_functon.m}$
 * $\texttt{build\_local\_equalities.m}$
@@ -50,8 +54,47 @@ New files:
 * $\texttt{build\_local\_bounds.m}$
 
 
-
 ## Preparation of splitted Casefile
+The RapidPF splitted casefiles consist of the following fields:
+*  $\texttt{baseMVA}$
+*  $\texttt{bus}$
+*  $\texttt{gen}$
+*  $\texttt{branch}$
+*  $\texttt{regions}$
+*  $\texttt{connections\_with\_aux\_nodes}$
+*  $\texttt{copy\_bues\_global}$
+*  $\texttt{copy\_buses\_local}$
+
+Additionally to these fields, the field - if existing in the original case file -
+* $\texttt{gencost}$
+  
+is transferred by an extension located in the file $\texttt{split\_case\_file.m}$. The field contains costs for any generator that occurs in the field $\texttt{gen}$.
+
+To use the functions provided by [MATPOWER](https://matpower.org/docs/manual.pdf) we need to know its structure of its objective variables. MATPOWER's optimization vector $x$ for the standard AC OPF proble consists of the $n_b \times 1$ vectors of voltage angles $\Theta$ and magnitudes $V_m$ and the $n_g \times 1$ vectors of generator real and reactive injections $P_g$ and $Q_g$, i.e. 
+$$x = \left[ \begin{array}{c}
+\Theta \\ V_m \\ P_g \\Q_g
+\end{array}\right] $$
+Here, $n_b$ corresponds to the number of buses in the system and $n_g$ corresponds to the number of generators in the system.
+
+At this point we need to be careful as the fields $\texttt{gen}$ and $\texttt{gencost}$ also do contain the generators at the copy nodes that shall not have any impact on the local objectives. Switching them of in the casefile as it is done in the function $\texttt{prepare\_case\_file}$ leads them in MATPOWER to be treated as non existing, thus giving us the wanted effect. 
+
+### $\texttt{prepare\_case\_file.m}$
+Function to prepare the rapidPF splitted case for OPF. Generators at the copy nodes are switched off and gen entries and gencost entries are deleted from the $\texttt{mpc\_opf}$ file.
+Input:
+* $\texttt{mpc}$ - splitted rapidPF case file
+* $\texttt{names}$ - struct that contains the names of the mpc file
+  
+Output:
+* $\texttt{mpc\_opf}$ - splitted rapidOPF case file
+* $\texttt{om}$ - MATPOWER optimization model of $\texttt{mpc\_opf}$ that is needed to obtain the optimization functions
+* $\texttt{mpc\_opf}$ - prepared rapiOPF casefile
+* $\texttt{copy\_buses\_local}$ - vector of local copy buses
+* $\texttt{mpopt}$ - standard MATPOWER opf options
+
+Tests: 
+* added sample test to 05_UI_test
+* added assert to check whether there are still gen entries left in local $\texttt{mpc\_opf}$ case file.
+
 ## Local Decision Variable
 Each system has a local decision variable. We need the following values:
 * $N_b$ number of buses in splitted system

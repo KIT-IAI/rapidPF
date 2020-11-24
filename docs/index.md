@@ -11,7 +11,7 @@ However, the power flow problem can also be solved in a distributed fashion,
 
 $$
 \begin{align}
-g_{i}(x_i) &= 0, \\\
+g_{i}(x_i) &= 0, \\
 \sum_{i = 1}^{n} A_i x_i &= 0,
 \end{align}
 $$

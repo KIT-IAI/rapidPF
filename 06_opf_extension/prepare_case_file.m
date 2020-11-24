@@ -1,4 +1,10 @@
 function [mpc_opf, om, copy_buses_local, mpopt] = prepare_case_file(mpc, names)
+% PREPARE_CASE_FILE 
+%
+%   `[mpc_opf, om, copy_buses_local, mpopt] = prepare_case_file(mpc, names))`
+%
+%   _Prepares the splitted case file to such that MATPOWER opf functions and methodes can be applied_
+
     [GEN_BUS, PG, QG, QMAX, QMIN, VG, MBASE, GEN_STATUS, PMAX, PMIN, ...
             MU_PMAX, MU_PMIN, MU_QMAX, MU_QMIN, PC1, PC2, QC1MIN, QC1MAX, ...
             QC2MIN, QC2MAX, RAMP_AGC, RAMP_10, RAMP_30, RAMP_Q, APF] = idx_gen;
@@ -15,9 +21,16 @@ function [mpc_opf, om, copy_buses_local, mpopt] = prepare_case_file(mpc, names)
             mpc.gen(gen_entry, GEN_STATUS) = 0;
         end
     end
+    
+    %% check whether there is still a generator left that is switched on
+    assert(sum(mpc.gen(:, GEN_STATUS)) ~= 0, 'All generators in subsystem are switched off') 
+    
     %% we changed the case file after it was switched to internal indexing
     % we need to account for that
+    
+    
     mpc.order.state = 'e';
+   % mpc = int2ext(mpc);
     %% return values
     [mpc_opf, mpopt] = opf_args(mpc);
     mpc_opf = ext2int(mpc_opf);
