@@ -1,4 +1,10 @@
 function [ineq, ineq_jac] = build_local_inequalities(constraint_function)
+% BUILD_LOCAL_INEQUALITIES
+%
+%   `[ineq, ineq_jac] = build_local_inequalities(constraint_function, local_buses_to_remove)`
+%
+%   _extracts all inequalitites from opf_consfcn.m_
+%   
     ineq = @(x)get_ineq_cons(x, constraint_function);
     ineq_jac = @(x)get_ineq_cons_jacobian(x, constraint_function);
 end
