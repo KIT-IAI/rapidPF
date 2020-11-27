@@ -7,3 +7,5 @@
 [__The official documentation can be found here.__](https://kit-iai.github.io/rapidPF/)
 
 RapidPF is Matlab code that facilitates the laborious task of formulating distributed power flow problems.
+
+The mathematical details of the code are described in this [`arXiv preprint`](https://arxiv.org/abs/2011.10322).

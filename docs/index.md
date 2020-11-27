@@ -53,3 +53,24 @@ Specifically, the features of the code include:
     This bulky name is nothing but a standardized `Matlab` struct, with the advantage that it has become a *de facto* standard for Matlab-based power systems research.
     Also, `mpc` can be converted within `matpower` to/from IEEE CDF or PSS/E RAW, see the `Matpower` docs for details.
 
+## Citing
+
+If you find the code useful for your own academic research, please cite it.
+
+```
+@ARTICLE{2020arXiv201110322M,
+       author = {{M{\"u}hlpfordt}, Tillmann and {Dai}, Xinliang and {Engelmann}, Alexander and {Hagenmeyer}, Veit},
+        title = "{Distributed Power Flow and Distributed Optimization -- Formulation, Solution, and Open Source Implementation}",
+      journal = {arXiv e-prints},
+     keywords = {Mathematics - Optimization and Control, Electrical Engineering and Systems Science - Systems and Control},
+         year = 2020,
+        month = nov,
+          eid = {arXiv:2011.10322},
+        pages = {arXiv:2011.10322},
+archivePrefix = {arXiv},
+       eprint = {2011.10322},
+ primaryClass = {math.OC},
+       adsurl = {https://ui.adsabs.harvard.edu/abs/2020arXiv201110322M},
+      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
+}
+```
