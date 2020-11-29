@@ -1,5 +1,5 @@
 function [L, dLdx, d2Ldx] = build_local_lagrangian_function(f, df, g, dg, h, dh)
-%BUILD_LOCAL_LAGRANGIAN_FUNCTION Bulds the Lagrangian of the local mpc file
+%BUILD_LOCAL_LAGRANGIAN_FUNCTION Builds the Lagrangian of the local mpc file
 %   kappa is [lambda; mu] with lambda, mu are column vectors
 % dg is the transposed of the jacobian of g, i.e. dimension nx_x \times n_eq 
 % dh is the transposed jacobian of h
