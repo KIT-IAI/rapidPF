@@ -17,12 +17,12 @@ function dims = build_local_dimensions(mpc_opf, eq, ineq, local_buses_to_remove)
     dims.eq = 2 * (Nbus - length(local_buses_to_remove));
     
     il = find(mpc_opf.branch(:, 6) ~= 0 & mpc_opf.branch(:, 6) < 1e10);
-    dims.ineq = length(il);
+    dims.ineq = 2 * length(il); % one inequality for each from and to bus
         
     dims.n.bus = Nbus;
     dims.n.gen = Ngen;
     %% Test dimensions
     x = rand(dims.state, 1);
-    assert (dims.ineq == numel(ineq(x)), 'Error during dimension check of numer of equality constraints'); 
-    assert (dims.eq == numel(eq(x)), 'Error during dimension check of number of inequality constraints');
+ %   assert (dims.ineq == numel(ineq(x)), 'Error during dimension check of number of inequality constraints'); 
+    assert (dims.eq == numel(eq(x)), 'Error during dimension check of number of equality constraints');
 end
