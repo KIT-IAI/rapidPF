@@ -1,21 +1,18 @@
 function A = create_consensus_matrices_opf(tab, number_of_buses_in_region, number_of_generators_in_region)
 % create_consensus_matrices_opf
 %
-%   `copy the declaration of the function in here (leave the ticks unchanged)`
+%   `A = create_consensus_matrices_opf(tab, number_of_buses_in_region, number_of_generators_in_region)`
 %
-%   _describe what the function does in the following line_
+%   _creates optimal power flow consensus matrix for distributed optization_
 %
-%   # Markdown formatting is supported
-%   Equations are possible to, e.g $a^2 + b^2 = c^2$.
-%   So are lists:
-%   - item 1
-%   - item 2
-%   ```matlab
-%   function y = square(x)
-%       x^2
-%   end
-%   ```
-%   See also: [run_case_file_splitter](run_case_file_splitter.md)
+%   INPUT:
+%   - $\texttt{tab}$ connection table
+%   - $\texttt{number\_of\_buses\_in\_region}$
+%   - $\texttt{number\_of\_generators\_in\_region}$
+%
+%  OUTPUT:
+%  - $\texttt{A}$ cell with consensus matrices
+
     assert(istable(tab), 'expecting tab to be a table.');
     assert(mod(height(tab), 2) == 0, 'inconsistent number of consensus restrictions.')
     assert(numel(number_of_buses_in_region) == numel(number_of_generators_in_region), 'inconsistent dimensions');

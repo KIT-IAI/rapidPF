@@ -152,11 +152,24 @@ The function handles $h, dh$ are taken as they are. For $g$, the entries of the 
 - [$\texttt{build\_local\_inequalities.m}$](#textttbuild_local_inequalitiesm)
 
 ## Consensus Matrices
-As consensus matrices we define the matrices that guarantee that the voltage angles and voltage magnitudes at the copy nodes correspond to the voltage angles and magnitudes at the corresponding core nodes in their core system. Therefore, the numbers of connections between all systems are needed. The local matrices are of dimension 
+As consensus matrices we call the matrices that guarantee that the voltage angles and voltage magnitudes at the copy nodes correspond to the voltage angles and magnitudes at the corresponding core nodes in their core system. Therefore, the numbers of connections between all systems are needed. The local matrices are of dimension 
 $$
-4*N_{c-buses} \times \text{dim}(x_i)
+4*N_{connection-buses} \times \text{dim}(x_i)
 $$
+To fill the consensus matrix, for each system information is needed about the the indices of the local core nodes and the local copy nodes. They are given in the form of a connection table- it consists of four columns that are filled for each connection the another system for each system:
+ - $\texttt{orig\_system}$ global index of core system system
+ - $\texttt{copy\_system}$ global index of copy system 
+ - $\texttt{orig\_bus\_loacl}$ local node index of core node that is connected to another copy node
+ - $\texttt{copy\_bus\_local}$ local node index of copy node connected to the core node from column 3
+Recall that 
+$$
+4*N_{connection-buses} \times \text{dim}(x_i) = 2 * size(connection\_table, 1)
+$$
+To enforce consensus, for each row $i$ of the connection table two entries are generated: 
+- $A_{core}(i, core\_bus\_local) = 1$
+- $A_{copy}(i, copy\_bus\_local) = -1$
 
+We notice, that we need such a matrix not only for voltage angles but also one such matrix for voltage magnitudes, where the core_bus_entry and the copy_bus_entry need to be shifted to the column corresponding to the voltage entry of the optimization variable.
 
 ## Dimensions check up
 For clarity, the dimensions of the outputs are summarized
@@ -181,7 +194,7 @@ $$\text{dim}(eq) = 2 * (N_{buses} - N_{buses-copy}) = 2*(N_{buses-core})$$, i.e.
 
 `[mpc_opf, om, copy_buses_local, mpopt] = prepare_case_file(mpc, names)`
 
-_Function to prepare the rapidPF splitted case for OPF. Generators at the copy nodes are switched off and gen entries and gencost entries are deleted from the $\texttt{mpc\_opf}$ file._
+_Function to prepare the rapidPF splitted casefiles for OPF. Generators at the copy nodes are switched off and gen entries and gencost entries are deleted from the $\texttt{mpc\_opf}$ file._
 Input:
 * $\texttt{mpc}$ - splitted rapidPF case file
 * $\texttt{names}$ - struct that contains the names of the mpc file
@@ -292,7 +305,7 @@ Output:
 
    `dims = build_local_dimensions(mpc_opf, eq, ineq, local_buses_to_remove)`
 
-   _creates a field of dimensions as how they should look like and use it for testing_
+   _creates a field of dimensions as how they should look like and uses it for testing_
 
    INPUT:  
    - $\texttt{mpc\_opf}$ splitted case files
@@ -302,3 +315,18 @@ Output:
   
    OUTPUT: 
    - $\texttt{dims}$ struct containing dimensions
+
+
+### [$\texttt{create\_consensus\_matrices.m}$](#consensus-matrices)
+
+   `A = create_consensus_matrices_opf(tab, number_of_buses_in_region, number_of_generators_in_region)`
+
+   _creates optimal power flow consensus matrix for distributed optization_
+
+   INPUT:
+   - $\texttt{tab}$ connection table
+   - $\texttt{number\_of\_buses\_in\_region}$
+   - $\texttt{number\_of\_generators\_in\_region}$
+
+  OUTPUT:
+  - $\texttt{A}$ cell with consensus matrices
