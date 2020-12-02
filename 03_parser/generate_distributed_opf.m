@@ -1,22 +1,29 @@
-function problem = generate_distributed_opf(mpc, names, problem_type)
+function problem = generate_distributed_opf(mpc, names, ~)
 % generate_distributed_opf
 %
-%   `copy the declaration of the function in here (leave the ticks unchanged)`
+%   `problem = generate_distributed_opf(mpc, names, ~)`
 %
-%   _describe what the function does in the following line_
+%   _extracts the information from the splitted case files to run a distributed optimization with ALADIN_
 %
-%   # Markdown formatting is supported
-%   Equations are possible to, e.g $a^2 + b^2 = c^2$.
-%   So are lists:
-%   - item 1
-%   - item 2
-%   ```matlab
-%   function y = square(x)
-%       x^2
-%   end
-%   ```
-%   See also: [run_case_file_splitter](run_case_file_splitter.md)
-    % extract Data from casefile
+%   INPUT:
+%         - $\texttt{mpc}$ struct with splitted case files
+%         - $\texttt{names}$ struct containing the names of the fields of
+%         $\texttt{mpc}
+%  Output:
+%         - $\texttt{problem}$ struct with the following fields
+%              - $\texttt{locFuns}$ struct with fields of cells for local costs,
+%              equality constraints, inequality constraints and dimensions
+%              - $\texttt{sens}$ struct with fields of cells for gradient of costs,
+%              jacobian of equality and inequality and the Hessian of the
+%              Lagrangian
+%              - $\texttt{zz0}$ cell of initial conditions
+%              - $\texttt{AA}$ cell of consensus matrices
+%              - $\texttt{state}$ cell that contans the local states
+%              - $\texttt{llbx}$ cell that contains the local lower bounds
+%              - $\texttt{uubx}$ cell that cotains the local upper bounds
+
+
+% extract Data from casefile
     [N_regions, N_buses_in_regions, N_copy_buses_in_regions, ~] = get_relevant_information(mpc, names);
     [costs,  inequalities, equalities, xx0, grads, Jacs, Hessians, states, dims, lbs, ubs] = deal(cell(N_regions,1));
     connection_table = mpc.(names.consensus);
