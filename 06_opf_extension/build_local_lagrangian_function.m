@@ -1,10 +1,26 @@
 function [L, dLdx, d2Ldx] = build_local_lagrangian_function(f, df, g, dg, h, dh)
-%BUILD_LOCAL_LAGRANGIAN_FUNCTION Builds the Lagrangian of the local mpc file
-%   kappa is [lambda; mu] with lambda, mu are column vectors
-% dg is the transposed of the jacobian of g, i.e. dimension nx_x \times n_eq 
-% dh is the transposed jacobian of h
-% L = f + lambda'g + mu'h
-% dL = grad_f + lambda'(Jac_g)' + mu'(Jac_h)'
+%BUILD_LOCAL_LAGRANGIAN_FUNCTION 
+%
+%  `Builds the Lagrangian of the local mpc file`
+%   
+%  INPUT: 
+%         - $\texttt{f}$ scalar valued cost function
+%         - $\texttt{df}$ gradient of $\textt{f}$ 
+%         - $\texttt{g}$ equality constraints
+%         - $\texttt{dg}$ transposed jacobian of the 'reduced' equality constraints
+%         - $\ŧexttt{h}$ inequality constraints
+%         - $\texttt{dh}$ transposed jacobian of the inequality constraints
+% 
+%  OUTPUT:
+%         - $\texttt{L}$ 'reduced' Lagrangefunction
+%         - $\texttt{dLdx}$ grandient of the Lagrangian
+%         - $\ŧexttt{d2Ldx}$ hessian of the Lagrangian
+%
+%  REMARK:
+%   mu is the langrange multiplier for the 
+%   kappa = [lambda; mu] (with lambda, mu column vectors)
+%   L = f + lambda'g + mu'h
+%   dL = grad_f + \sum lambda_i (Jac_g)'(:, i) + \sum mu_i(Jac_h)'(:, i)
 
     if nargin == 4
         L = @(x, kappa, Neq) f(x) + kappa(1:Neq)'*g(x);
