@@ -1,4 +1,4 @@
-# RapidOPF - Extension to Optimal Power Flow
+# RapidOPF - Extension of RapidPF to Optimal Power Flow
 
 <!--!!! warning "Extension to optimal power flow = work in progress"
     __The documentation and code is currently being written.
@@ -39,23 +39,49 @@ The main changes happen during step 3. and 4. as the cost functions, power balan
 ## Extensions to existing Code
 New files:
 
-* $\texttt{generate\_distributed\_opf.m}$
-* $\texttt{create\_consensus\_matrices\_opf.m}$
-* $\texttt{build\_local\_opf.m}$
-* [$\texttt{prepare\_case\_file.m}$](#textttprepare_case_filem)
-* [$\texttt{build\_local\_state.m}$](#local-decision-variable)
-* [$\texttt{create\_state\_mp.m}$](#local-decision-variable)
-* [$\texttt{build\_local\_dimensions.m}$](#dimensions-check-up)
-* [$\texttt{build\_local\_cost\_function.m}$](#local-cost-function)
-* [$\texttt{build\_local\_constraint\_function}$](#local-equality-and-inequality-constraints)
-* [$\texttt{build\_local\_equalities.m}$](#local-equality-and-inequality-constraints)
-* [$\texttt{build\_local\_inequalities.m}$](#local-equality-and-inequality-constraints)
-* $\texttt{build\_local\_lagrangian\_function.m}$ 
-* $\texttt{build\_local\_initial\_condition.m}$
-* $\texttt{build\_local\_bounds.m}$
-* $\texttt{create\_consensus\_matrices\_opf.m}$
+- [RapidOPF - Extension of RapidPF to Optimal Power Flow](#rapidopf---extension-of-rapidpf-to-optimal-power-flow)
+  - [OPF Problem Formulation](#opf-problem-formulation)
+  - [Subsumption in RapidPf](#subsumption-in-rapidpf)
+  - [Extensions to existing Code](#extensions-to-existing-code)
+  - [Generation of distributed opf](#generation-of-distributed-opf)
+  - [Preparation of splitted Casefile](#preparation-of-splitted-casefile)
+    - [Corresponding functions:](#corresponding-functions)
+  - [Local Decision Variable](#local-decision-variable)
+    - [Corresponding functions](#corresponding-functions-1)
+  - [Local cost function](#local-cost-function)
+    - [Corresponding functions](#corresponding-functions-2)
+  - [Local equality and inequality constraints](#local-equality-and-inequality-constraints)
+    - [Corresponding functions](#corresponding-functions-3)
+  - [Lagrange function](#lagrange-function)
+    - [Corresponding functions](#corresponding-functions-4)
+  - [Consensus Matrices](#consensus-matrices)
+    - [Corresponding functions](#corresponding-functions-5)
+  - [Dimensions check up](#dimensions-check-up)
+    - [Corresponding functions](#corresponding-functions-6)
+  - [Initial conditions and bounds](#initial-conditions-and-bounds)
+    - [Corresponding functions](#corresponding-functions-7)
+  - [Detailed documentation of new functions](#detailed-documentation-of-new-functions)
+    - [$\texttt{prepare\_case\_file.m}$](#textttprepare_case_filem)
+    - [$\texttt{build\_local\_state.m}$](#textttbuild_local_statem)
+    - [$\texttt{create\_state\_mp.m}$](#textttcreate_state_mpm)
+    - [$\texttt{build\_local\_cost\_function.m}$](#textttbuild_local_cost_functionm)
+    - [$\texttt{build\_local\_constraint\_function.m}$](#textttbuild_local_constraint_functionm)
+    - [$\texttt{build\_local\_equalities.m}$](#textttbuild_local_equalitiesm)
+    - [$\texttt{build\_local\_inequalities.m}$](#textttbuild_local_inequalitiesm)
+    - [$\texttt{build\_local\_lagrangian\_function.m}$](#textttbuild_local_lagrangian_functionm)
+    - [$\texttt{build\_local\_initial\_condistion.m}$](#textttbuild_local_initial_condistionm)
+    - [$\texttt{build\_local\_bounds.m}$](#textttbuild_local_boundsm)
+    - [$\texttt{build\_local\_dimensions.m}$](#textttbuild_local_dimensionsm)
+    - [$\texttt{create\_consensus\_matrices.m}$](#textttcreate_consensus_matricesm)
+    - [$\texttt{generate\_distributed\_opf.m}$](#textttgenerate_distributed_opfm)
+    - [$\texttt{build\_local\_opf.m}$](#textttbuild_local_opfm)
 
 
+
+## Generation of distributed opf
+From the casefiles, all information needed for the distributed solver need to be extracted from the casefile of splitted casefiles. To do so, several functions are called within the fuctions 
+- [$\texttt{generate\_distributed\_opf.m}$](#textttgenerate_distributed_opfm)
+- [$\texttt{build\_local\_opf.m}$]()
 ## Preparation of splitted Casefile
 The RapidPF splitted casefiles consist of the following fields:
 *  $\texttt{baseMVA}$
@@ -80,7 +106,7 @@ Here, $n_b$ corresponds to the number of buses in the system and $n_g$ correspon
 
 At this point we need to be careful as the fields $\texttt{gen}$ and $\texttt{gencost}$ also do contain the generators at the copy nodes that shall not have any impact on the local objectives. Switching them of in the casefile as it is done in the function $\texttt{prepare\_case\_file}$ leads them in MATPOWER to be treated as non existing, thus giving us the wanted effect. 
 
-### Corresponding function:
+### Corresponding functions:
 - [$\texttt{prepare\_case\_file.m}$](#textttprepare_case_filem)
 
 
@@ -121,7 +147,7 @@ with respect to the structure of $x$ illustrated above.
 
 The results are one to one used by rapidOPF
 
-### Corresponding function
+### Corresponding functions
 - [$\texttt{build\_local\_cost\_function.m}$](#textttbuild_local_cost_functionm)
 
 
@@ -151,6 +177,16 @@ The function handles $h, dh$ are taken as they are. For $g$, the entries of the 
 - [$\texttt{build\_local\_equalities.m}$](#textttbuild_local_equalitiesm)
 - [$\texttt{build\_local\_inequalities.m}$](#textttbuild_local_inequalitiesm)
 
+## Lagrange function
+The ALADIN Solver needs to be handed over a Lagrangian function and its hessian matrix with respect to x
+$$
+L(x, \lambda, \mu) = f(x) + \lambda.*\nabla g + \mu .* \nabla h
+$$.
+These functions are provided by rapidOPF.
+
+### Corresponding functions
+[$\texttt{build\_local\_lagrangian\_function.m}$](#textttbuild_local_lagrangian_functionm)
+
 ## Consensus Matrices
 As consensus matrices we call the matrices that guarantee that the voltage angles and voltage magnitudes at the copy nodes correspond to the voltage angles and magnitudes at the corresponding core nodes in their core system. Therefore, the numbers of connections between all systems are needed. The local matrices are of dimension 
 $$
@@ -171,6 +207,9 @@ To enforce consensus, for each row $i$ of the connection table two entries are g
 
 We notice, that we need such a matrix not only for voltage angles but also one such matrix for voltage magnitudes, where the core_bus_entry and the copy_bus_entry need to be shifted to the column corresponding to the voltage entry of the optimization variable.
 
+### Corresponding functions
+- [$\texttt{create\_consensus\_matrices.m}$](#textttcreate_consensus_matricesm)
+
 ## Dimensions check up
 For clarity, the dimensions of the outputs are summarized
 
@@ -187,6 +226,16 @@ $$\text{dim}(eq) = 2 * (N_{buses} - N_{buses-copy}) = 2*(N_{buses-core})$$, i.e.
 
 - The local cost functions are scalar valued, the gradients are of dimension $\texttt{length}(x) \times 1$, its Hessian is of dimension $\texttt{length}(x) \times \texttt{length}(x)$ 
 
+### Corresponding functions
+- [$\texttt{build\_local\_dimensions.m}$](#textttbuild_local_dimensionsm)
+
+## Initial conditions and bounds
+The initial conditions and bounds are again one by one taken by MATPOWER functions $\texttt{params\_var(om).m}$.
+
+### Corresponding functions
+- [$\texttt{build\_local\_initial\_condistion.m}$](#textttbuild_local_initial_condistionm)
+
+- [$\texttt{build\_local\_bounds.m}$](#textttbuild_local_boundsm)
 
 ## Detailed documentation of new functions
 
@@ -301,6 +350,57 @@ Output:
   - $\texttt{ineq}$ relevant inequality constraints for 
   - $\texttt{ineq\_jac}$ relevant entries of jacobian matrix
 
+### [$\texttt{build\_local\_lagrangian\_function.m}$](#lagrange-function)
+
+`Builds the Lagrangian of the local mpc file`
+   
+  Input: 
+  - $\texttt{f}$ scalar valued cost function
+  - $\texttt{df}$ gradient of $\texttt{f}$ 
+  - $\texttt{g}$ equality constraints
+  - $\texttt{dg}$ transposed jacobian of the 'reduced' equality constraints
+  - $\texttt{h}$ inequality constraints
+  - $\texttt{dh}$ transposed jacobian of the inequality constraints
+ 
+  Output:
+  - $\texttt{L}$ 'reduced' Lagrangefunction
+  - $\texttt{dLdx}$ grandient of the Lagrangian
+  - $\texttt{d2Ldx}$ hessian of the Lagrangian
+
+  Remark:
+   - $\texttt{lambda}$ is the Lagrange multiplier for the ??? constraints (as column vector)
+   - $\texttt{mu}$ is the Lagrange multiplier for the ??? constraint (as column vector)
+   - $\texttt{kappa = [lambda;mu]}$ concatenated multiplier
+   - $\texttt{L = f + lambda'g + mu'h }$
+   - $\texttt{dL = grad\_f + sum lambda\_i (Jac\_g)'(:, i) + sum mu\_i(Jac\_h)'(:, i)}$
+
+
+### [$\texttt{build\_local\_initial\_condistion.m}$](#initial-conditions-and-bounds)
+
+   `x0 = build_local_initial_conditions(om)`
+
+   _extracts initial condition for x from MATPOWER_
+
+   INPUT:
+   - $\texttt{om}$ optimization model of reduced splitted case file
+
+  OUTPUT:
+  - $\texttt{x0}$ initial condition for objective variable $x$ of model $\texttt{om}$ of subsystem $i$
+
+
+### [$\texttt{build\_local\_bounds.m}$](#initial-conditions-and-bounds)
+
+   `[lb, ub] = build_local_bounds(om)`
+
+   _extracts local bounds for x from MATPOWER_
+
+   INPUT:
+   - $\texttt{om}$ optimization model of reduced splitted case file
+
+  OUTPUT:
+  - $\texttt{[lb, ub]}$ lower and upper bond for objective variable $x$ of model $\texttt{om}$ of subsystem $i$    
+
+
 ### [$\texttt{build\_local\_dimensions.m}$](#dimensions-check-up)
 
    `dims = build_local_dimensions(mpc_opf, eq, ineq, local_buses_to_remove)`
@@ -330,3 +430,51 @@ Output:
 
   OUTPUT:
   - $\texttt{A}$ cell with consensus matrices
+
+### [$\texttt{generate\_distributed\_opf.m}$](#generation-of-distributed-opf)
+
+   `problem = generate_distributed_opf(mpc, names, ~)`
+
+   _stores the information from the splitted case files to run a distributed optimization with ALADIN_
+
+   INPUT:
+   - $\texttt{mpc}$ struct with splitted case files
+   - $\texttt{names}$ struct containing the names of the fields of
+     $\texttt{mpc}
+  Output:
+   - $\texttt{problem}$ struct with the following fields
+   - $\texttt{locFuns}$ struct with fields of cells for local costs,
+  equality constraints, inequality constraints and imensions
+  - $\texttt{sens}$ struct with fields of cells for radient of costs,
+  jacobian of equality and inequality and the Hessian f the
+  Lagrangian
+  - $\texttt{zz0}$ cell of initial conditions
+  - $\texttt{AA}$ cell of consensus matrices
+  - $\texttt{state}$ cell that contans the local states
+  - $\texttt{llbx}$ cell that contains the local lower ounds
+  - $\texttt{uubx}$ cell that cotains the local upper ounds
+
+### [$\texttt{build\_local\_opf.m}$](#generation-of-distributed-opf)
+   `[cost, ineq, eq, x0, grad_cost, eq_jac, ineq_jac, lagrangian_hessian, state, dims, lb, ub] = build_local_opf(mpc, names, postfix)`
+
+   _extracts the local functions and information needed for opf_
+
+   INPUT: 
+  - $\texttt{mpc}$ splitted full casefile
+  - $\texttt{names}$ struct of names corresponding to the fields
+    of mpc
+  - $\texttt{postfix}$ index of subsystem
+   OUTPUT:
+  - $\texttt{cost}$ scalar local cost function
+  - $\texttt{ineq}$ vector of equality constraint functions
+  - $\texttt{eq}$ vector of inequality constraint functions
+  - $\texttt{x0}$ intial condition of x
+  - $\texttt{grad\_cost}$ gradient of cost function
+  - $\texttt{eq\_jac}$ jacobian of eqality contraints
+  - $\texttt{ineq\_jac}$ jacobian of inequality constraints
+  - $\texttt{lagrangian\_hessian}$ hesisan of reduced agrange
+  function
+  - $\texttt{state}$ representation of objective ariable
+  - $\texttt{dims}$ struct of local dimensions
+  - $\texttt{lb}$ lower bound of x
+  - $\texttt{ub}$ upper bond of x
