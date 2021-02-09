@@ -1,4 +1,4 @@
-%% check if there is a UIfigure
+% check if there is a UIfigure
 if exist('app','var')
     % close UIfigure
     delete(app.UIFigure)
