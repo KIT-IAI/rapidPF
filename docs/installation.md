@@ -2,6 +2,7 @@
 
 - Install [`Matlab`](https://www.mathworks.com).
 - Add [`Matpower`](https://matpower.org/) to your `Matlab` installation
+- Add [`CasADi`](https://web.casadi.org/get/) to your `Matlab` installation. 
 - Add [`Aladin`](https://github.com/alexe15/ALADIN.m) to your `Matlab` installation.
     - Make sure to switch to the [`abstractify` branch](https://github.com/alexe15/ALADIN.m/tree/abstractify) if you want to use Aladin without [Casadi](https://web.casadi.org/docs/).
 
