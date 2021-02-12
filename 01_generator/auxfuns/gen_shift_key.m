@@ -7,7 +7,7 @@ function [trans, dist] = gen_shift_key(mpc, alpha)
     shift_power = 0;
     for i = 1:N_dist
         sys = dist{i};
-        [sys.gen, shift_p_i] = decrease_dist_gen(sys.gen, alpha);
+        [sys.gen, shift_p_i] = decrease_dist_gen(sys.gen, 1-alpha);
         dist{i} = sys;
         shift_power = shift_power + shift_p_i;        
     end

@@ -37,10 +37,10 @@ function [options, app] = plot_options
 
     % Create CasefileDropDown
     app.CasefileDropDown = uidropdown(app.UIFigure);
-    app.CasefileDropDown.Items = {'14+30+9','300+118', '300X3(infesible)', ...
+    app.CasefileDropDown.Items = {'53-I','53-II','300+118', '300X3(infesible)', ...
         '118X3',  '118X7', '118X8','118X10', '1354X2', '1354X3', '1354X3+300X2'};
     app.CasefileDropDown.Position = [33 222 164 22];
-    app.CasefileDropDown.Value = '14+30+9';
+    app.CasefileDropDown.Value = '53-I';
 
     % Create AlgorithmButtonGroup
     app.AlgorithmButtonGroup = uibuttongroup(app.UIFigure);
@@ -68,7 +68,7 @@ function [options, app] = plot_options
     % Create GSKEditField
     app.GSKEditField = uieditfield(app.UIFigure, 'numeric');
     app.GSKEditField.Position = [310 222 100 22];
-    app.GSKEditField.Value = 1;
+    app.GSKEditField.Value = 0;
 
     % Create SolverButtonGroup
     app.SolverButtonGroup = uibuttongroup(app.UIFigure);
@@ -84,12 +84,12 @@ function [options, app] = plot_options
     app.fminconButton = uiradiobutton(app.SolverButtonGroup);
     app.fminconButton.Text = 'fmincon';
     app.fminconButton.Position = [11 59 65 22];
+    app.fminconButton.Value = true;
 
     % Create fminuncButton
     app.fminuncButton = uiradiobutton(app.SolverButtonGroup);
     app.fminuncButton.Text = 'fminunc';
     app.fminuncButton.Position = [11 37 65 22];
-    app.fminuncButton.Value = true;
 
     % Create worhpButton
     app.worhpButton = uiradiobutton(app.SolverButtonGroup);

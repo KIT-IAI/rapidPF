@@ -1,6 +1,33 @@
 function mpc=mpc_data(casefile)
     mpc.fields_to_merge = {'bus', 'gen', 'branch'};
-    if strcmp(casefile, '118X3')
+    if strcmp(casefile, '53-I')
+    % small mpc 14+30+9
+        mpc.trans  = loadcase('case14');
+        mpc.dist = { loadcase('case30')
+                     loadcase('case9')  };
+
+        mpc.connection_array = [2 1 1 2;
+                            2 3 2 3; 
+                            2 3 13 1;
+                            ];   
+    elseif strcmp(casefile, '53-II')
+    % small mpc 14+30+9
+        mpc.trans  = loadcase('case14');
+        mpc.dist = { loadcase('case30')
+                     loadcase('case9')  };
+
+        mpc.connection_array = [
+                            % region 1 - region 2
+                            1 2 2 1;
+                            1 2 3 22;
+                            % region 1 - region 3
+                            1 3 6 2;
+                            1 3 8 1;
+                            % region 2 - region 3
+                            2 3 13 3;
+                            ];   
+
+    elseif strcmp(casefile, '118X3')
     % 3x118
         mpc.trans  = loadcase('case118');
         mpc.dist = { loadcase('case118')
@@ -13,17 +40,6 @@ function mpc=mpc_data(casefile)
                            2 3 10 100; 
                            2 3 32 70;
                            ];
-    elseif strcmp(casefile, '14+30+9')
-    % small mpc 14+30+9
-        mpc.trans  = loadcase('case14');
-        mpc.dist = { loadcase('case30')
-                     loadcase('case9')  };
-
-        mpc.connection_array = [2 1 1 2;
-                            2 3 2 3; 
-                            2 3 13 1;
-                            ];   
-
 
 % infeasible example
     elseif strcmp(casefile, '300X3(infesible)')
