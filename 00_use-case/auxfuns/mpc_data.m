@@ -54,14 +54,69 @@ function mpc=mpc_data(casefile)
                            ];  
     
     
-    elseif strcmp(casefile, '300+118')
+    elseif strcmp(casefile, '418-I')
         mpc.trans  = ext2int(loadcase('case300'));
         mpc.dist = { ext2int(loadcase('case118'))
                      };
 
-        mpc.connection_array = [1 2 10 1;
-                            2 1 100 8
-                           ];
+        mpc.connection_array = [ 1 2 10 1;
+
+                           ];    
+    elseif strcmp(casefile, '418-II')
+        % 3 connections
+        mpc.trans  = ext2int(loadcase('case300'));
+        mpc.dist = { ext2int(loadcase('case118'))
+                     };
+
+        mpc.connection_array = [ 1 2 10 1;
+                                 2 1 100 8;
+                                 1 2 170 61;
+                                 ];
+                       
+    elseif strcmp(casefile, '418-III')
+        % 5 connections
+        mpc.trans  = ext2int(loadcase('case300'));
+        mpc.dist = { ext2int(loadcase('case118'))
+                     };
+
+        mpc.connection_array = [ 1 2 10 1;
+                                 2 1 100 8;
+                                 1 2 170 61;
+                                 1 2 120 32;
+                                 1 2 260 80                              
+                                 ];     
+                             
+    elseif strcmp(casefile, '418-IV')
+        % 8 connections
+        mpc.trans  = ext2int(loadcase('case300'));
+        mpc.dist = { ext2int(loadcase('case118'))
+                     };
+
+        mpc.connection_array = [ 1 2 10 1;
+                                 2 1 100 8;
+                                 1 2 170 61;
+                                 1 2 120 32;
+                                 1 2 260 80;
+                                 1 2 132 110;
+                                 1 2 250 62;
+                                 1 2 256 19;
+                                 ];
+    elseif strcmp(casefile, '418-V')
+        mpc.trans  = ext2int(loadcase('case300'));
+        mpc.dist = { ext2int(loadcase('case118'))
+                     };
+        % 5 connections
+        mpc.connection_array = [ 1 2 10 1;
+                                 2 1 100 8;
+                                 1 2 170 61;
+                                 1 2 120 32;
+                                 1 2 260 80;
+                                 1 2 132 110;
+                                 1 2 250 62;
+                                 1 2 256 19;
+                                 1 2 206 46;
+                                 1 2 156 15
+                                 ];                      
     elseif strcmp(casefile, '118X7')
     %  7x118
         mpc.trans  = loadcase('case118');

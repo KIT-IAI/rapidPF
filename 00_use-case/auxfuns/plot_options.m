@@ -37,7 +37,7 @@ function [options, app] = plot_options
 
     % Create CasefileDropDown
     app.CasefileDropDown = uidropdown(app.UIFigure);
-    app.CasefileDropDown.Items = {'53-I','53-II','300+118', '300X3(infesible)', ...
+    app.CasefileDropDown.Items = {'53-I','53-II','418-I','418-II','418-III','418-IV','418-V', '300X3(infesible)', ...
         '118X3',  '118X7', '118X8','118X10', '1354X2', '1354X3', '1354X3+300X2'};
     app.CasefileDropDown.Position = [33 222 164 22];
     app.CasefileDropDown.Value = '53-I';
