@@ -4,6 +4,13 @@ function [mpc_opf, om, copy_buses_local, mpopt] = prepare_case_file(mpc, names)
 %   `[mpc_opf, om, copy_buses_local, mpopt] = prepare_case_file(mpc, names))`
 %
 %   _Prepares the splitted case file to such that MATPOWER opf functions and methodes can be applied_
+%
+%   INPUT:  - mpc splitted case files
+%           - names names of mpc struct fields
+%   OUTPUT: - mpc_opf cleaned up matpower casefile (deleted generators) in MATPOWER internal numering
+%           - om MATPOWER optimization model of mpc_opf
+%           - copy_buses_local local copy buses
+%           - mpopt MATPOWER optimization parameters
 
     [GEN_BUS, PG, QG, QMAX, QMIN, VG, MBASE, GEN_STATUS, PMAX, PMIN, ...
             MU_PMAX, MU_PMIN, MU_QMAX, MU_QMIN, PC1, PC2, QC1MIN, QC1MAX, ...
@@ -27,10 +34,9 @@ function [mpc_opf, om, copy_buses_local, mpopt] = prepare_case_file(mpc, names)
     
     %% we changed the case file after it was switched to internal indexing
     % we need to account for that
-    
-    
+    % ??? option in line 40 safer??? 
     mpc.order.state = 'e';
-   % mpc = int2ext(mpc);
+    % mpc = int2ext(mpc);
     %% return values
     [mpc_opf, mpopt] = opf_args(mpc);
     mpc_opf = ext2int(mpc_opf);
