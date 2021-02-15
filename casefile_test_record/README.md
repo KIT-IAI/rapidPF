@@ -1,4 +1,4 @@
-.### 2-12-2021
+### 12-02-2021
 
 - GSK definition
 
@@ -47,3 +47,21 @@
   - lack a terminate condition
 
   - based on CasADi, even using other solvers
+
+### 15-02-2021
+
+- 1654-bus system (1356+300)
+
+  - 10 test cases with 1,3,5,8,10,12,16,20,25,30 connections
+
+
+- Large-scale subsystem issue (Bus number > 1000)
+
+  - for the subsystem, it takes too long to converge
+
+  - 1654-30 case faces converge issues
+
+
+- ALADIN-$/alpha$ issue
+
+  - critical issues with 1654-30 test, i.e. with 30 connections

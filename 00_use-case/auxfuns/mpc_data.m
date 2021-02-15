@@ -290,8 +290,37 @@ function mpc=mpc_data(casefile)
                                 1 2 387 267;
                                 1 2 551 8;
          ];      
+
+    elseif strcmp(casefile, '1654-20')
+        mpc.trans  = ext2int(loadcase('case1354pegase')); 
+        mpc.dist = { ext2int(loadcase('case300'))
+            };
+        mpc.connection_array = [1 2 34 19;
+                                1 2 610 69;
+                                1 2 744 120;
+                                1 2 1310 150;
+                                1 2 360 215;
+                                1 2 87 255;
+                                1 2 499 260;
+                                1 2 1016 192;
+                                1 2 1234 296;
+                                1 2 920 131;
                                 
-      elseif strcmp(casefile, '1654-20')
+                                1 2 233 199;
+                                1 2 421 156;
+                                1 2 986 88;
+                                1 2 1086 222;
+                                1 2 387 267;
+                                1 2 551 8;                                
+                                1 2 152 10;
+                                1 2 150 55;
+                                1 2 715 63;
+                                1 2 1177 251;
+                               
+                                
+         ];
+     
+      elseif strcmp(casefile, '1654-25')
         mpc.trans  = ext2int(loadcase('case1354pegase')); 
         mpc.dist = { ext2int(loadcase('case300'))
             };
@@ -325,6 +354,45 @@ function mpc=mpc_data(casefile)
                                 
                                 
          ];      
+     
+     
+    elseif strcmp(casefile, 'test')
+        mpc.trans  = ext2int(loadcase('case1354pegase')); 
+        mpc.dist = { ext2int(loadcase('case300'))
+            };
+        mpc.connection_array = [1 2 34 19;
+                                1 2 610 69;
+                                1 2 744 120;
+                                1 2 1310 150;
+                                1 2 360 215;
+                                1 2 87 255;
+                                1 2 499 260;
+                                1 2 1016 192;
+                                1 2 1234 296;
+                                1 2 920 131;
+                                
+                                1 2 233 199;
+                                1 2 421 156;
+                                1 2 986 88;
+                                1 2 1086 222;
+                                1 2 387 267;
+                                1 2 551 8;                                
+                                1 2 152 10;
+                                1 2 150 55;
+                                1 2 715 63;
+                                1 2 1177 251;
+                                
+                                1 2 270 103;
+                                1 2 323 169;
+                                1 2 444 177;
+                                1 2 1191 250;
+                                1 2 1274 262;                                
+                                1 2 106 77;
+                                1 2 627 164;
+                                1 2 822 220;
+                                1 2 1254 248;
+                                1 2 1335 258
+         ];  
      
      %%  2X1354 
     elseif strcmp(casefile, '1354X2') 
