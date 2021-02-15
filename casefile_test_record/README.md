@@ -1,4 +1,4 @@
-### 2-12-2021
+.### 2-12-2021
 
 - GSK definition
 
@@ -21,6 +21,7 @@
 
       - Otherwise might lead to *infeasibility*
 
+
 - 53-bus system
 
   - in transmission region, slack bus cannot be selected as connection point
@@ -35,6 +36,14 @@
 
     - there is no significant different result between 2 test cases (computing time, iteration)
 
+
 - 418-bus system
 
   - 5 test cases with 1, 3, 5, 8, 10 connections
+
+
+- ALADIN-$/alpha$ issue
+
+  - lack a terminate condition
+
+  - based on CasADi, even using other solvers

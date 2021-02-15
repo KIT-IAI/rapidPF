@@ -54,7 +54,7 @@ function mpc=mpc_data(casefile)
                            ];  
     
     
-    elseif strcmp(casefile, '418-I')
+    elseif strcmp(casefile, '418-1')
         mpc.trans  = ext2int(loadcase('case300'));
         mpc.dist = { ext2int(loadcase('case118'))
                      };
@@ -62,7 +62,7 @@ function mpc=mpc_data(casefile)
         mpc.connection_array = [ 1 2 10 1;
 
                            ];    
-    elseif strcmp(casefile, '418-II')
+    elseif strcmp(casefile, '418-3')
         % 3 connections
         mpc.trans  = ext2int(loadcase('case300'));
         mpc.dist = { ext2int(loadcase('case118'))
@@ -73,7 +73,7 @@ function mpc=mpc_data(casefile)
                                  1 2 170 61;
                                  ];
                        
-    elseif strcmp(casefile, '418-III')
+    elseif strcmp(casefile, '418-5')
         % 5 connections
         mpc.trans  = ext2int(loadcase('case300'));
         mpc.dist = { ext2int(loadcase('case118'))
@@ -86,7 +86,7 @@ function mpc=mpc_data(casefile)
                                  1 2 260 80                              
                                  ];     
                              
-    elseif strcmp(casefile, '418-IV')
+    elseif strcmp(casefile, '418-8')
         % 8 connections
         mpc.trans  = ext2int(loadcase('case300'));
         mpc.dist = { ext2int(loadcase('case118'))
@@ -101,7 +101,7 @@ function mpc=mpc_data(casefile)
                                  1 2 250 62;
                                  1 2 256 19;
                                  ];
-    elseif strcmp(casefile, '418-V')
+    elseif strcmp(casefile, '418-10')
         mpc.trans  = ext2int(loadcase('case300'));
         mpc.dist = { ext2int(loadcase('case118'))
                      };
@@ -186,18 +186,158 @@ function mpc=mpc_data(casefile)
                            ];
 
 
-%%  2X1354
-    elseif strcmp(casefile, '1354X2')
+    %% 1654
+
+      elseif strcmp(casefile, '1654-1')
+        mpc.trans  = ext2int(loadcase('case1354pegase')); 
+        mpc.dist = { ext2int(loadcase('case300'))
+            };
+        mpc.connection_array = [1 2 34 19
+            
+        ];
+        
+ 
+      elseif strcmp(casefile, '1654-3')
+        mpc.trans  = ext2int(loadcase('case1354pegase')); 
+        mpc.dist = { ext2int(loadcase('case300'))
+            };
+        mpc.connection_array = [1 2 34 19;
+                                1 2 610 69;
+                                1 2 744 120
+            
+        ];       
+    
+ 
+      elseif strcmp(casefile, '1654-5')
+        mpc.trans  = ext2int(loadcase('case1354pegase')); 
+        mpc.dist = { ext2int(loadcase('case300'))
+            };
+        mpc.connection_array = [1 2 34 19;
+                                1 2 610 69;
+                                1 2 744 120;
+                                1 2 1310 150;
+                                1 2 360 215
+            
+        ];      
+    
+      elseif strcmp(casefile, '1654-8')
+        mpc.trans  = ext2int(loadcase('case1354pegase')); 
+        mpc.dist = { ext2int(loadcase('case300'))
+            };
+        mpc.connection_array = [1 2 34 19;
+                                1 2 610 69;
+                                1 2 744 120;
+                                1 2 1310 150;
+                                1 2 360 215;
+                                1 2 87 255;
+                                1 2 499 260;
+                                1 2 1016 192
+         ];      
+               
+      elseif strcmp(casefile, '1654-10')
+        mpc.trans  = ext2int(loadcase('case1354pegase')); 
+        mpc.dist = { ext2int(loadcase('case300'))
+            };
+        mpc.connection_array = [1 2 34 19;
+                                1 2 610 69;
+                                1 2 744 120;
+                                1 2 1310 150;
+                                1 2 360 215;
+                                1 2 87 255;
+                                1 2 499 260;
+                                1 2 1016 192;
+                                1 2 1234 296;
+                                1 2 920 131
+         ];      
+
+     elseif strcmp(casefile, '1654-12')
+        mpc.trans  = ext2int(loadcase('case1354pegase')); 
+        mpc.dist = { ext2int(loadcase('case300'))
+            };
+        mpc.connection_array = [1 2 34 19;
+                                1 2 610 69;
+                                1 2 744 120;
+                                1 2 1310 150;
+                                1 2 360 215;
+                                1 2 87 255;
+                                1 2 499 260;
+                                1 2 1016 192;
+                                1 2 1234 296;
+                                1 2 920 131;
+                                1 2 233 199;
+                                1 2 421 156
+                                
+         ];      
+     
+      elseif strcmp(casefile, '1654-16')
+        mpc.trans  = ext2int(loadcase('case1354pegase')); 
+        mpc.dist = { ext2int(loadcase('case300'))
+            };
+        mpc.connection_array = [1 2 34 19;
+                                1 2 610 69;
+                                1 2 744 120;
+                                1 2 1310 150;
+                                1 2 360 215;
+                                1 2 87 255;
+                                1 2 499 260;
+                                1 2 1016 192;
+                                1 2 1234 296;
+                                1 2 920 131;
+                                1 2 233 199;
+                                1 2 421 156;
+                                1 2 986 88;
+                                1 2 1086 222;
+                                1 2 387 267;
+                                1 2 551 8;
+         ];      
+                                
+      elseif strcmp(casefile, '1654-20')
+        mpc.trans  = ext2int(loadcase('case1354pegase')); 
+        mpc.dist = { ext2int(loadcase('case300'))
+            };
+        mpc.connection_array = [1 2 34 19;
+                                1 2 610 69;
+                                1 2 744 120;
+                                1 2 1310 150;
+                                1 2 360 215;
+                                1 2 87 255;
+                                1 2 499 260;
+                                1 2 1016 192;
+                                1 2 1234 296;
+                                1 2 920 131;
+                                
+                                1 2 233 199;
+                                1 2 421 156;
+                                1 2 986 88;
+                                1 2 1086 222;
+                                1 2 387 267;
+                                1 2 551 8;                                
+                                1 2 152 10;
+                                1 2 150 55;
+                                1 2 715 63;
+                                1 2 1177 251;
+                                
+                                1 2 270 103;
+                                1 2 323 169;
+                                1 2 444 177;
+                                1 2 1191 250;
+                                1 2 1274 262
+                                
+                                
+         ];      
+     
+     %%  2X1354 
+    elseif strcmp(casefile, '1354X2') 
         mpc.trans  = ext2int(loadcase('case1354pegase'));
         mpc.dist = { ext2int(loadcase('case1354pegase'))
-
                     };
         % 
+        
         mpc.connection_array = [1 2 17 17;
 
                            ];
 
-%%  3X1354
+%  3X1354
     elseif strcmp(casefile, '1354X3')
 
         mpc.trans  = ext2int(loadcase('case1354pegase'));
