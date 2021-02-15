@@ -59,9 +59,9 @@
 
   - for the subsystem, it takes too long to converge
 
-  - 1654-30 case faces converge issues
+  - 1654-30 case faces converge issues (ALADIN / solver)
+
+    - problem fixed by releasing lower and upper boundary,i.e., `lb` and `ub` for active and reactive power.
 
 
-- ALADIN-$/alpha$ issue
-
-  - critical issues with 1654-30 test, i.e. with 30 connections
+- Issue with merging subsystems: how to merging them in a more `nature` way

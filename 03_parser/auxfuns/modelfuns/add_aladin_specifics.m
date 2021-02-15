@@ -72,10 +72,10 @@ function [lb, ub] = build_bounds_per_region(N_core, N_copy)
     ang_ub = 10; 
     mag_lb = 0.1;
     mag_ub = 10; 
-    p_lb = -100; 
-    p_ub = 100;  
-    q_lb = -100; 
-    q_ub = 100;  
+    p_lb = -1000; 
+    p_ub = 1000;  
+    q_lb = -1000; 
+    q_ub = 1000;  
     
     [lb, ub] = build_bounds(N_core, N_copy, [ang_lb; mag_lb; p_lb; q_lb], [ang_ub; mag_ub; p_ub; q_ub]);
 end
