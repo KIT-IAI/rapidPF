@@ -65,3 +65,21 @@
 
 
 - Issue with merging subsystems: how to merging them in a more `nature` way
+
+### 16-02-2021
+
+- 2708-bus system (1354X2)
+
+  - When number of buses increases, convergence speed slow down near optimum. Some time singular warning occurs during QP-step.
+
+    - Singular? Hessian regularization?
+
+- 4662-bus systems
+
+  - difference convergence rate (because of local solver?)
+
+- post-dataprocessing
+
+  - Region Topology with Power flow among them
+
+  - active power of regions
