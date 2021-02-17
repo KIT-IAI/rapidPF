@@ -30,8 +30,8 @@ function [tab_power,table_connection] = compare_power_flow_between_regions(mpc,c
         from_region = [from_region;trafo_region(pointer,1)];
         to_region   = [to_region;trafo_region(pointer,2)];
         % find idx of global branch-data
-        idx_branch  = ismember(branch(:,1),trafo_from_to(pointer,1)) ...
-            &ismember(branch(:,2),trafo_from_to(pointer,2)); 
+        idx_branch  = ismember(branch(:,1),trafo_from_to(idx,1)) ...
+            &ismember(branch(:,2),trafo_from_to(idx,2)); 
         % power flow along connections between these 2 regions
         pf_branch   = branch(idx_branch, PF);
         % negative value: change direction
@@ -39,11 +39,11 @@ function [tab_power,table_connection] = compare_power_flow_between_regions(mpc,c
             from_region(end) = trafo_region(pointer,2);
             to_region(end)   = trafo_region(pointer,1);
         end
-        pf = [pf; abs(pf_branch)];
+        pf = [pf; abs(sum(pf_branch))];
         % number of connections between these 2 regions
         N_conn_region      = [N_conn_region;sum(idx)];
         % edge label
-        str =  compose("%5.2f MW - %d Trafo",abs(pf_branch),sum(idx));
+        str =  compose("%5.2f MW - %d Trafo",abs(sum(pf_branch)),sum(idx));
         edge_label = [edge_label;str];
         % find next undo connection 
         pointer = find(record,1);
@@ -88,7 +88,7 @@ function [tab_power,table_connection] = compare_power_flow_between_regions(mpc,c
   
     subplot(1,2,2)
 
-    G = digraph(from_region,to_region,pf);
+    G = digraph(from_region,to_region);
     h = plot(G);
     h.EdgeLabel = edge_label;
     h.LineWidth = 2;

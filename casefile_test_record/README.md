@@ -83,3 +83,13 @@
   - Region Topology with Power flow among them
 
   - active power of regions
+
+### 17-02-2021
+
+- 2708-bus system (1354X2)
+
+  - 30 connection, 70% generation shifted to transmission
+
+  - local solver too slow for large region (bus number in subsystem > 1000)
+
+    - F-count increases dramatically at some iterations

@@ -404,14 +404,46 @@ function mpc=mpc_data(casefile)
         mpc.connection_array = [1 2 21 21;
 
                            ];
+    
+    elseif strcmp(casefile, '2708-5') 
+        mpc.trans  = ext2int(loadcase('case1354pegase'));
+        mpc.dist = { ext2int(loadcase('case1354pegase'))
+                    };
+        % 
+        
+        mpc.connection_array = [1 2 21 21;
+                            1 2 57 51;
+                            1 2 135 79;
+                            1 2 654 101;
+                            1 2 1089 114;
+                           ];
                        
-    elseif strcmp(casefile, 'test') 
-    mpc.trans  = ext2int(loadcase('case1354pegase'));
-    mpc.dist = { ext2int(loadcase('case1354pegase'))
-                };
-    % 
-
-    mpc.connection_array = [1 2 21 21;
+    elseif strcmp(casefile, '2708-10') 
+        mpc.trans  = ext2int(loadcase('case1354pegase'));
+        mpc.dist = { ext2int(loadcase('case1354pegase'))
+                    };
+        % 
+        
+        mpc.connection_array = [1 2 21 21;
+                            1 2 57 51;
+                            1 2 135 79;
+                            1 2 654 101;
+                            1 2 1089 114;
+                            
+                            1 2 104 191;
+                            1 2 255 278;
+                            1 2 286 793;
+                            1 2 702 1060;
+                            1 2 844 1277;
+                           ];
+                           
+     elseif strcmp(casefile, '2708-15') 
+        mpc.trans  = ext2int(loadcase('case1354pegase'));
+        mpc.dist = { ext2int(loadcase('case1354pegase'))
+                    };
+        % 
+        
+        mpc.connection_array = [1 2 21 21;
                             1 2 57 51;
                             1 2 135 79;
                             1 2 654 101;
@@ -428,11 +460,86 @@ function mpc=mpc_data(casefile)
                             1 2 484 1140;
                             1 2 617 1240;
                             1 2 744 1328
-
                        ];                   
 
+     elseif strcmp(casefile, '2708-20') 
+        mpc.trans  = ext2int(loadcase('case1354pegase'));
+        mpc.dist = { ext2int(loadcase('case1354pegase'))
+                    };
+        % 
+        
+        mpc.connection_array = [1 2 21 21;
+                            1 2 57 51;
+                            1 2 135 79;
+                            1 2 654 101;
+                            1 2 1089 114;
+                            
+                            1 2 104 191;
+                            1 2 255 278;
+                            1 2 286 793;
+                            1 2 702 1060;
+                            1 2 844 1277;
+                            
+                            1 2 355 1026;
+                            1 2 422 1092;
+                            1 2 484 1140;
+                            1 2 617 1240;
+                            1 2 744 1328;
+                            
+                            1 2 193 744;
+                            1 2 551 822;
+                            1 2 918 863;
+                            1 2 1023 986;
+                            1 2 1191 1000;
+                       ];
+                   
+     elseif strcmp(casefile, '2708-30') 
+        mpc.trans  = ext2int(loadcase('case1354pegase'));
+        mpc.dist = { ext2int(loadcase('case1354pegase'))
+                    };
+        % 
+        
+        mpc.connection_array = [1 2 21 21;
+                            1 2 57 51;
+                            1 2 135 79;
+                            1 2 654 101;
+                            1 2 1089 114;
+                            
+                            1 2 104 191;
+                            1 2 255 278;
+                            1 2 286 793;
+                            1 2 702 1060;
+                            1 2 844 1277;
+                            
+                            1 2 355 1026;
+                            1 2 422 1092;
+                            1 2 484 1140;
+                            1 2 617 1240;
+                            1 2 744 1328;
+                            
+                            1 2 193 744;
+                            1 2 551 822;
+                            1 2 918 863;
+                            1 2 1023 986;
+                            1 2 1191 1000;
+                            
+                            1 2 375 356;
+                            1 2 806 419;
+                            1 2 987 480;
+                            1 2 1240 551;
+                            1 2 1306 598;
+                            
+                            1 2 320 383;
+                            1 2 749 498;
+                            1 2 811 624;
+                            1 2 971 918;
+                            1 2 1335 1181   
+                       ];            
+    
+                 
+
 %  3X1354
-    elseif strcmp(casefile, '1354X3')
+    elseif strcmp(casefile, '4062-1')
 
         mpc.trans  = ext2int(loadcase('case1354pegase'));
         mpc.dist = { ext2int(loadcase('case1354pegase'))
@@ -442,6 +549,91 @@ function mpc=mpc_data(casefile)
         mpc.connection_array = [1 2 17 46;
                                 1 3 111  271
                                 ];
+    elseif strcmp(casefile, 'test') 
+
+        mpc.trans  = ext2int(loadcase('case1354pegase'));
+        mpc.dist = { ext2int(loadcase('case1354pegase'))
+                     ext2int(loadcase('case1354pegase'))
+                    };
+    % 
+
+    mpc.connection_array = [
+                            % reigion 1 - region 2
+                            1 2 21 21;
+                            1 2 57 51;
+                            1 2 135 79;
+                            1 2 654 101;
+                            1 2 1089 114;
+                            
+                            1 2 104 191;
+                            1 2 255 278;
+                            1 2 286 793;
+                            1 2 702 1060;
+                            1 2 844 1277;
+                            
+                            1 2 355 1026;
+                            1 2 422 1092;
+                            1 2 484 1140;
+                            1 2 617 1240;
+                            1 2 744 1328;
+                            
+                            1 2 193 744;
+                            1 2 551 822;
+                            1 2 918 863;
+                            1 2 1023 986;
+                            1 2 1191 1000;
+                            
+                            1 2 375 356;
+                            1 2 806 419;
+                            1 2 987 480;
+                            1 2 1240 551;
+                            1 2 1306 598;
+                            
+                            1 2 320 383;
+                            1 2 749 498;
+                            1 2 811 624;
+                            1 2 971 918;
+                            1 2 1335 1181;
+                            
+                            % region 1 - region 3
+                            %1 3 111  271
+                            1 3 81 21;
+                            1 3 154 51;
+                            1 3 244 79;
+                            1 3 271 101;
+                            1 3 387 114;
+                            
+                            1 3 465 191;
+                            1 3 510 278;
+                            1 3 598 793;
+                            1 3 676 1060;
+                            1 3 715 1277;
+                            
+                            1 3 822 1026;
+                            1 3 1000 1092;
+                            1 3 1043 1140;
+                            1 3 1121 1240;
+                            1 3 1219 1328;
+                            
+                            1 3 1256 744;
+                            1 3 1274 822;
+                            1 3 1303 863;
+                            1 3 1327 986;
+                            1 3 1342 1000;
+                            
+                            1 3 861 356;
+                            1 3 873 419;
+                            1 3 895 480;
+                            1 3 924 551;
+                            1 3 993 598;
+                            
+                            1 3 406 383;
+                            1 3 432 498;
+                            1 3 136 624;
+                            1 3 152 918;
+                            1 3 210 1181
+                            
+                       ];                   
     
     elseif strcmp(casefile, '1354X3+300X2')
     % 3X1354+2X300                  
