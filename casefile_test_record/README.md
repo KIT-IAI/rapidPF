@@ -95,12 +95,12 @@
     - F-count increases dramatically at some iterations
 
     - info by fmincon: Feasible point with lower objective function value found.
-
-
 >fmincon encountered a feasible point with a lower objective value than the final point. This includes the case where the final point is infeasible, in which case the final objective function value is not relevant. Feasible means that the maximum infeasibility is less than the ConstraintTolerance option.
 
-Link: https://de.mathworks.com/help/optim/ug/obtain-best-feasible-point.html
+        Link: https://de.mathworks.com/help/optim/ug/obtain-best-feasible-point.html
+
+    - tuning the lower and the upper boundaries of active-/reactive power would improve convergence rate. Reason remains unknown.
 
 - ALADIN idea:
 
-  for larger cases, initial point of local step is the optimum. For these cases, no need to call solver at local step.
+  for larger cases, initial point of local step is the optimum. For these cases, no need to call solver at local step. As a result, it would save total computing time.
