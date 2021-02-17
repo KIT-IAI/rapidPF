@@ -76,7 +76,7 @@ if strcmp(options.algorithm, 'aladin')
     comparison_aladin    = compare_results(xval, xsol_aladin)
 %     violation            = compare_constraints_violation(problem, logg);
 %     %
-   [active_power_tab,abl]     = compare_power_flow_between_regions(mpc_sol_aladin, mpc_merge.connections, mpc_split.regions, conn(:,1:2))
+    [active_power_regions, active_power_via_trafos] = compare_power_flow_between_regions(mpc_sol_aladin, mpc_merge.connections, mpc_split.regions, conn(:,1:2))
 %     % 
 %     deviation = deviation_violation_iter_plot(mpc_split, xval, logg, names, xsol_aladin);
     

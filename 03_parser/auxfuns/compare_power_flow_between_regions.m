@@ -104,9 +104,14 @@ function [tab_power,table_connection] = compare_power_flow_between_regions(mpc,c
     % active power
     regions = [1:N_regions]';
     tab_power = table(regions, gen_sum_per_regions, pf_in_per_regions, pf_out_per_regions);
-    tab_power.Properties.Description = 'Inf-norm of power flow solutions';
-    tab_power.Properties.VariableNames = {'Regions', 'Generator', 'Power Flow(in)','Power Flow(out)'};
+    tab_power.Properties.Description = 'Active power flow into/out of regions';
+    tab_power.Properties.VariableNames = {'Region', 'Generator[MW]', 'Power Flow(in)[MW]','Power Flow(out)[MW]'};
     
     % region topology
-    table_connection = table(from_region,to_region,N_conn_region);
+    table_connection = table(from_region,to_region,N_conn_region,pf);
+    table_connection.Properties.Description = 'Active power flow between regions';
+    table_connection.Properties.VariableNames = {'From Region', 'To Region', 'Trafos number','Power flow via Trafos[MW]'};
+    
+    
+    
 end

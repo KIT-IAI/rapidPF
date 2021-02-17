@@ -93,3 +93,14 @@
   - local solver too slow for large region (bus number in subsystem > 1000)
 
     - F-count increases dramatically at some iterations
+
+    - info by fmincon: Feasible point with lower objective function value found.
+
+
+>fmincon encountered a feasible point with a lower objective value than the final point. This includes the case where the final point is infeasible, in which case the final objective function value is not relevant. Feasible means that the maximum infeasibility is less than the ConstraintTolerance option.
+
+Link: https://de.mathworks.com/help/optim/ug/obtain-best-feasible-point.html
+
+- ALADIN idea:
+
+  for larger cases, initial point of local step is the optimum. For these cases, no need to call solver at local step.
