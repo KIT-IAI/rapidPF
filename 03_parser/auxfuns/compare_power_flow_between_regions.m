@@ -33,17 +33,17 @@ function [tab_power,table_connection] = compare_power_flow_between_regions(mpc,c
         idx_branch  = ismember(branch(:,1),trafo_from_to(idx,1)) ...
             &ismember(branch(:,2),trafo_from_to(idx,2)); 
         % power flow along connections between these 2 regions
-        pf_branch   = branch(idx_branch, PF);
+        pf_branch   = sum(branch(idx_branch, PF));
         % negative value: change direction
         if pf_branch<0
             from_region(end) = trafo_region(pointer,2);
             to_region(end)   = trafo_region(pointer,1);
         end
-        pf = [pf; abs(sum(pf_branch))];
+        pf = [pf; abs(pf_branch)];
         % number of connections between these 2 regions
         N_conn_region      = [N_conn_region;sum(idx)];
         % edge label
-        str =  compose("%5.2f MW - %d Trafo",abs(sum(pf_branch)),sum(idx));
+        str =  compose("%5.2f \times 10^3 MW - %d Trafo",abs(pf_branch)/1000,sum(idx));
         edge_label = [edge_label;str];
         % find next undo connection 
         pointer = find(record,1);
@@ -89,10 +89,10 @@ function [tab_power,table_connection] = compare_power_flow_between_regions(mpc,c
     ylabel('$\mathrm{Real\;Power}[10^3 MV]$','fontsize',12,'interpreter','latex')
     subplot(1,2,2)
     colormap jet    
-    edge_table = table([from_region,to_region],pf,edge_label, ...
+    edge_table = table([from_region,to_region],pf/1000,edge_label, ...
         'VariableNames',{'EndNodes' 'Weight' 'Code'});
     G = digraph(edge_table);
-    h = plot(G,'EdgeLabel',G.Edges.Code,'EdgeCData',G.Edges.Weight);
+    h = plot(G,'EdgeLabel',G.Edges.Code,'EdgeCData',G.Edges.Weight,'Layout','force');
     h.LineWidth = 2;
     h.ArrowSize = 15;
     h.NodeFontSize = 9;

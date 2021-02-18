@@ -104,3 +104,12 @@
 - ALADIN idea:
 
   for larger cases, initial point of local step is the optimum. For these cases, no need to call solver at local step. As a result, it would save total computing time.
+
+### 18-02-2021
+
+- 4068-bus system (1354X3)
+
+ - 70% with TSO-DSO conection, 80% with additional DSO-DSO connections
+
+
+- 4668-bus system (1354X3+300X2)
