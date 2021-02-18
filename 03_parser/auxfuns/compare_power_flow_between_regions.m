@@ -80,26 +80,24 @@ function [tab_power,table_connection] = compare_power_flow_between_regions(mpc,c
     
     
     figure
+    set(gcf,'position',[300,200,1900,800])
+
     subplot(1,2,1)
     bar([gen_sum_per_regions, pf_in_per_regions, pf_out_per_regions]/1000)
     legend({'$\mathrm{Generator}$','$\mathrm{pf_{in}}$','$\mathrm{pf_{out}}$'},'fontsize',12,'interpreter','latex');
     xlabel('$\mathrm{Region}$','fontsize',12,'interpreter','latex')
     ylabel('$\mathrm{Real\;Power}[10^3 MV]$','fontsize',12,'interpreter','latex')
-  
     subplot(1,2,2)
-
-    G = digraph(from_region,to_region);
-    h = plot(G);
-    h.EdgeLabel = edge_label;
+    colormap jet    
+    edge_table = table([from_region,to_region],pf,edge_label, ...
+        'VariableNames',{'EndNodes' 'Weight' 'Code'});
+    G = digraph(edge_table);
+    h = plot(G,'EdgeLabel',G.Edges.Code,'EdgeCData',G.Edges.Weight);
     h.LineWidth = 2;
     h.ArrowSize = 15;
     h.NodeFontSize = 9;
     h.EdgeFontSize = 9;
-    
-    colormap jet
-    h.EdgeCData = pf;
     colorbar;
-    
     %% make table
     % active power
     regions = [1:N_regions]';
