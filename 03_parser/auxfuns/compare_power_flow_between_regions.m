@@ -92,7 +92,8 @@ function [tab_power,table_connection] = compare_power_flow_between_regions(mpc,c
     edge_table = table([from_region,to_region],pf/1000,edge_label, ...
         'VariableNames',{'EndNodes' 'Weight' 'Code'});
     G = digraph(edge_table);
-    h = plot(G,'EdgeLabel',G.Edges.Code,'EdgeCData',G.Edges.Weight,'Layout','force');
+    h = plot(G,'EdgeLabel',G.Edges.Code,'EdgeCData',G.Edges.Weight);
+    layout(h,'layered','Sources',1)
     h.LineWidth = 2;
     h.ArrowSize = 15;
     h.NodeFontSize = 9;
