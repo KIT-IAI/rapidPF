@@ -116,4 +116,26 @@
 
 ### 19-02-2021
 
-- 
+- 4662-bus system test
+
+ - 50% active power in distribution can be shifted
+
+ - new issue with 4662 case
+
+  - compare the result with ref solution, error = 6.289
+
+    - angle variables are not in [-pi, pi]
+
+  - post-dataprocessing lacks the last iteration
+
+### 22-02-2021
+
+  - solve the issue, angle variables now lay in [-pi, pi]
+
+  - ALADIN Toolbox does not compute consensus violation at last iteration
+
+    - reason - violation = `0`, the value cannot be plotted by logplot.
+
+    - solution - using `eps` to replace `0`
+
+  - start running and recording all test case with different GSK parameter

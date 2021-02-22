@@ -3,9 +3,11 @@ function violation = compare_constraints_violation(problem, logg)
     pf        = problem.pf;          % constraints function from power flow
     bus_specs = problem.bus_specs;
     X         = logg.X;
+    Y         = logg.Y;
     iter      = logg.iter;
     N_region  = numel(pf);
     N_previous_state = 0;
+    AA = [problem.AA{:}];               % consensus matrix for global x
     violation.pf_norm     = [];
     violation.bus_norm    = [];
     violation.pf_percent     = [];
@@ -19,7 +21,7 @@ function violation = compare_constraints_violation(problem, logg)
         m                = N_previous_state+N_current_state; % end number
         for j = 1:iter
             % compute violation in current iteration and region
-            x_i                     = X(n:m,j);
+            x_i                     = Y(n:m,j);
             violation.iter.pf(i,j)  = norm(pf{i}(x_i), inf);
             violation.iter.bus(i,j) = norm(bus_specs{i}(x_i), inf);
         end
@@ -38,9 +40,15 @@ function violation = compare_constraints_violation(problem, logg)
         violation.sytnax.pf     = vertcat(violation.sytnax.pf,compose('g_{pf,%-d}',index)');
         violation.sytnax.bus    = vertcat(violation.sytnax.bus,compose('g_{bus,%-d}',index)');
         
-        violation.consensus     = logg.cons_violations(2:end);
-        assert(length(violation.consensus) == logg.iter)
+%        violation.consensus     = logg.cons_violations(2:end);
+%        assert(length(violation.consensus) == logg.iter)
     end
+    violation_consensus        = max(abs(AA * X(:,1:iter)));
+    violation_consensus(violation_consensus==0) = eps; % avoid 0 for logplot
+    dual_feasibility           = max(abs(AA * (X(:,1:iter)-Y(:,1:iter))));
+    dual_feasibility(dual_feasibility==0) = eps; % avoid 0 for logplot    
+    violation.dual_feasibility = dual_feasibility;
+    violation.consensus        = violation_consensus;
 %      violation       = data_processing(violation);
 %     plot_violation_results_table(violation, iter);
     plot_violation_results(violation);
@@ -56,6 +64,7 @@ function plot_violation_results(violation)
     pf_percent    = violation.pf_percent;
     bus_percent   = violation.bus_percent;
     consensus_vio = violation.consensus;
+    dual_feasibility = violation.dual_feasibility;
     N_region = size(iter_pf, 1);
     iter     = size(iter_pf, 2);
     sytnax   = violation.sytnax;
@@ -71,7 +80,38 @@ function plot_violation_results(violation)
     
 %%  plot per iter
     figure('units','normalized','outerposition',[0.2 0.2 0.8 0.8])
-    subplot(3,1,1)
+%     subplot(3,1,1)
+%     % violation of power flow
+%     semilogy(iter_pf','Marker', 'x')
+%     axis(limit)
+%     set(gca, 'XTick', 1:iter)
+%     xlabel('$\mathrm{Iteration}$','fontsize',12,'interpreter','latex')
+%     ylabel('$\|g^{pf}_i(x_i)\|_{\infty}$','fontsize',12,'interpreter','latex')
+%     legend(legendCell,'fontsize',12, 'interpreter','latex')
+%     grid on
+%     
+%     subplot(3,1,2)
+%     % violation of bus bus_specs
+%     semilogy(iter_bus', 'Marker', 'x')
+%     axis(limit)
+%     set(gca, 'XTick', 1:iter)
+%     xlabel('$\mathrm{Iteration}$','fontsize',12,'interpreter','latex')
+%     ylabel('$\|g^{bus}_i(x_i)\|_{\infty}$','fontsize',12,'interpreter','latex')
+%     legend(legendCell,'fontsize',12, 'interpreter','latex')
+%     grid on
+%     
+%     subplot(3,1,3)
+%     % consensus violation
+%     semilogy([1:iter],consensus_vio, 'Marker', 'x')
+%     axis(limit)
+%     set(gca, 'XTick', 1:iter)
+%     xlabel('$\mathrm{Iteration}$','fontsize',12,'interpreter','latex')
+%     ylabel('Consensus violation','fontsize',12,'interpreter','latex')
+%     grid on
+
+%%
+
+    subplot(4,1,1)
     % violation of power flow
     semilogy(iter_pf','Marker', 'x')
     axis(limit)
@@ -81,7 +121,7 @@ function plot_violation_results(violation)
     legend(legendCell,'fontsize',12, 'interpreter','latex')
     grid on
     
-    subplot(3,1,2)
+    subplot(4,1,2)
     % violation of bus bus_specs
     semilogy(iter_bus', 'Marker', 'x')
     axis(limit)
@@ -91,13 +131,22 @@ function plot_violation_results(violation)
     legend(legendCell,'fontsize',12, 'interpreter','latex')
     grid on
     
-    subplot(3,1,3)
+    subplot(4,1,3)
     % consensus violation
     semilogy([1:iter],consensus_vio, 'Marker', 'x')
     axis(limit)
     set(gca, 'XTick', 1:iter)
     xlabel('$\mathrm{Iteration}$','fontsize',12,'interpreter','latex')
     ylabel('Consensus violation','fontsize',12,'interpreter','latex')
+    grid on
+    
+    subplot(4,1,4)
+    % consensus violation
+    semilogy([1:iter],dual_feasibility, 'Marker', 'x')
+    axis(limit)
+    set(gca, 'XTick', 1:iter)
+    xlabel('$\mathrm{Iteration}$','fontsize',12,'interpreter','latex')
+    ylabel('Dual Feasibility','fontsize',12,'interpreter','latex')
     grid on
 %% plot per region
     plot_per_region(pf_norm,pf_percent,sytnax,'pf') 

@@ -1,9 +1,12 @@
 function error = deviation_violation_iter_plot(mpc, xval, logg, names,xsol_aladin) 
     for j = 1:logg.iter
-            [X, ~] = deal_solution(logg.X(:,j), mpc, names);
-            e         = table2array(compare_results(xval, X));
-            error(j)     = max(e(:,2)); % norm-inf of all regions
+            x      = logg.Y(:,j);
+            x      = wrap_ang(x,mpc);  
+            [Y, ~] = deal_solution(x, mpc, names);
+            e      = table2array(compare_results(xval, Y));
+            error(j) = max(e(:,2)); % norm-inf of all regions
     end
+    logg.cons_violations(logg.cons_violations==0) =eps;
     iter_plot(error,logg.cons_violations(2:end));
 end
 

@@ -54,7 +54,7 @@ function [tab_power,table_connection] = compare_power_flow_between_regions(mpc,c
     gen_sum_per_regions = [];
     pf_out_per_regions  = [];
     pf_in_per_regions   = [];    
-    
+    node_label          = [];
     for i = 1:N_regions
         % power generated in the region
         idx_gen = ismember(gen(:,1), regions{i});
@@ -75,6 +75,9 @@ function [tab_power,table_connection] = compare_power_flow_between_regions(mpc,c
         p_in  = - sum(pf_region(pf_region<0)) - sum(pt_region(pt_region<0));
         pf_out_per_regions = [pf_out_per_regions; p_out];
         pf_in_per_regions  = [pf_in_per_regions; p_in];
+        % node label
+        str = compose("R%d",i);
+        node_label = [node_label;str];
     end
 
     
@@ -88,15 +91,20 @@ function [tab_power,table_connection] = compare_power_flow_between_regions(mpc,c
     xlabel('$\mathrm{Region}$','fontsize',12,'interpreter','latex')
     ylabel('$\mathrm{Real\;Power}[10^3 MV]$','fontsize',12,'interpreter','latex')
     subplot(1,2,2)
-    colormap jet    
+    colormap jet	
+	
     edge_table = table([from_region,to_region],pf/1000,edge_label, ...
         'VariableNames',{'EndNodes' 'Weight' 'Code'});
-    G = digraph(edge_table);
-    h = plot(G,'EdgeLabel',G.Edges.Code,'EdgeCData',G.Edges.Weight);
-    layout(h,'layered','Sources',1)
+    node_table = table([1:N_regions]',node_label, ...
+        'VariableNames',{'Node'  'Code'});    
+    G = digraph(edge_table,node_table);
+    h = plot(G,'EdgeLabel',G.Edges.Code,'EdgeCData',G.Edges.Weight, ...
+        'NodeLabel',G.Nodes.Code);
+    layout(h,'layered','Sources',1,'AssignLayers','alap') %'Sinks',[4;5]
     h.LineWidth = 2;
     h.ArrowSize = 15;
-    h.NodeFontSize = 9;
+    h.NodeFontSize = 11;
+    h.NodeFontWeight = 'bold';
     h.EdgeFontSize = 9;
     colorbar;
     %% make table

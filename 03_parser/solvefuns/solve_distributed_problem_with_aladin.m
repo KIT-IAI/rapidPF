@@ -21,6 +21,7 @@ function [xsol, xsol_stacked, mpc_sol, logg] = solve_distributed_problem_with_al
     end
     sol = run_ALADINnew(problem, opts);
     xsol = vertcat(sol.xxOpt{:});
+    xsol  =  wrap_ang(xsol,mpc);     % wrap angle in radians to [-pi, pi]
     [xsol, xsol_stacked] = deal_solution(xsol, mpc, names); 
     
     %% numerical solution back to matpower casefile
@@ -28,8 +29,11 @@ function [xsol, xsol_stacked, mpc_sol, logg] = solve_distributed_problem_with_al
     iter          =  sol.iter.i - 1; % number of iteration
     elapsed_time  =  timers.totTime - timers.setupT;
     alg           =  'ALADIN';
-    logg.X        =  sol.iter.logg.Y;
+    logg.X        =  sol.iter.logg.X;
+    logg.Y        =  sol.iter.logg.Y;
     logg.iter     =  sol.iter.i - 1;
     logg.cons_violations = sol.iter.logg.consViol;
     mpc_sol       =  back_to_mpc(mpc, xsol, elapsed_time, iter, alg);
 end
+
+
