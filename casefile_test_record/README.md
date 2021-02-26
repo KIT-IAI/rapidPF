@@ -139,3 +139,15 @@
     - solution - using `eps` to replace `0`
 
   - start running and recording all test case with different GSK parameter
+
+### 23-02-2021
+
+- Running all new test cases,
+
+- simulation results saved in [\casefile_test_record\test_record.xlsx](\casefile_test_record\test_record.xlsx)
+
+### 24-02-2021
+
+- Make PPT for presenting results, saved in [\casefile_test_record\rapidPF_report_Feb.pptx](\casefile_test_record\rapidPF_report_Feb.pptx)
+
+- Issues presenting
