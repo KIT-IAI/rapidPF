@@ -139,7 +139,8 @@ function [options, app] = plot_options
     elseif app.worhpButton.Value == true 
         options.solver = 'worhp';
     elseif app.lsqnonlinButton.Value == true 
-        options.solver = 'lsqnonlin';    end    
+        options.solver = 'lsqnonlin';    
+    end    
 end            
 function runButtonPushed(app)
     uiresume(app.UIFigure)
