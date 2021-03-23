@@ -34,7 +34,7 @@ mpc_merge = run_case_file_generator(mpc_trans, mpc_dist, conn, fields_to_merge, 
 % case-file-splitter
 mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 % generate distributed problem
-problem_type = 'feasibility';
+problem_type = 'least-squares';
 % problem_type = 'least-squares';
 problem = generate_distributed_problem_for_aladin(mpc_split, names, problem_type);
 
@@ -51,19 +51,17 @@ ubx = problem.uubx;
 funs = problem.locFuns;
 sens = problem.sens;
 
-%% worhp
-solve_nlp_worhp = build_local_NLP_with_worhp(funs.ffi{i}, funs.ggi{i}, funs.hhi{i}, problem.AA{i}, lambda, rho, z, Sigma, x0, problem.llbx{i}, problem.uubx{i}, sens.JJac{i}, sens.gg{i}, sens.HH{i});
-x1 = solve_nlp_worhp.x;
 
 %% fmincon
 solve_nlp_fmincon = build_local_NLP_with_fmincon(funs.ffi{i}, funs.ggi{i}, funs.hhi{i}, problem.AA{i}, lambda, rho, z, Sigma, x0, problem.llbx{i}, problem.uubx{i}, sens.JJac{i}, sens.gg{i}, sens.HH{i});   
-x0 = solve_nlp_fmincon.x;
-%% fminunc
-% solve_nlp_fminunc = build_local_NLP_with_fminunc(funs.ffi{i}, funs.ggi{i}, funs.hhi{i}, problem.AA{i}, lambda, rho, z, Sigma, x0, problem.llbx{i}, problem.uubx{i}, sens.JJac{i}, sens.gg{i}, sens.HH{i});   
-% x1 = solve_nlp_fminunc.x;
+xfmin = solve_nlp_fmincon.x;
+
+%% nonl
+solve_nlp_fmincon = build_local_NLP_with_lsqnonlin(funs.rri{i}, funs.dri{i}, funs.hhi{i}, problem.AA{i}, lambda, rho, z, Sigma, x0, problem.llbx{i}, problem.uubx{i}, sens.JJac{i}, sens.gg{i}, sens.HH{i});   
+xlsqnonlin = solve_nlp_fmincon.x;
 
 %%
-norm(x1 - x0,1)
+norm(xfmin - xlsqnonlin,1)
 % g = funs.ggi{i};
 % g(x1)
 function res = build_local_NLP_with_fmincon(f, g, h, A, lambda, rho, z, Sigma, x0, lbx, ubx, dgdx, dfdx, Hessian)
@@ -93,42 +91,53 @@ function res = build_local_NLP_with_fmincon(f, g, h, A, lambda, rho, z, Sigma, x
     res.pars = [];
 end
 
-function res = build_local_NLP_with_fminunc(f, g, h, A, lambda, rho, z, Sigma, x0, lbx, ubx, dgdx, dfdx, Hessian)
-    options = optimoptions('fminunc');
-    options.Algorithm = 'trust-region';
-    options.SpecifyObjectiveGradient= true;
-    options.HessianFcn = 'objective';
-    options.Display='iter';
-    objective    = @(x)build_objective(x, f(x), dfdx(x) , Hessian(x), lambda, A, rho, z, Sigma);
-    [xopt, fval, flag, ~, multiplier] = fminunc(objective, x0, options);
+function res = build_local_NLP_with_lsqnonlin(r, drdx, h, A, lambda, rho, z, Sigma, x0, lbx, ubx, dgdx, dfdx, Hessian)
+%     opts = optimoptions('fmincon');
+%     opts.Algorithm = 'interior-point';
+%     opts.CheckGradients = false;
+%     opts.SpecifyConstraintGradient = true;
+%     opts.SpecifyObjectiveGradient = true;
+%     opts.Display = 'iter';
+    Nx  =  numel(x0);
+    % select Hessian approximation
+%     if isempty(g(x0)) && isempty(h(x0)) 
+% %        unconstrained problem and Hessian is computed by hand
+%         opts.HessFcn = @(x,kappa)build_hessian(Hessian(x,0,0), zeros(Nx,Nx), rho, Sigma);
+%     else
+        %% three method to approach hessian: BFGS, limit-memory BFGS, infinite jacobian 
+%       opts.HessianApproximation = 'bfgs';
+%       opts.HessianApproximation = 'lbfgs';
+%         opts.HessFcn = @(x,kappa)build_hessian(zeros(Nx,Nx), Hessian(x,kappa.eqnonlin,0), rho, Sigma);
+%     end
+
+    options = optimoptions('lsqnonlin','SpecifyObjectiveGradient',true);
+
+    objective    = @(x)build_objective_least_squares(x, r(x), drdx(x), [], lambda, A, rho, z, Sigma);
+    xopt    = lsqnonlin(objective, x0, lbx, ubx, options);
     res.x = xopt;
-    res.lam_g = [];
-    res.lam_x = [];
+%     res.lam_g = [multiplier.eqnonlin; multiplier.ineqnonlin];
+%     res.lam_x = max(multiplier.lower, multiplier.upper);
     res.pars = [];
 end
 
 
-function res = build_local_NLP_with_worhp(f, g, h, A, lambda, rho, z, Sigma, x0, lbx, ubx, dgdx, dfdx, Hessian)
-    %% assumption: least-square problem, i.e. without constraints
-    Nx            = numel(x0);    
-    Ng            = numel(g(x0));
-    cost          = @(x)build_cost(x, f(x), lambda, A, rho, z, Sigma);
-    grad          = @(x)build_grad(x, dfdx(x), lambda, A, rho, z, Sigma);
-    Jac.Func      = @(x)dgdx(x);
-    if isempty(g(x0)) && isempty(h(x0)) 
-    % unconstrained problem and Hessian is computed by hand
-        Hess.Func = @(x,kappa,scale)build_hessian(Hessian(x,0,0), zeros(Nx,Nx), rho, Sigma, scale);
-    else
-        Hess.Func = @(x,kappa,scale)build_hessian(zeros(Nx,Nx), Hessian(x,kappa) , rho, Sigma, scale);
-        Jac.nonzero_pos  = build_nonzero_vector_worhp(Jac.Func,Nx);
+function [fun, jac] = build_objective_least_squares(x, r, drdx, H, lambda, A, rho, z, Sigma)
+	%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % the code assumes that Sigma is symmetric and positive definite!!!
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    fun = double( build_residual(x, r, lambda, A, rho, z, Sigma));
+    if nargout > 1
+        jac = double(build_jacobian(x, drdx, lambda, A, rho, z, Sigma));
     end
-    % transform hessian matrix into hessian vector for WORHP solver
-    Hess.nonzero_pos     = build_nonzero_vector_worhp(Hess.Func,Nx,Ng);
-    [xopt, lam_x, lam_g]           = worhp_interface(cost,grad, g, Jac, Hess,x0,lbx,ubx);
-    res.x                        = xopt;
-    res.lam_g                    = lam_g;
-    res.lam_x                    = lam_x;
-    res.pars                     = [];
+end
+
+
+function fun = build_residual(x, r, lambda, A, rho, z, Sigma)
+    fun = [r;sqrt(0.5*rho)*Sigma*(x - z)];
+end
+
+function fun = build_jacobian(x, drdx, lambda, A, rho, z, Sigma)
+    fun = [drdx ; sqrt(0.5*rho)*Sigma];
 end
 
 
@@ -147,12 +156,13 @@ function [fun, grad, Hessian] = build_objective(x, f, dfdx, H, lambda, A, rho, z
     end
 end
 
+
 function fun = build_cost(x, f, lambda, A, rho, z, Sigma)
-    fun = f + lambda'*A*x + 0.5*rho*(x - z)'*Sigma*(x - z);
+    fun = f  + 0.5*rho*(x - z)'*Sigma*(x - z);
 end
 
 function grad = build_grad(x, dfdx, lambda, A, rho, z, Sigma)
-    grad = dfdx + A'*lambda + rho*Sigma'*(x - z);
+    grad = dfdx + rho*Sigma'*(x - z);
 end
 
 function hm  = build_hessian(hessian_f, kappa_hessian_g, rho, Sigma, scale)
@@ -169,40 +179,5 @@ function [ineq, eq, jac_ineq, jac_eq] = build_nonlcon(x, g, h, dgdx)
     if nargout > 2
         jac_ineq = [];
         jac_eq = dgdx(x)';
-    end
-end
-
-function nonzero_pos = build_nonzero_vector_worhp(M, Nx, Ng)
-    nr = 20;
-    if nargin > 2
-        % hessian_f
-        S  = zeros(size(M(ones(Nx,1),ones(Ng,1),1)));
-        for i=1:nr
-            S = S + full(M(rand(Nx,1)*10, rand(Ng,1),1) ~=0);
-        end
-    else
-        % kappa*hessian_g
-        S  = zeros(size(M(ones(Nx,1))));
-        for i=1:nr
-            S = S + full(M(rand(Nx,1)*10) ~=0);
-        end        
-    end
-    % get sparsity
-    S = S ~=0;
-    % convert everything to vectors for WORHP
-    [row, col] = find(S);
-    idx = find(S);
-    if nargin > 2    
-        diag = find(row == col);
-        low_triangle = find(row>col);
-        nonzero_pos.triangle.row  = row(low_triangle);
-        nonzero_pos.triangle.col  = col(low_triangle);
-        nonzero_pos.triangle.idx  = idx(low_triangle);
-        nonzero_pos.diag.idx      = idx(diag);
-        nonzero_pos.diag.iith = col(diag);   
-    else
-        nonzero_pos.row = row;
-        nonzero_pos.col = col;
-        nonzero_pos.idx = idx;
     end
 end

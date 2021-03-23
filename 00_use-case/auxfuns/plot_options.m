@@ -78,24 +78,29 @@ function [options, app] = plot_options
     % Create CasADiButton
     app.CasADiButton = uiradiobutton(app.SolverButtonGroup);
     app.CasADiButton.Text = 'CasADi';
-    app.CasADiButton.Position = [11 81 63 22];
+    app.CasADiButton.Position = [11 80 63 22];
 
     % Create fminconButton
     app.fminconButton = uiradiobutton(app.SolverButtonGroup);
     app.fminconButton.Text = 'fmincon';
-    app.fminconButton.Position = [11 59 65 22];
+    app.fminconButton.Position = [11 60 65 22];
 
     % Create fminuncButton
     app.fminuncButton = uiradiobutton(app.SolverButtonGroup);
     app.fminuncButton.Text = 'fminunc';
-    app.fminuncButton.Position = [11 37 65 22];
+    app.fminuncButton.Position = [11 40 65 22];
     app.fminuncButton.Value = true;
 
     % Create worhpButton
     app.worhpButton = uiradiobutton(app.SolverButtonGroup);
     app.worhpButton.Text = 'worhp';
-    app.worhpButton.Position = [11 16 65 22];
+    app.worhpButton.Position = [11 20 65 22];
 
+    % Create worhpButton
+    app.lsqnonlinButton = uiradiobutton(app.SolverButtonGroup);
+    app.lsqnonlinButton.Text = 'lsqnonlin';
+    app.lsqnonlinButton.Position = [11 0 65 22];
+    
 %    Create runButton
     runButton = uibutton(app.UIFigure, 'push',...
         'Text', 'Run',...
@@ -133,7 +138,8 @@ function [options, app] = plot_options
         options.solver = 'fminunc';
     elseif app.worhpButton.Value == true 
         options.solver = 'worhp';
-    end    
+    elseif app.lsqnonlinButton.Value == true 
+        options.solver = 'lsqnonlin';    end    
 end            
 function runButtonPushed(app)
     uiresume(app.UIFigure)
