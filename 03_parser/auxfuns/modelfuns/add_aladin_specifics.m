@@ -68,8 +68,8 @@ function [lb, ub] = build_bounds_per_region(N_core, N_copy)
 
 
 
-    ang_lb = -10;
-    ang_ub = 10; 
+    ang_lb = -pi;
+    ang_ub = pi; 
     mag_lb = 0.1;
     mag_ub = 10; 
     p_lb = -500; 

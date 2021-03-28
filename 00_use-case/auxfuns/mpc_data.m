@@ -1118,5 +1118,20 @@ function mpc=mpc_data(casefile)
                                 2 4  64  10;
                                 2 5  837  8;
                            ];
-    end
+    elseif strcmp(casefile, '120')
+    % small mpc 14+30+9
+        mpc.trans  = loadcase('case30');
+        mpc.dist = { loadcase('case30')
+                     loadcase('case30')
+                     loadcase('case30')};
+
+        mpc.connection_array = [
+                            % region 1 - region 2
+                            1 2 2 22;
+                            % region 1 - region 3
+                            1 3 22 1;
+                            2 3 27 23;
+                            % region 1 - region 4
+                            1 4 23 23;
+                            ];       end
 end
