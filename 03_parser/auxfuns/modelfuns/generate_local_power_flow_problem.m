@@ -67,6 +67,7 @@ function [cost, ineq, eq, x0, pf, bus_specifications, Jac, grad_cost, Hessian, s
     has_correct_size(bus_specifications(x0), 2*N_core);
     %% generate return values
     if strcmp(problem_type,'feasibility')
+        g_ls = [];
         grad_cost = @(x)zeros(4*N_core + 2*N_copy, 1);
         Hessian = @(x, kappa, rho)jacobian_num(@(y)[Jac_pf(y); Jac_bus]'*kappa, x,  4*N_core + 2*N_copy, 4*N_core+ 2*N_copy);
         cost = @(x) 0;

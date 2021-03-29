@@ -21,6 +21,13 @@ problem_type   = options.problem_type;
 algorithm      = options.algorithm;
 solver         = options.solver;
 
+
+% casefile       = '120';
+% gsk            = 0;      % generation shift key
+% problem_type   = 'least-squares';
+% algorithm      = 'aladin';
+% solver         = 'fmincon';
+
 %% setup
 names                = generate_name_struct();
 matpower_casefile    = mpc_data(casefile);
@@ -61,19 +68,22 @@ end
 
 %% start local nlp
 % initial setting
+% load lam0_100.mat
+% problem.lam0 = lam0_100(:,27);
 
 option           = AladinOption;
 option.problem_type = problem_type;
-option.iter_max  = 50;
-option.tol       = 1e-8;
+option.iter_max  = 40;
+option.tol       = 1e-10;
 option.mu0       = 1e3;
 option.rho0      = 1e2;
 option.nlp       = NLPoption;
 option.nlp.solver = solver;
+option.nlp.iter_display = true;
 option.qp        = QPoption;
 
 % start alg
-[xsol, xsol_stacked,logg] = solve_distributed_problem_aladin(problem, mpc_split, option, names);
+[xsol, xsol_stacked,logg] = solve_rapidPF_aladin(problem, mpc_split, option, names);
 
-%% compare result
+% compare result
 compare_results(xval, xsol)
