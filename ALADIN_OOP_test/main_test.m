@@ -68,12 +68,12 @@ end
 
 %% start local nlp
 % initial setting
-% load lam0_100.mat
-% problem.lam0 = lam0_100(:,27);
+% load lam0_35.mat
+% problem.lam0 = lam0_140(:,7);
 
 option           = AladinOption;
 option.problem_type = problem_type;
-option.iter_max  = 40;
+option.iter_max  = 10;
 option.tol       = 1e-10;
 option.mu0       = 1e3;
 option.rho0      = 1e2;
@@ -81,6 +81,8 @@ option.nlp       = NLPoption;
 option.nlp.solver = solver;
 option.nlp.iter_display = true;
 option.qp        = QPoption;
+option.qp.regularization_hess = false;
+option.qp.solver = 'lsqminnorm';
 
 % start alg
 [xsol, xsol_stacked,logg] = solve_rapidPF_aladin(problem, mpc_split, option, names);
