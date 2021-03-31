@@ -78,7 +78,7 @@ function mpc_split = split_case_file(mpc, N, names)
     mpc_split.(NAME_FOR_COPY_BUSES_LOCAL) = mpc.(NAME_FOR_COPY_BUSES_LOCAL){N};
     
 
-    if isfield(mpc, 'gencost')
-        error('there is a gencost field that is not accounted for in the code.')
-    end
+%     if isfield(mpc, 'gencost')
+%         error('there is a gencost field that is not accounted for in the code.')
+%     end
 end

@@ -1,5 +1,5 @@
 function mpc=mpc_data(casefile)
-    mpc.fields_to_merge = {'bus', 'gen', 'branch'};
+    mpc.fields_to_merge = {'bus', 'gen', 'branch','gencost'};
     if strcmp(casefile, '53-I')
     % small mpc 14+30+9
         mpc.trans  = loadcase('case14');
@@ -719,7 +719,7 @@ function mpc=mpc_data(casefile)
                             1 3 210 1181
                                 ];
 
-    elseif strcmp(casefile, 'test') 
+    elseif strcmp(casefile, '4662') 
 
         mpc.trans  = ext2int(loadcase('case1354pegase'));
         mpc.dist = { ext2int(loadcase('case1354pegase'))
@@ -1133,5 +1133,16 @@ function mpc=mpc_data(casefile)
                             2 3 27 23;
                             % region 1 - region 4
                             1 4 23 23;
-                            ];       end
+                            ];
+    
+    elseif strcmp(casefile, 'test') 
+
+        mpc.trans  = ext2int(loadcase('case5'));
+        mpc.dist = { ext2int(loadcase('case5'))};
+                            % region 1 - region 2
+        mpc.connection_array = [
+                            % region 1 - region 2
+                            1 2 3 3;
+
+                            ];    end
 end
