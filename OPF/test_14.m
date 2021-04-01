@@ -1,6 +1,46 @@
-clear all;clc;
-import casadi.*
-%%
+clc
+clear
+close all
+
+addpath(genpath('../00_use-case/'));
+addpath(genpath('../01_generator/'));
+addpath(genpath('../02_splitter/'));
+addpath(genpath('../03_parser/'));
+addpath(genpath('../04_solver_extension'));
+
+
+%% plot option
+% [options, app] = plot_options;
+% casefile       = options.casefile;
+% gsk            = options.gsk;      % generation shift key
+% problem_type   = options.problem_type;
+% algorithm      = options.algorithm;
+% solver         = options.solver;
+
+
+casefile       = 'test';
+gsk            = 0;      % generation shift key
+problem_type   = 'least-squares';
+algorithm      = 'aladin';
+solver         = 'fmincon';
+
+% setup
+names                = generate_name_struct();
+matpower_casefile    = mpc_data(casefile);
+[mpc_trans,mpc_dist] = gen_shift_key(matpower_casefile, gsk); % P = P * 0.2
+fields_to_merge      = matpower_casefile.fields_to_merge;
+connection_array     = matpower_casefile.connection_array;
+
+
+trafo_params.r = 0;
+trafo_params.x = 0.00623;
+trafo_params.b = 0;
+trafo_params.ratio = 0.985;
+trafo_params.angle = 0;
+
+conn = build_connection_table(connection_array, trafo_params);
+Nconnections = height(conn);
+% idx info
 % bus idx
 [PQ, PV, REF, NONE, BUS_I, BUS_TYPE, PD, QD, GS, BS, BUS_AREA, VM, ...
 VA, BASE_KV, ZONE, VMAX, VMIN, LAM_P, LAM_Q, MU_VMAX, MU_VMIN] = idx_bus;
@@ -13,11 +53,21 @@ ANGMIN, ANGMAX, MU_ANGMIN, MU_ANGMAX] = idx_brch;
 MU_PMAX, MU_PMIN, MU_QMAX, MU_QMIN, PC1, PC2, QC1MIN, QC1MAX, ...
 QC2MIN, QC2MAX, RAMP_AGC, RAMP_10, RAMP_30, RAMP_Q, APF] = idx_gen;
 % cost idx
-[PW_LINEAR, POLYNOMIAL, MODEL, STARTUP, SHUTDOWN, NCOST, COST] = idx_cost;
-%% Define the problem
+[PW_LINEAR, POLYNOMIAL, MODEL, STARTUP, SHUTDOWN, NCOST, COST] = idx_cost;%% build opf problem
+
+% main
+% case-file-generator
+mpc_merge = run_case_file_generator(mpc_trans, mpc_dist, conn, fields_to_merge, names);
+
+% case-file-splitter
+mpc_split = run_case_file_splitter(mpc_merge, conn, names);
+%%
+import casadi.*
+
+% Define the problem
 caseFile        =   case14;
 
-%% Extract Data from MATPOWER casefile
+% Extract Data from MATPOWER casefile
 mpc             =   loadcase(caseFile);
 baseMVA         =   mpc.baseMVA;              % 功率缩放
 genNodes        =   mpc.gen(:,1);             % 发电机的bus
@@ -31,7 +81,7 @@ Qgmax           =   mpc.gen(:,4)/baseMVA;
 Pdnum           =   mpc.bus(:,3)/baseMVA;   
 Qdnum           =   mpc.bus(:,4)/baseMVA;   
 
-%% Set up Matrices
+% Set up Matrices
 Y_bus           =   full(makeYbus(mpc));      % resistance matrix
 
 N               =   size(Y_bus,1);            % numb of bus   
@@ -40,7 +90,7 @@ Nlines          =   size(mpc.branch,1);       % numb of line
 
 Adj             =   abs(Y_bus) > 0;           % adjoint matrix of grid
 
-%% define problem
+% define problem
 % symbolic states
 theta   =   SX.sym('theta',N,1);
 V       =   SX.sym('V',N,1);
@@ -57,7 +107,7 @@ nx      =   length(x);
 f           = baseMVA^2*Pg'*diag(genCost(:,1))*Pg...
               + baseMVA*Pg'*genCost(:,2);
 
-%% constraint
+% constraint
 % find reference bus
 index = find(mpc.bus(:,2)==3); 
 
@@ -69,11 +119,13 @@ gdim    = length(g);
 %gfun        = Function('gfun',{x},{g});
 %ffun        = Function('ffun',{x},{f});
 
-%% box constraint from matpower
-%% Vmax: mpc.bus(:,13) Vmin: mpc.bus(:,12)
+% box constraint from matpower
+% Vmax: mpc.bus(:,13) Vmin: mpc.bus(:,12)
 
 lbx         = [-inf*ones(N,1);mpc.bus(:,13);Pgmin;Qgmin];       
 ubx         = [inf*ones(N,1);mpc.bus(:,12);Pgmax;Qgmax];
+
+
 x0          = [zeros(N,1);ones(N,1);mpc.gen(:,2);mpc.gen(:,3)];
 %res         = runopf(caseFile);
 [xopt,fval] = solveNLP(f,g,x,gdim,lbx,ubx,x0);
@@ -85,7 +137,7 @@ Pgopt       = xopt(2*N+1:2*N+Ngen);
 Qgopt       = xopt(2*N+Ngen+1:end);
 table(thetaOpt,Vopt)
 table(Pgopt,Qgopt)
-%% validation
+% validation
 res   = runopf(mpc);
 dVm   = norm(res.bus(:,VM) - Vopt,2);
 dVang = norm(res.bus(:,VA)/180*pi - thetaOpt,2);
@@ -105,3 +157,4 @@ function [xopt,fval] = solveNLP(ffun,gfun,x,gdim,lbx,ubx,x0)
     xopt = full(sol.x);
     fval = full(sol.f);
 end
+

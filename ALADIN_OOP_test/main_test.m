@@ -82,8 +82,8 @@ option.nlp.solver = solver;
 option.nlp.iter_display = true;
 option.qp        = QPoption;
 option.qp.regularization_hess = false;
+% option.qp.solver = 'lsqlin';
 option.qp.solver = 'lsqminnorm';
-
 % start alg
 [xsol, xsol_stacked,logg] = solve_rapidPF_aladin(problem, mpc_split, option, names);
 
