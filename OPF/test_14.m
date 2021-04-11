@@ -65,7 +65,7 @@ mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 import casadi.*
 
 % Define the problem
-caseFile        =   case14;
+caseFile        =   mpc_merge;
 
 % Extract Data from MATPOWER casefile
 mpc             =   loadcase(caseFile);

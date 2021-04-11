@@ -23,7 +23,6 @@ addpath(genpath('../04_solver_extension'));
 % algorithm      = options.algorithm;
 % solver         = options.solver;
 
-
 casefile       = 'test';
 gsk            = 0;      % generation shift key
 problem_type   = 'least-squares';
@@ -64,7 +63,7 @@ QC2MIN, QC2MAX, RAMP_AGC, RAMP_10, RAMP_30, RAMP_Q, APF] = idx_gen;
 %% main
 % case-file-generator
 mpc_merge = run_case_file_generator(mpc_trans, mpc_dist, conn, fields_to_merge, names);
-% mpc_merge = runopf(mpc_merge);
+mpc_merge = runopf(mpc_merge);
 %% case-file-splitter
 mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 
@@ -104,7 +103,7 @@ for i = 1:Nregion
     gen_bus_global      =   mpc_local.bus(gen_bus_entries,GEN_BUS);
 
     core_gen_entries    =   find(ismember(mpc_local.gen(:,GEN_BUS),mpc_local.bus(gen_bus_entries,BUS_I)));  % entries of gen data
-    load_bus_entries    =    find(~gen_idx);
+    load_bus_entries    =   find(~gen_idx);
     Nload               =   numel(load_bus_entries);
     Ngen                =   numel(gen_bus_entries);
 
@@ -117,7 +116,7 @@ for i = 1:Nregion
     Vmag = [Vmag_gen; Vmag_load; Vmag_copy];
 
     Pg   = Pnet_gen;
-    Qg   =  Qnet_gen;
+    Qg   = Qnet_gen;
 
     local_state = stack_state(Vang, Vmag, Pg, Qg);
     Nx          = Nbus*2 + Ngen*2;
@@ -135,7 +134,7 @@ for i = 1:Nregion
     Qgmax            =   mpc_local.gen(core_gen_entries,QMAX)/baseMVA;
 
     Pd               =   mpc_local.bus(:,PD)/baseMVA;   
-    Qd               =   mpc_local.bus(:,PQ)/baseMVA;  
+    Qd               =   mpc_local.bus(:,QD)/baseMVA;  
     %% lower & upper bounds
     lbx{i}         = [-pi*ones(Nbus,1);mpc_local.bus(:,VMIN);Pgmin;Qgmin];       
     ubx{i}        = [ pi*ones(Nbus,1);mpc_local.bus(:,VMAX);Pgmax;Qgmax];
@@ -143,12 +142,22 @@ for i = 1:Nregion
 
     Vang0 = mpc_local.bus(:,VA)/180*pi;
     Vmag0 = mpc_local.bus(:,VM);
-    % gencost haven't been splitted - complicated - need to be simplified
+%     gencost haven't been splitted - complicated - need to be simplified
     Pg0   = mpc.gen(gencost_idx_global,PG)/baseMVA;
     Qg0   = mpc.gen(gencost_idx_global,QG)/baseMVA;
+    xopt{i} = stack_state(Vang0,Vmag0,Pg0,Qg0);
+% Vang0 =
+%     Vang0 = mpc_local.bus(:,VA)/180*pi*0;
+%     Vmag0 = ones(size(mpc_local.bus(:,VM)));
+% %     gencost haven't been splitted - complicated - need to be simplified
+%     Pg0   = (Pgmax+Pgmin)/2;
+%     Qg0   = zeros(size(mpc.gen(gencost_idx_global,QG)/baseMVA));
+%     
+
     x0{i}    =  stack_state(Vang0,Vmag0,Pg0,Qg0);
-    (x0{i}-lbx{i})>0
-    (x0{i}-ubx{i})<0
+
+%     x0{i}<=ubx{i}
+%     x0{i}>=lbx{i}
     %% equality constraints - current balance constraints
     Ybus             =   makeYbus(ext2int(mpc_local));
     entries_pf{1}    =   1:Nbus;                   % Vang
@@ -171,7 +180,7 @@ for i = 1:Nregion
                   + baseMVA*x(entries_pf{3})'*genCost(:,2);
     %% gradient
 
-    gi{i}           = @(x) sparse((2*Nbus+1):(2*Nbus+Ngen),1 ,baseMVA^2*2*diag(genCost(:,1))*x(entries_pf{3}),Nx,1);
+    gi{i}           = @(x) sparse((2*Nbus+1):(2*Nbus+Ngen),1 ,baseMVA^2*2*diag(genCost(:,1))*x(entries_pf{3})+baseMVA*genCost(:,2),Nx,1);
     %% hessian of lagrangian multiplier
     mpc_local;
     copy_gen_data = ~ismember(mpc_local.gen(:,GEN_BUS), mpc_local.regions);
@@ -204,11 +213,11 @@ end
 AA  = create_consensus_matrices_modified(connection_table, Nx_in_regions, Nbus_in_regions);
 %% initialize ALADIN oop
 A   = horzcat(AA{:});
-lam0 = ones(size(A,1),1)*0.01;
+lam0 = zeros(size(A,1),1);
 b   = zeros(size(A,1),1);
 option           = AladinOption;
 option.problem_type = problem_type;
-option.iter_max  = 10;
+option.iter_max  = 20;
 option.tol       = 1e-10;
 option.mu0       = 1e3;
 option.rho0      = 1e2;
@@ -216,16 +225,19 @@ option.nlp       = NLPoption;
 option.nlp.solver = solver;
 option.nlp.iter_display = true;
 option.qp        = QPoption;
-option.qp.regularization_hess = true;
+% option.qp.regularization_hess = true;
 % option.qp.solver = 'lsqminnorm';
 option.qp.solver = 'lsqlin';
+% option.qp.solver = 'quadprog';
+
+XOPT = vertcat(xopt{:});
 
 for i = 1:Nregion
 	local_funs = originalFuns(fi{i}, gi{i}, hi{i}, AA{i}, [], [], con_eq{i}, jac_eq{i}, [], []);
     nlps(i)    = localNLP(local_funs,option.nlp,lbx{i},ubx{i});
 end
 [xopt,logg] = run_aladin_algorithm(nlps,x0,lam0,A,b,option); 
-
+logg.plot_distance(XOPT);
 % res = runopf(mpc);
 
 % 
