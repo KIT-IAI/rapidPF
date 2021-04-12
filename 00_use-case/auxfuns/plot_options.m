@@ -136,7 +136,7 @@ function [options, app] = plot_options
 
     % solver
     if app.CasADiButton.Value == true
-        options.solver = 'Casadi+Ipopt';
+        options.solver = 'casadi';
     elseif app.fminconButton.Value == true
         options.solver = 'fmincon';
     elseif app.fminuncButton.Value == true

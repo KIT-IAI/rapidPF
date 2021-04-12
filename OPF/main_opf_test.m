@@ -27,7 +27,8 @@ casefile       = 'test';
 gsk            = 0;      % generation shift key
 problem_type   = 'least-squares';
 algorithm      = 'aladin';
-solver         = 'fmincon';
+% solver         = 'fmincon';
+solver = 'casadi'
 
 %% setup
 names                = generate_name_struct();
@@ -63,7 +64,7 @@ QC2MIN, QC2MAX, RAMP_AGC, RAMP_10, RAMP_30, RAMP_Q, APF] = idx_gen;
 %% main
 % case-file-generator
 mpc_merge = run_case_file_generator(mpc_trans, mpc_dist, conn, fields_to_merge, names);
-mpc_merge = runopf(mpc_merge);
+% mpc_merge = runopf(mpc_merge);
 %% case-file-splitter
 mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 
@@ -137,7 +138,7 @@ for i = 1:Nregion
     Qd               =   mpc_local.bus(:,QD)/baseMVA;  
     %% lower & upper bounds
     lbx{i}         = [-pi*ones(Nbus,1);mpc_local.bus(:,VMIN);Pgmin;Qgmin];       
-    ubx{i}        = [ pi*ones(Nbus,1);mpc_local.bus(:,VMAX);Pgmax;Qgmax];
+    ubx{i}        =  [ pi*ones(Nbus,1);mpc_local.bus(:,VMAX);Pgmax;Qgmax];
     %% initial x0
 
     Vang0 = mpc_local.bus(:,VA)/180*pi;
@@ -145,14 +146,14 @@ for i = 1:Nregion
 %     gencost haven't been splitted - complicated - need to be simplified
     Pg0   = mpc.gen(gencost_idx_global,PG)/baseMVA;
     Qg0   = mpc.gen(gencost_idx_global,QG)/baseMVA;
-    xopt{i} = stack_state(Vang0,Vmag0,Pg0,Qg0);
+    xsol{i} = stack_state(Vang0,Vmag0,Pg0,Qg0);
 % Vang0 =
 %     Vang0 = mpc_local.bus(:,VA)/180*pi*0;
 %     Vmag0 = ones(size(mpc_local.bus(:,VM)));
 % %     gencost haven't been splitted - complicated - need to be simplified
 %     Pg0   = (Pgmax+Pgmin)/2;
 %     Qg0   = zeros(size(mpc.gen(gencost_idx_global,QG)/baseMVA));
-%     
+    
 
     x0{i}    =  stack_state(Vang0,Vmag0,Pg0,Qg0);
 
@@ -176,11 +177,11 @@ for i = 1:Nregion
 
 
     %% cost function - for quadratic gencost
-    fi{i}           =@(x) baseMVA^2*x(entries_pf{3})'*diag(genCost(:,1))*x(entries_pf{3})...
-                  + baseMVA*x(entries_pf{3})'*genCost(:,2);
+    fi{i}           =@(x) (baseMVA^2*x(entries_pf{3})'*diag(genCost(:,1))*x(entries_pf{3})...
+                  + baseMVA*x(entries_pf{3})'*genCost(:,2))/baseMVA^2;
     %% gradient
 
-    gi{i}           = @(x) sparse((2*Nbus+1):(2*Nbus+Ngen),1 ,baseMVA^2*2*diag(genCost(:,1))*x(entries_pf{3})+baseMVA*genCost(:,2),Nx,1);
+    gi{i}           = @(x)[zeros(2*Nbus,1); baseMVA^2*2*diag(genCost(:,1))*x(entries_pf{3})+baseMVA*genCost(:,2);zeros(Ngen,1)];
     %% hessian of lagrangian multiplier
     mpc_local;
     copy_gen_data = ~ismember(mpc_local.gen(:,GEN_BUS), mpc_local.regions);
@@ -210,27 +211,34 @@ for i = 1:Nregion
     Nx_in_regions(i) = Nx;
     Nbus_in_regions(i) = Nbus;
 end
+
 AA  = create_consensus_matrices_modified(connection_table, Nx_in_regions, Nbus_in_regions);
 %% initialize ALADIN oop
+%     lbx{i}         = [];% [-pi*ones(Nbus,1);mpc_local.bus(:,VMIN);Pgmin;Qgmin];       
+%     ubx{i}        =  [];%[ pi*ones(Nbus,1);mpc_local.bus(:,VMAX);Pgmax;Qgmax];
 A   = horzcat(AA{:});
-lam0 = zeros(size(A,1),1);
-b   = zeros(size(A,1),1);
+grad_global = vertcat(gi{1}(x0{1}),gi{2}(x0{2}));
+% lam0 = lsqminnorm(A', -grad_global)
+
+lam0 = ones(size(A,1),1)*0.1;
+ lam0 = [-1.44158834988213;-1.44158834988213;0.00909003355743966;0.0522883023756992];
+b    = zeros(size(A,1),1);
 option           = AladinOption;
 option.problem_type = problem_type;
-option.iter_max  = 20;
+option.iter_max  = 50;
 option.tol       = 1e-10;
-option.mu0       = 1e3;
+option.mu0       = 1e1;
 option.rho0      = 1e2;
 option.nlp       = NLPoption;
 option.nlp.solver = solver;
 option.nlp.iter_display = true;
 option.qp        = QPoption;
-% option.qp.regularization_hess = true;
+option.qp.regularization_hess = true;
 % option.qp.solver = 'lsqminnorm';
-option.qp.solver = 'lsqlin';
-% option.qp.solver = 'quadprog';
+% option.qp.solver = 'lsqlin';
+option.qp.solver = 'casadi';
 
-XOPT = vertcat(xopt{:});
+XOPT = vertcat(xsol{:});
 
 for i = 1:Nregion
 	local_funs = originalFuns(fi{i}, gi{i}, hi{i}, AA{i}, [], [], con_eq{i}, jac_eq{i}, [], []);

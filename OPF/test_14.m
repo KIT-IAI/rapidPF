@@ -106,7 +106,7 @@ nx      =   length(x);
 % cost function
 f           = baseMVA^2*Pg'*diag(genCost(:,1))*Pg...
               + baseMVA*Pg'*genCost(:,2);
-
+grad        = baseMVA^2*2*diag(genCost(:,1))*Pg + baseMVA*genCost(:,2);
 % constraint
 % find reference bus
 index = find(mpc.bus(:,2)==3); 
@@ -128,7 +128,7 @@ ubx         = [inf*ones(N,1);mpc.bus(:,12);Pgmax;Qgmax];
 
 x0          = [zeros(N,1);ones(N,1);mpc.gen(:,2);mpc.gen(:,3)];
 %res         = runopf(caseFile);
-[xopt,fval] = solveNLP(f,g,x,gdim,lbx,ubx,x0);
+[xopt,fval] = solveNLP(f,grad,g,x,gdim,lbx,ubx,x0);
 
 % display the solution
 thetaOpt    = xopt(1:N);
@@ -144,11 +144,12 @@ dVang = norm(res.bus(:,VA)/180*pi - thetaOpt,2);
 dPg   = norm(res.gen(:,PG)/baseMVA - Pgopt,2);
 dQg   = norm(res.gen(:,QG)/baseMVA - Qgopt,2);
 table(dVm,dVang,dPg,dQg)
-function [xopt,fval] = solveNLP(ffun,gfun,x,gdim,lbx,ubx,x0)
+function [xopt,fval] = solveNLP(ffun,fgrad,gfun,x,gdim,lbx,ubx,x0)
     import casadi.*
     nlp = struct('x',x,'f',ffun,'g',gfun);
     options.ipopt.tol         = 1.0e-8;
     options.ipopt.print_level = 5;
+%     options.ipopt.grad_f = fgrad;
     options.print_time        = 5;
     options.ipopt.max_iter    = 100;
     S = nlpsol('solver','ipopt', nlp,options);
