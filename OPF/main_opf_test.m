@@ -64,7 +64,6 @@ QC2MIN, QC2MAX, RAMP_AGC, RAMP_10, RAMP_30, RAMP_Q, APF] = idx_gen;
 %% main
 % case-file-generator
 mpc_merge = run_case_file_generator(mpc_trans, mpc_dist, conn, fields_to_merge, names);
-% mpc_merge = runopf(mpc_merge);
 %% case-file-splitter
 mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 
@@ -140,19 +139,19 @@ for i = 1:Nregion
     lbx{i}         = [-pi*ones(Nbus,1);mpc_local.bus(:,VMIN);Pgmin;Qgmin];       
     ubx{i}        =  [ pi*ones(Nbus,1);mpc_local.bus(:,VMAX);Pgmax;Qgmax];
     %% initial x0
-
+% % 
+%     Vang0 = mpc_local.bus(:,VA)/180*pi;
+%     Vmag0 = mpc_local.bus(:,VM);
+% %     gencost haven't been splitted - complicated - need to be simplified
+%     Pg0   = mpc.gen(gencost_idx_global,PG)/baseMVA;
+%     Qg0   = mpc.gen(gencost_idx_global,QG)/baseMVA;
+%     xsol{i} = stack_state(Vang0,Vmag0,Pg0,Qg0);
+% 
     Vang0 = mpc_local.bus(:,VA)/180*pi;
     Vmag0 = mpc_local.bus(:,VM);
 %     gencost haven't been splitted - complicated - need to be simplified
     Pg0   = mpc.gen(gencost_idx_global,PG)/baseMVA;
     Qg0   = mpc.gen(gencost_idx_global,QG)/baseMVA;
-    xsol{i} = stack_state(Vang0,Vmag0,Pg0,Qg0);
-% Vang0 =
-%     Vang0 = mpc_local.bus(:,VA)/180*pi*0;
-%     Vmag0 = ones(size(mpc_local.bus(:,VM)));
-% %     gencost haven't been splitted - complicated - need to be simplified
-%     Pg0   = (Pgmax+Pgmin)/2;
-%     Qg0   = zeros(size(mpc.gen(gencost_idx_global,QG)/baseMVA));
     
 
     x0{i}    =  stack_state(Vang0,Vmag0,Pg0,Qg0);
@@ -178,7 +177,7 @@ for i = 1:Nregion
 
     %% cost function - for quadratic gencost
     fi{i}           =@(x) (baseMVA^2*x(entries_pf{3})'*diag(genCost(:,1))*x(entries_pf{3})...
-                  + baseMVA*x(entries_pf{3})'*genCost(:,2))/baseMVA^2;
+                  + baseMVA*x(entries_pf{3})'*genCost(:,2))/baseMVA;
     %% gradient
 
     gi{i}           = @(x)[zeros(2*Nbus,1); baseMVA^2*2*diag(genCost(:,1))*x(entries_pf{3})+baseMVA*genCost(:,2);zeros(Ngen,1)];
@@ -221,31 +220,56 @@ grad_global = vertcat(gi{1}(x0{1}),gi{2}(x0{2}));
 % lam0 = lsqminnorm(A', -grad_global)
 
 lam0 = ones(size(A,1),1)*0.1;
- lam0 = [-1.44158834988213;-1.44158834988213;0.00909003355743966;0.0522883023756992];
+% lam0 = [-1.44158834988213;-1.44158834988213;0.00909003355743966;0.0522883023756992];
 b    = zeros(size(A,1),1);
 option           = AladinOption;
 option.problem_type = problem_type;
-option.iter_max  = 50;
-option.tol       = 1e-10;
-option.mu0       = 1e1;
-option.rho0      = 1e2;
+option.iter_max  = 15;
+option.tol       = 1e-8;
+option.mu0       = 1e3;
+option.rho0      = 1e4;
 option.nlp       = NLPoption;
 option.nlp.solver = solver;
 option.nlp.iter_display = true;
 option.qp        = QPoption;
-option.qp.regularization_hess = true;
+% option.qp.regularization_hess = true;
 % option.qp.solver = 'lsqminnorm';
 % option.qp.solver = 'lsqlin';
 option.qp.solver = 'casadi';
 
-XOPT = vertcat(xsol{:});
 
 for i = 1:Nregion
 	local_funs = originalFuns(fi{i}, gi{i}, hi{i}, AA{i}, [], [], con_eq{i}, jac_eq{i}, [], []);
     nlps(i)    = localNLP(local_funs,option.nlp,lbx{i},ubx{i});
 end
 [xopt,logg] = run_aladin_algorithm(nlps,x0,lam0,A,b,option); 
+% validationg
+opts = mpoption;
+% opts.opf.violation = 1e-10;
+mpc_merge = runopf(mpc_merge);
+% initialize local NLP problem by extracting data from rapidPF problem
+nlps(Nregion,1)     = localNLP;
+mpc_split = run_case_file_splitter(mpc_merge, conn, names);
+mpc = mpc_split;
+
+
+for i = 1:Nregion
+    mpc_local = mpc_split.split_case_files{i};
+    gen_idx             =   ismember(mpc_local.regions,mpc_local.gen(:,GEN_BUS));
+    gen_bus_entries     =   find(gen_idx);     % entries of bus data
+
+    gen_bus_global      =   mpc_local.bus(gen_bus_entries,GEN_BUS);
+    gencost_idx_global = find(ismember(mpc.gen(:,GEN_BUS), gen_bus_global));
+    Vang_opt = mpc_local.bus(:,VA)/180*pi;
+    Vmag_opt = mpc_local.bus(:,VM);
+%     gencost haven't been splitted - complicated - need to be simplified
+    Pg_opt   = mpc.gen(gencost_idx_global,PG)/baseMVA;
+    Qg_opt   = mpc.gen(gencost_idx_global,QG)/baseMVA;
+    xsol{i} = stack_state(Vang_opt,Vmag_opt,Pg_opt,Qg_opt);
+end
+XOPT = vertcat(xsol{:});
 logg.plot_distance(XOPT);
+dx = xopt-XOPT
 % res = runopf(mpc);
 
 % 

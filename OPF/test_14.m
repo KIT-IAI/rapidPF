@@ -128,26 +128,26 @@ ubx         = [inf*ones(N,1);mpc.bus(:,12);Pgmax;Qgmax];
 
 x0          = [zeros(N,1);ones(N,1);mpc.gen(:,2);mpc.gen(:,3)];
 %res         = runopf(caseFile);
-[xopt,fval] = solveNLP(f,grad,g,x,gdim,lbx,ubx,x0);
+[xcen,fval] = solveNLP(f,grad,g,x,gdim,lbx,ubx,x0);
 
 % display the solution
-thetaOpt    = xopt(1:N);
-Vopt        = xopt((N+1):2*N);
-Pgopt       = xopt(2*N+1:2*N+Ngen);
-Qgopt       = xopt(2*N+Ngen+1:end);
+thetaOpt    = xcen(1:N);
+Vopt        = xcen((N+1):2*N);
+Pgopt       = xcen(2*N+1:2*N+Ngen);
+Qgopt       = xcen(2*N+Ngen+1:end);
 table(thetaOpt,Vopt)
 table(Pgopt,Qgopt)
 % validation
 res   = runopf(mpc);
-dVm   = norm(res.bus(:,VM) - Vopt,2);
-dVang = norm(res.bus(:,VA)/180*pi - thetaOpt,2);
-dPg   = norm(res.gen(:,PG)/baseMVA - Pgopt,2);
-dQg   = norm(res.gen(:,QG)/baseMVA - Qgopt,2);
+dVm   = norm(res.bus(:,VM) - Vopt,inf);
+dVang = norm(res.bus(:,VA)/180*pi - thetaOpt,inf);
+dPg   = norm(res.gen(:,PG)/baseMVA - Pgopt,inf);
+dQg   = norm(res.gen(:,QG)/baseMVA - Qgopt,inf);
 table(dVm,dVang,dPg,dQg)
 function [xopt,fval] = solveNLP(ffun,fgrad,gfun,x,gdim,lbx,ubx,x0)
     import casadi.*
     nlp = struct('x',x,'f',ffun,'g',gfun);
-    options.ipopt.tol         = 1.0e-8;
+    options.ipopt.tol         = 1.0e-10;
     options.ipopt.print_level = 5;
 %     options.ipopt.grad_f = fgrad;
     options.print_time        = 5;

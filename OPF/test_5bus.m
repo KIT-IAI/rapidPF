@@ -19,8 +19,8 @@ caseFile        =   case14;
 
 %% Extract Data from MATPOWER casefile
 mpc             =   loadcase(caseFile);
-baseMVA         =   mpc.baseMVA;              % 功率缩放
-genNodes        =   mpc.gen(:,1);             % 发电机的bus
+baseMVA         =   mpc.baseMVA;              % ratio
+genNodes        =   mpc.gen(:,1);             % gen bus
 genCost         =   mpc.gencost(:,5:end);     % objective coefficients
 
 Pgmin           =   mpc.gen(:,10)/baseMVA;
