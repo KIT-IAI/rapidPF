@@ -29,14 +29,13 @@ function [xsol, xsol_stacked, logg] = solve_rapidPF_aladin(problem, mpc_split, o
             option.constrained = 'equality';
             con_eq    = problem.locFuns.ggi{i};            % equality constraints
             jac_eq    = problem.sens.JJac{i};            % jacobian matrix of equality constraints
-%             hi        = [];
         else
             con_eq    = [];            % equality constraints
             jac_eq    = [];            % jacobian matrix of equality constraints
         end
         con_ineq    = [];            % equality constraints
         jac_ineq    = [];            % jacobian matrix of equality constraints
-            % problem solve by lsqnonlin - objective calculated by residual
+        % problem solve by lsqnonlin - objective calculated by residual
         local_funs = originalFuns(fi, gi, hi, Ai, [], [], con_eq, jac_eq, con_ineq, jac_ineq);
         nlps(i)    = localNLP(local_funs,option.nlp,problem.llbx{i},problem.uubx{i});
     end

@@ -82,11 +82,6 @@ nlps(Nregion,1)     = localNLP;
 Nx_in_regions       = zeros(Nregion,1);
 Nbus_in_regions    = zeros(Nregion,1);
 
-
-
-
-
-
 for i = 1:Nregion
     mpc_local = mpc_split.split_case_files{i};
 
@@ -269,7 +264,7 @@ for i = 1:Nregion
 end
 XOPT = vertcat(xsol{:});
 logg.plot_distance(XOPT);
-dx = xopt-XOPT
+dx = norm(xopt-XOPT,inf)
 % res = runopf(mpc);
 
 % 
