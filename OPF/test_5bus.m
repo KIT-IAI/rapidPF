@@ -15,10 +15,12 @@ QC2MIN, QC2MAX, RAMP_AGC, RAMP_10, RAMP_30, RAMP_Q, APF] = idx_gen;
 % cost idx
 [PW_LINEAR, POLYNOMIAL, MODEL, STARTUP, SHUTDOWN, NCOST, COST] = idx_cost;
 %% Define the problem
-caseFile        =   case14;
+caseFile        =   case118;
 
 %% Extract Data from MATPOWER casefile
 mpc             =   loadcase(caseFile);
+mpc.branch(:,[RATE_A,RATE_B,RATE_C]) = 0;
+
 baseMVA         =   mpc.baseMVA;              % ratio
 genNodes        =   mpc.gen(:,1);             % gen bus
 genCost         =   mpc.gencost(:,5:end);     % objective coefficients
@@ -86,7 +88,13 @@ Qgopt       = xopt(2*N+Ngen+1:end);
 table(thetaOpt,Vopt)
 table(Pgopt,Qgopt)
 %% validation
-res   = runopf(mpc);
+opts  = mpoption;
+opts.opf.violation = 1e-12;
+% opts.opf.vg=1;
+% opts.opf.softlims.default = 1;
+opt
+
+res   = runopf(mpc,opts);
 dVm   = norm(res.bus(:,VM) - Vopt,2);
 dVang = norm(res.bus(:,VA)/180*pi - thetaOpt,2);
 dPg   = norm(res.gen(:,PG)/baseMVA - Pgopt,2);
