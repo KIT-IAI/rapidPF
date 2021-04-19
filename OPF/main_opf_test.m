@@ -37,7 +37,7 @@ QC2MIN, QC2MAX, RAMP_AGC, RAMP_10, RAMP_30, RAMP_Q, APF] = idx_gen;
 % algorithm      = options.algorithm;
 % solver         = options.solver;
 
-casefile       = 'test';
+casefile       = '28';
 gsk            = 0;      % generation shift key
 problem_type   = 'least-squares';
 algorithm      = 'aladin';
@@ -86,9 +86,15 @@ Nbus_in_regions    = zeros(Nregion,1);
 
 for i = 1:Nregion
     mpc_local = mpc_split.split_case_files{i};
+    Nbus                =   size(mpc_local.bus,1);
+    Nbranch             =   size(mpc_local.branch,1);
 
+    % connection matrix Ct Cf
+    f  = mpc_local.branch(:, F_BUS);                           %% list of "from" buses
+    t  = mpc_local.branch(:, T_BUS);                           %% list of "to" buses   
+    Cf = sparse(1:Nbranch, f, ones(Nbranch, 1), Nbranch, Nbus);                %% connection matrix for line & from buses
+    Ct = sparse(1:Nbranch, t, ones(Nbranch, 1), Nbranch, Nbus);                %% connection matrix for line & to buses
     %% create state variable - core bus and copy bus
-    Nbus                =   numel(mpc_local.connections_with_aux_nodes);
     copy_bus_entries    =   mpc_local.copy_buses_local;
     Ncopy               =   numel(copy_bus_entries);
     % copy bus always at the end
@@ -161,10 +167,13 @@ for i = 1:Nregion
     entries_pf{2}    =   (Nbus+1):2*Nbus;          % Vmag
     entries_pf{3}    =   (2*Nbus+1):(2*Nbus+Ngen);      % Pg
     entries_pf{4}    =   (2*Nbus+Ngen+1):2*(Nbus+Ngen); % Qg
-    pf_p             =   @(x)create_local_power_flow_equation_p(x(entries_pf{1}),...
-        x(entries_pf{2}), x(entries_pf{3}), Ybus,gen_bus_entries,copy_bus_entries,Pd);
-    pf_q             =   @(x)create_local_power_flow_equation_q(x(entries_pf{1}),...
-        x(entries_pf{2}), x(entries_pf{4}), Ybus,gen_bus_entries,copy_bus_entries,Qd);
+%     pf_p             =   @(x)create_local_power_flow_equation_p(x(entries_pf{1}),...
+%         x(entries_pf{2}), x(entries_pf{3}), Ybus,gen_bus_entries,core_bus_entries,Pd);
+%     pf_q             =   @(x)create_local_power_flow_equation_q(x(entries_pf{1}),...
+%         x(entries_pf{2}), x(entries_pf{4}), Ybus,gen_bus_entries,core_bus_entries,Qd);
+    pf_eq = @(x)create_local_power_flow_equation(x(entries_pf{1}),...
+        x(entries_pf{2}), x(entries_pf{3}), x(entries_pf{4}), ...
+        Ybus,Pd,Qd,gen_bus_entries,core_bus_entries);
     % slack
     slack_bus_entries =  find(mpc_local.bus(:,BUS_TYPE) == REF);
 
@@ -191,10 +200,11 @@ for i = 1:Nregion
     %% slack
     if ~isempty(slack_bus_entries)
         gslack   =  @(x) x(slack_bus_entries);
-        con_eq{i}   = @(x) [pf_p(x);pf_q(x);gslack(x)];
+%         con_eq{i}   = @(x) [pf_p(x);pf_q(x);gslack(x)];
+        con_eq{i}    = @(x) [pf_eq(x);gslack(x)];
         jac_eq{i}    = @(x)[Jac_pf(x);sparse(1,1,1,1,Nx)];
     else
-        con_eq{i}               = @(x) [pf_p(x);pf_q(x)];
+        con_eq{i}               = @(x) pf_eq(x);
         jac_eq{i}    =  @(x)Jac_pf(x);   
     end
     hi{i}       = @(x,kappa)hi_pf(x,kappa);

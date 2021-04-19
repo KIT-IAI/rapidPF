@@ -15,11 +15,10 @@ QC2MIN, QC2MAX, RAMP_AGC, RAMP_10, RAMP_30, RAMP_Q, APF] = idx_gen;
 % cost idx
 [PW_LINEAR, POLYNOMIAL, MODEL, STARTUP, SHUTDOWN, NCOST, COST] = idx_cost;
 %% Define the problem
-caseFile        =   case118;
-
+caseFile        =   case39;
 %% Extract Data from MATPOWER casefile
 mpc             =   loadcase(caseFile);
-mpc.branch(:,[RATE_A,RATE_B,RATE_C]) = 0;
+% mpc.branch(:,[RATE_A,RATE_B,RATE_C]) = 0;
 
 baseMVA         =   mpc.baseMVA;              % ratio
 genNodes        =   mpc.gen(:,1);             % gen bus
@@ -34,11 +33,15 @@ Pdnum           =   mpc.bus(:,3)/baseMVA;
 Qdnum           =   mpc.bus(:,4)/baseMVA;   
 
 %% Set up Matrices
-Y_bus           =   full(makeYbus(mpc));      % resistance matrix
+[Y_bus,Yf,Yt]   =   makeYbus(mpc);      % resistance matrix
 
 N               =   size(Y_bus,1);            % numb of bus   
 Ngen            =   length(genNodes);         % numb of generator (one bus might have several generators)
 Nlines          =   size(mpc.branch,1);       % numb of line
+f  = mpc.branch(:, F_BUS);                           %% list of "from" buses
+t  = mpc.branch(:, T_BUS);                           %% list of "to" buses   
+Cf = sparse(1:Nlines, f, ones(Nlines, 1), Nlines, N);                %% connection matrix for line & from buses
+Ct = sparse(1:Nlines, t, ones(Nlines, 1), Nlines, N);                %% connection matrix for line & to buses
 
 Adj             =   abs(Y_bus) > 0;           % adjoint matrix of grid
 
@@ -54,6 +57,8 @@ nx      =   length(x);
 
 % Generate the cost and constraint functions 
 [gP, gQ]    = createPFeq(x,Y_bus,Ngen,genNodes,Pdnum,Qdnum);
+Fmax        = mpc.branch(:,RATE_A);
+h           = createLineLimit(x,Fmax,Yf,Yt,Cf,Ct,N);
 
 % cost function
 f           = baseMVA^2*Pg'*diag(genCost(:,1))*Pg...
@@ -67,7 +72,8 @@ gslack  = [theta(mpc.bus(index,1))-0];
            %V(mpc.bus(index,1))-1];        % reference bus: theta=0 ];        % reference bus: theta=0
 g       = [gP;gQ;gslack];   
 gdim    = length(g);
-
+hdim    = length(Fmax)*2;
+gh      = [g;h];
 %gfun        = Function('gfun',{x},{g});
 %ffun        = Function('ffun',{x},{f});
 
@@ -76,9 +82,11 @@ gdim    = length(g);
 
 lbx         = [-inf*ones(N,1);mpc.bus(:,13);Pgmin;Qgmin];       
 ubx         = [inf*ones(N,1);mpc.bus(:,12);Pgmax;Qgmax];
+lbg         = vertcat( zeros(gdim,1),-inf*ones(hdim,1));
+ubg         = zeros(gdim+hdim,1);
 x0          = [zeros(N,1);ones(N,1);mpc.gen(:,2);mpc.gen(:,3)];
 %res         = runopf(caseFile);
-[xopt,fval] = solveNLP(f,g,x,gdim,lbx,ubx,x0);
+[xopt,fval] = solveNLP(f,gh,x,lbx,ubx,lbg,ubg,x0);
 
 % display the solution
 thetaOpt    = xopt(1:N);
@@ -92,7 +100,6 @@ opts  = mpoption;
 opts.opf.violation = 1e-12;
 % opts.opf.vg=1;
 % opts.opf.softlims.default = 1;
-opt
 
 res   = runopf(mpc,opts);
 dVm   = norm(res.bus(:,VM) - Vopt,2);
@@ -100,7 +107,7 @@ dVang = norm(res.bus(:,VA)/180*pi - thetaOpt,2);
 dPg   = norm(res.gen(:,PG)/baseMVA - Pgopt,2);
 dQg   = norm(res.gen(:,QG)/baseMVA - Qgopt,2);
 table(dVm,dVang,dPg,dQg)
-function [xopt,fval] = solveNLP(ffun,gfun,x,gdim,lbx,ubx,x0)
+function [xopt,fval] = solveNLP(ffun,gfun,x,lbx,ubx,lbg,ubg,x0)
     import casadi.*
     nlp = struct('x',x,'f',ffun,'g',gfun);
     options.ipopt.tol         = 1.0e-8;
@@ -108,7 +115,7 @@ function [xopt,fval] = solveNLP(ffun,gfun,x,gdim,lbx,ubx,x0)
     options.print_time        = 5;
     options.ipopt.max_iter    = 100;
     S = nlpsol('solver','ipopt', nlp,options);
-    sol = S('x0', x0,'lbg', zeros(gdim,1),'ubg', zeros(gdim,1),...
+    sol = S('x0', x0,'lbg', lbg,'ubg', ubg,...
             'lbx', lbx, 'ubx', ubx);
     xopt = full(sol.x);
     fval = full(sol.f);
