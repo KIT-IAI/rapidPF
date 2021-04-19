@@ -90,10 +90,10 @@ for i = 1:Nregion
     Nbranch             =   size(mpc_local.branch,1);
 
     % connection matrix Ct Cf
-    f  = mpc_local.branch(:, F_BUS);                           %% list of "from" buses
-    t  = mpc_local.branch(:, T_BUS);                           %% list of "to" buses   
-    Cf = sparse(1:Nbranch, f, ones(Nbranch, 1), Nbranch, Nbus);                %% connection matrix for line & from buses
-    Ct = sparse(1:Nbranch, t, ones(Nbranch, 1), Nbranch, Nbus);                %% connection matrix for line & to buses
+%     f  = mpc_local.branch(:, F_BUS);                           %% list of "from" buses
+%     t  = mpc_local.branch(:, T_BUS);                           %% list of "to" buses   
+%     Cf = sparse(1:Nbranch, f, ones(Nbranch, 1), Nbranch, Nbus);                %% connection matrix for line & from buses
+%     Ct = sparse(1:Nbranch, t, ones(Nbranch, 1), Nbranch, Nbus);                %% connection matrix for line & to buses
     %% create state variable - core bus and copy bus
     copy_bus_entries    =   mpc_local.copy_buses_local;
     Ncopy               =   numel(copy_bus_entries);
@@ -252,8 +252,6 @@ end
 [xopt,logg] = run_aladin_algorithm(nlps,x0,lam0,A,b,option); 
 %% validationg
 opts = mpoption;
-
-opts.opf.violation = 1e-12;
 mpc_merge = runopf(mpc_merge,opts);
 % initialize local NLP problem by extracting data from rapidPF problem
 nlps(Nregion,1)     = localNLP;
