@@ -42,7 +42,7 @@ gsk            = 0;      % generation shift key
 problem_type   = 'least-squares';
 algorithm      = 'aladin';
 % solver         = 'fmincon';
-solver = 'casadi'
+solver = 'casadi';
 
 %% setup
 names                = generate_name_struct();
@@ -234,7 +234,7 @@ option.problem_type = problem_type;
 option.iter_max  = 15;
 option.tol       = 1e-8;
 option.mu0       = 1e3;
-option.rho0      = 1e4;
+option.rho0      = 1e2;
 option.nlp       = NLPoption;
 option.nlp.solver = solver;
 option.nlp.iter_display = true;
