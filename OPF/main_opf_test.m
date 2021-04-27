@@ -37,7 +37,7 @@ QC2MIN, QC2MAX, RAMP_AGC, RAMP_10, RAMP_30, RAMP_Q, APF] = idx_gen;
 % algorithm      = options.algorithm;
 % solver         = options.solver;
 
-casefile       = '28';
+casefile       = '472';
 gsk            = 0;      % generation shift key
 problem_type   = 'least-squares';
 algorithm      = 'aladin';
@@ -57,7 +57,7 @@ connection_array     = matpower_casefile.connection_array;
 trafo_params.r = 0;
 trafo_params.x = 0.00623;
 trafo_params.b = 0;
-trafo_params.ratio = 0.985;
+trafo_params.ratio = 0;
 trafo_params.angle = 0;
 
 conn = build_connection_table(connection_array, trafo_params);
@@ -66,6 +66,20 @@ Nconnections = height(conn);
 %% main
 % case-file-generator
 mpc_merge = run_case_file_generator(mpc_trans, mpc_dist, conn, fields_to_merge, names);
+% modification of casefile
+mpc_merge.branch(:,RATE_A) = 400;
+mpc_merge.branch(:,RATE_B) = 0;
+mpc_merge.branch(:,RATE_C) = 0;
+mpc_merge.branch(:,ANGMIN) = -360;
+mpc_merge.branch(:,ANGMAX) = 360;
+mpc_merge.branch(:,BR_B)   = 0;
+mpc_merge.branch(:,BR_B)   = 0;
+% remove transformers
+mpc_merge.branch(:,TAP) = 0;
+% reference angle = 0
+mpc_merge.bus(mpc_merge.bus(:,BUS_TYPE) == REF,VA)=0;
+%% runopf
+% mpc_merge = runpf(mpc_merge);
 %% case-file-splitter
 mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 
@@ -123,6 +137,9 @@ for i = 1:Nregion
 
     local_state = stack_state(Vang, Vmag, Pg, Qg);
     Nx          = Nbus*2 + Ngen*2;
+    
+    from_bus        =   mpc_local.branch(:, F_BUS);                           %% list of "from" buses
+    to_bus          =   mpc_local.branch(:, T_BUS);                           %% list of "to" buses       
     %% extract local grid model 
 
     baseMVA          =   mpc_local.baseMVA;              % baseMVA
@@ -135,9 +152,11 @@ for i = 1:Nregion
     Qgmin            =   mpc_local.gen(core_gen_entries,QMIN)/baseMVA;
     Pgmax            =   mpc_local.gen(core_gen_entries,PMAX)/baseMVA;
     Qgmax            =   mpc_local.gen(core_gen_entries,QMAX)/baseMVA;
-
+    Fmax             =   mpc_local.branch(:,RATE_A)/mpc.baseMVA;
     Pd               =   mpc_local.bus(:,PD)/baseMVA;   
     Qd               =   mpc_local.bus(:,QD)/baseMVA;  
+    
+    
     %% lower & upper bounds
     lbx{i}         = [-pi*ones(Nbus,1);mpc_local.bus(:,VMIN);Pgmin;Qgmin];       
     ubx{i}        =  [ pi*ones(Nbus,1);mpc_local.bus(:,VMAX);Pgmax;Qgmax];
@@ -162,7 +181,10 @@ for i = 1:Nregion
 %     x0{i}<=ubx{i}
 %     x0{i}>=lbx{i}
     %% equality constraints - current balance constraints
-    Ybus             =   makeYbus(ext2int(mpc_local));
+    intmpc           =   ext2int(mpc_local);
+    Ybus             =   full(makeYbus(intmpc));
+    from_bus         =   intmpc.branch(:, F_BUS);                           %% list of "from" buses
+    to_bus           =   intmpc.branch(:, T_BUS);                           %% list of "to" buses   
     entries_pf{1}    =   1:Nbus;                   % Vang
     entries_pf{2}    =   (Nbus+1):2*Nbus;          % Vmag
     entries_pf{3}    =   (2*Nbus+1):(2*Nbus+Ngen);      % Pg
@@ -171,9 +193,9 @@ for i = 1:Nregion
 %         x(entries_pf{2}), x(entries_pf{3}), Ybus,gen_bus_entries,core_bus_entries,Pd);
 %     pf_q             =   @(x)create_local_power_flow_equation_q(x(entries_pf{1}),...
 %         x(entries_pf{2}), x(entries_pf{4}), Ybus,gen_bus_entries,core_bus_entries,Qd);
-    pf_eq = @(x)create_local_power_flow_equation(x(entries_pf{1}),...
-        x(entries_pf{2}), x(entries_pf{3}), x(entries_pf{4}), ...
-        Ybus,Pd,Qd,gen_bus_entries,core_bus_entries);
+    pf_eq = @(x)create_local_power_flow_equation(x(entries_pf{1}),x(entries_pf{2}), x(entries_pf{3}), x(entries_pf{4}),Ybus,Pd,Qd,gen_bus_entries,core_bus_entries);
+    pf_ineq = @(x)create_local_branch_power_constraints(x(entries_pf{1}),x(entries_pf{2}), Fmax, Ybus,from_bus,to_bus);
+
     % slack
     slack_bus_entries =  find(mpc_local.bus(:,BUS_TYPE) == REF);
 
@@ -212,7 +234,7 @@ for i = 1:Nregion
     % size(con_eq{i}(x0{i}))
     % size(jac_eq{i}(x0{i}))
     % size(hi{i}(x0{i},lambda))
-
+    con_ineq{i}  =  @(x) pf_ineq(x);
     
     Nx_in_regions(i) = Nx;
     Nbus_in_regions(i) = Nbus;
@@ -223,7 +245,7 @@ AA  = create_consensus_matrices_modified(connection_table, Nx_in_regions, Nbus_i
 %     lbx{i}         = [];% [-pi*ones(Nbus,1);mpc_local.bus(:,VMIN);Pgmin;Qgmin];       
 %     ubx{i}        =  [];%[ pi*ones(Nbus,1);mpc_local.bus(:,VMAX);Pgmax;Qgmax];
 A   = horzcat(AA{:});
-grad_global = vertcat(gi{1}(x0{1}),gi{2}(x0{2}));
+% grad_global = vertcat(gi{1}(x0{1}),gi{2}(x0{2}));
 % lam0 = lsqminnorm(A', -grad_global)
 
 lam0 = ones(size(A,1),1)*0.1;
@@ -232,12 +254,13 @@ b    = zeros(size(A,1),1);
 option           = AladinOption;
 option.problem_type = problem_type;
 option.iter_max  = 15;
-option.tol       = 1e-10;
+option.tol       = 1e-8;
 option.mu0       = 1e3;
 option.rho0      = 1e2;
 option.nlp       = NLPoption;
 option.nlp.solver = solver;
 option.nlp.iter_display = true;
+option.nlp.active_set = true;
 option.qp        = QPoption;
 % option.qp.regularization_hess = true;
 % option.qp.solver = 'lsqminnorm';
@@ -246,13 +269,13 @@ option.qp.solver = 'casadi';
 
 
 for i = 1:Nregion
-	local_funs = originalFuns(fi{i}, gi{i}, hi{i}, AA{i}, [], [], con_eq{i}, jac_eq{i}, [], []);
+	local_funs = originalFuns(fi{i}, gi{i}, hi{i}, AA{i}, [], [], con_eq{i}, jac_eq{i}, con_ineq{i}, []);
     nlps(i)    = localNLP(local_funs,option.nlp,lbx{i},ubx{i});
 end
 [xopt,logg] = run_aladin_algorithm(nlps,x0,lam0,A,b,option); 
 %% validationg
 opts = mpoption;
-% fix deviation
+
 opts.opf.violation = 1e-8;
 mpc_merge = runopf(mpc_merge,opts);
 % initialize local NLP problem by extracting data from rapidPF problem
@@ -278,53 +301,3 @@ end
 XOPT = vertcat(xsol{:});
 logg.plot_distance(XOPT);
 dx = norm(xopt-XOPT,inf)
-% res = runopf(mpc);
-
-% 
-% 
-% 
-% 
-% % 
-% 
-% 
-% %% numbering 
-% 
-% % N_gen            =   
-% 
-% %% create state variable - core bus and copy bus
-% [Vang_core, Vmag_core, Pnet_core, Qnet_core] = create_state(postfix, N_core);
-% [Vang_copy, Vmag_copy, Pnet_copy, Qnet_copy] = create_state(strcat(postfix, '_copy'), N_copy);
-% 
-% Vang             =   [Vang_core; Vang_copy];
-% Vmag             =   [Vmag_core; Vmag_copy];
-% Pnet             =   Pnet_core;
-% Qnet             =   Qnet_core;
-% P                =   [Pnet_core; Pnet_copy];
-% Q                =   [Qnet_core; Qnet_copy];
-% % dont need Pnet, Qnet to create power flow equation
-% state = stack_state(Vang, Vmag, Pnet, Qnet);
-% %% create power flow equation
-% entries_pf       =   build_entries(N_core, N_copy, true);
-% pf_p             =   @(x)create_power_flow_equation_for_p(x(entries_pf{1}), x(entries_pf{2}), x(entries_pf{3}), x(entries_pf{4}), Ybus, buses_local);
-% pf_q             =   @(x)create_power_flow_equation_for_q(x(entries_pf{1}), x(entries_pf{2}), x(entries_pf{3}), x(entries_pf{4}), Ybus, buses_local);
-% 
-% 
-% 
-% %% Set up Matrices
-% Y_bus           =   full(makeYbus(mpc));      % resistance matrix
-% 
-% N               =   size(Y_bus,1);            % numb of bus   
-% Ngen            =   length(genNodes);         % numb of generator (one bus might have several generators)
-% Nlines          =   size(mpc.branch,1);       % numb of line
-% 
-% Adj             =   abs(Y_bus) > 0;           % adjoint matrix of grid
-% 
-% 
-% 
-% %% validation
-% % res   = runopf(mpc);
-% % dVm   = norm(res.bus(:,VM) - Vopt,2);
-% % dVang = norm(res.bus(:,VA)/180*pi - thetaOpt,2);
-% % dPg   = norm(res.gen(:,PG)/baseMVA - Pgopt,2);
-% % dQg   = norm(res.gen(:,QG)/baseMVA - Qgopt,2);
-% % table(dVm,dVang,dPg,dQg)
