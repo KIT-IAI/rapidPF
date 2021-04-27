@@ -232,7 +232,7 @@ b    = zeros(size(A,1),1);
 option           = AladinOption;
 option.problem_type = problem_type;
 option.iter_max  = 15;
-option.tol       = 1e-8;
+option.tol       = 1e-10;
 option.mu0       = 1e3;
 option.rho0      = 1e2;
 option.nlp       = NLPoption;
@@ -252,6 +252,8 @@ end
 [xopt,logg] = run_aladin_algorithm(nlps,x0,lam0,A,b,option); 
 %% validationg
 opts = mpoption;
+% fix deviation
+opts.opf.violation = 1e-8;
 mpc_merge = runopf(mpc_merge,opts);
 % initialize local NLP problem by extracting data from rapidPF problem
 nlps(Nregion,1)     = localNLP;
