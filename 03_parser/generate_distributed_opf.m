@@ -35,7 +35,13 @@ function problem = generate_distributed_opf(mpc, names, ~)
         fprintf('Creating power flow problem for system %i...', i);
         [cost, inequality, equality, x0, grad, eq_jac, ineq_jac, Hessian, state, dim, lb, ub] = build_local_opf(mpc.(names.split){i}, names, num2str(i));
         % combine Jacobians of inequalities and equalities in single Jacobian
+        % test i problem are the inqalitites
         Jac = @(x)[eq_jac(x), ineq_jac(x)]';
+%        %% only for testing
+%        Jac = @(x) [eq_jac(x)'];
+%        inequality = @(x) [];
+%        cost = @(x) 0;
+        %%
         [costs{i},  inequalities{i}, equalities{i}, xx0{i}, grads{i}, Jacs{i}, Hessians{i}, states{i}, dims{i}, lbs{i}, ubs{i}] = deal(cost, inequality, equality, x0, grad, Jac, Hessian, state, dim, lb, ub);
         fprintf('done.\n')
     end

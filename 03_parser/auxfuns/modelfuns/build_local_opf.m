@@ -47,4 +47,6 @@ function [cost, ineq, eq, x0, grad_cost, eq_jac, ineq_jac, lagrangian_hessian, s
     [lb, ub] = build_local_bounds(om);
     %% dimensions of state, equalities, inequalities
     dims = build_local_dimensions(mpc_opf, eq, ineq, local_buses_to_remove);
+    %% for testing
+    dims.ineq = [];
 end

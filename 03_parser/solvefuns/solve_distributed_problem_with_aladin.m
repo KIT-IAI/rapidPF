@@ -21,15 +21,17 @@ function [xsol, xsol_stacked, mpc_sol, logg] = solve_distributed_problem_with_al
     end
     sol = run_ALADINnew(problem, opts);
     xsol = vertcat(sol.xxOpt{:});
-    [xsol, xsol_stacked] = deal_solution(xsol, mpc, names); 
-    
-    %% numerical solution back to matpower casefile
-    timers = sol.timers;
-    iter          =  sol.iter.i - 1; % number of iteration
-    elapsed_time  =  timers.totTime - timers.setupT;
-    alg           =  'ALADIN';
+    xsol_stacked = 0;
+    mpc_sol = 0;
+%     [xsol, xsol_stacked] = deal_solution(xsol, mpc, names); 
+%     
+%     %% numerical solution back to matpower casefile
+%     timers = sol.timers;
+%     iter          =  sol.iter.i - 1; % number of iteration
+%     elapsed_time  =  timers.totTime - timers.setupT;
+%     alg           =  'ALADIN';
     logg.X        =  sol.iter.logg.Y;
     logg.iter     =  sol.iter.i - 1;
     logg.cons_violations = sol.iter.logg.consViol;
-    mpc_sol       =  back_to_mpc(mpc, xsol, elapsed_time, iter, alg);
+%     mpc_sol       =  back_to_mpc(mpc, xsol, elapsed_time, iter, alg);
 end
