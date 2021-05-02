@@ -22,31 +22,24 @@ function [L, dLdx, d2Ldx] = build_local_lagrangian_function(f, df, g, dg, h, dh)
 %   L = f + lambda'g + mu'h
 %   dL = grad_f + \sum lambda_i (Jac_g)'(:, i) + \sum mu_i(Jac_h)'(:, i)
 
- %   if nargin == 4
+   if nargin == 4
         L = @(x, kappa) f(x) + kappa'*g(x);
         dLdx = @(x, kappa) df(x) ...
             + get_grad_lambda_g(kappa, dg, x);
-        d2Ldx = @(x, kappa, rho, Neq)  get_Hess(dLdx, x, kappa);
- %   elseif nargin == 6
- %       L = @(x, kappa, Neq) f(x) + kappa(1:Neq)'*g(x) + kappa(Neq+1:end)'*h(x);
- %       dLdx = @(x, kappa, Neq) df(x)  + ...
- %           get_grad_lambda_g(kappa(1:Neq), dg, x) + ...
- %           get_grad_mu_h(kappa(Neq+1:end), dh, x);
- %       d2Ldx = @(x, kappa, rho, Neq) get_Hess(dLdx, x, kappa, Neq);
- %   end
+        d2Ldx = @(x, kappa, rho, Neq)get_Hess(dLdx, x, kappa);
+   elseif nargin == 6
+       L = @(x, kappa, Neq) f(x) + kappa(1:Neq)'*g(x) + kappa(Neq+1:end)'*h(x);
+       dLdx = @(x, kappa, Neq) df(x)  + ...
+           get_grad_lambda_g(kappa(1:Neq), dg, x) + ...
+           get_grad_mu_h(kappa(Neq+1:end), dh, x);
+       d2Ldx = @(x, kappa, rho, Neq) get_Hess(dLdx, x, kappa, Neq);
+   end
 
  %% feasibility problem
-         L = @(x, kappa) kappa'*g(x);
-        dLdx = @(x, kappa) get_grad_lambda_g(kappa, dg, x);
-        d2Ldx = @(x, kappa, rho, Neq)  get_Hess(dLdx, x, kappa);
+%        L       = @(x, kappa) kappa'*g(x);
+%        dLdx    = @(x, kappa) get_grad_lambda_g(kappa, dg, x);
+%        d2Ldx   = @(x, kappa, rho, Neq)get_Hess_eq(dLdx, x, kappa);
  
- 
-%% old L
-% L = @(x, kappa, Neq) f(x) + kappa(1:Neq)'*g(x) + kappa(Neq+1:end)'*h(x);
-% dLdx = @(x, kappa, Neq) df(x)  + ...
-%  get_grad_mu_h(kappa(Neq+1:end), dh, x);
-% d2Ldx = @(x, kappa, rho) get_Hess(dLdx, x, kappa, Neq);
-
 end
 
 %% get gradient of lambda'*g
@@ -67,8 +60,7 @@ function grad_mu_h = get_grad_mu_h(mu, dh, x)
 end
 
 %% get Hessian Function
-function d2Ldx = get_Hess(dLdx, x, kappa)
-Neq = length(kappa);
+function d2Ldx = get_Hess_eq(dLdx, x, kappa)
 epsilon = 1e-10;
 epsilon_inv = 1/epsilon;
 nx = length(x);
