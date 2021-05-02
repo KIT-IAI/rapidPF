@@ -40,7 +40,7 @@ function [cost, ineq, eq, x0, grad_cost, eq_jac, ineq_jac, lagrangian_hessian, s
     %% symbolic state
     state = build_local_state(mpc_opf, names, postfix);
     %% hessian of Lagrangian
-    [~, ~, lagrangian_hessian] = build_local_lagrangian_function(cost, grad_cost, eq, eq_jac, ineq, ineq_jac);
+    [~, ~, lagrangian_hessian] = build_local_lagrangian_function(cost, grad_cost, eq, eq_jac, ineq, ineq_jac, state);
     %% initial conditions
     x0 = build_local_initial_conditions(om);
     %% lower and upper bounds
