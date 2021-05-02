@@ -32,7 +32,7 @@ function [L, dLdx, d2Ldx] = build_local_lagrangian_function(f, df, g, dg, h, dh)
        dLdx = @(x, kappa, Neq) df(x)  + ...
            get_grad_lambda_g(kappa(1:Neq), dg, x) + ...
            get_grad_mu_h(kappa(Neq+1:end), dh, x);
-       d2Ldx = @(x, kappa, rho, Neq) get_Hess(dLdx, x, kappa, Neq);
+       d2Ldx = @(x, kappa, rho, Neq) get_Hess(dLdx, x, kappa);
    end
 
  %% feasibility problem
@@ -60,7 +60,7 @@ function grad_mu_h = get_grad_mu_h(mu, dh, x)
 end
 
 %% get Hessian Function
-function d2Ldx = get_Hess_eq(dLdx, x, kappa)
+function d2Ldx = get_Hess(dLdx, x, kappa)
 epsilon = 1e-10;
 epsilon_inv = 1/epsilon;
 nx = length(x);
