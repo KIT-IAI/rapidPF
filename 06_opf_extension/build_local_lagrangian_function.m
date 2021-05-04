@@ -2,7 +2,7 @@ function [L, dLdx, d2Ldx] = build_local_lagrangian_function(f, df, g, dg, h, dh,
 %BUILD_LOCAL_LAGRANGIAN_FUNCTION 
 %
 %  `Builds the Lagrangian of the local mpc file`
-%   
+% 
 %  INPUT: 
 %         - $\texttt{f}$ scalar valued cost function
 %         - $\texttt{df}$ gradient of $\textt{f}$ 
@@ -39,6 +39,8 @@ elseif Neq > 0 && Nineq > 0
         dLdx    = @(x, kappa) df(x) + get_grad_lambda_g(kappa(1:Neq), dg, x) + get_grad_mu_h(kappa(Neq+1:end), dh, x);
         d2Ldx   = @(x, kappa, rho, Neq)get_Hess(dLdx, x, kappa);
 end
+
+
 
 %% get gradient of lambda'*g
 function grad_lambda_g = get_grad_lambda_g(lambda, dg, x) 

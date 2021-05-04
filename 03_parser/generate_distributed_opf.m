@@ -25,7 +25,7 @@ function problem = generate_distributed_opf(mpc, names, ~)
 
 % extract Data from casefile
     [N_regions, N_buses_in_regions, N_copy_buses_in_regions, ~] = get_relevant_information(mpc, names);
-    [costs,  inequalities, equalities, xx0, grads, Jacs, Hessians, states, dims, lbs, ubs] = deal(cell(N_regions,1));
+    [costs,  inequalities, equalities, xx0, grads, Jacs, Jacs_eq, Jacs_ineq, Hessians, states, dims, lbs, ubs] = deal(cell(N_regions,1));
     connection_table = mpc.(names.consensus);
     % set up the Ai's
 
@@ -37,12 +37,14 @@ function problem = generate_distributed_opf(mpc, names, ~)
         % combine Jacobians of inequalities and equalities in single Jacobian
         % test i problem are the inqalitites
         Jac = @(x)[eq_jac(x), ineq_jac(x)]';
+        Jac_eq = @(x)eq_jac(x)';
+        Jac_ineq = @(x)ineq_jac(x)';
 %        %% only for testing
 %        Jac = @(x) [eq_jac(x)'];
 %        inequality = @(x) [];
 %        cost = @(x) 0;
         %%
-        [costs{i},  inequalities{i}, equalities{i}, xx0{i}, grads{i}, Jacs{i}, Hessians{i}, states{i}, dims{i}, lbs{i}, ubs{i}] = deal(cost, inequality, equality, x0, grad, Jac, Hessian, state, dim, lb, ub);
+        [costs{i},  inequalities{i}, equalities{i}, xx0{i}, grads{i}, Jacs{i}, Jacs_eq{i}, Jacs_ineq{i}, Hessians{i}, states{i}, dims{i}, lbs{i}, ubs{i}] = deal(cost, inequality, equality, x0, grad, Jac, Jac_eq, Jac_ineq, Hessian, state, dim, lb, ub);
         fprintf('done.\n')
     end
     
@@ -57,6 +59,8 @@ function problem = generate_distributed_opf(mpc, names, ~)
     
     problem.sens.gg = grads;
     problem.sens.JJac = Jacs;
+    problem.sens.JJac_eq = Jacs_eq;
+    problem.sens.JJac_ineq = Jacs_ineq;
     problem.sens.HH = Hessians;
 
     problem.zz0 = xx0;

@@ -34,7 +34,8 @@ function [cost, ineq, eq, x0, grad_cost, eq_jac, ineq_jac, lagrangian_hessian, s
     %% cost function + cost gradient
     [cost, grad_cost, hess_cost] = build_local_cost_function(om);
     %% equalities + Jacobian
-    [eq, eq_jac] = build_local_equalities(constraint_function, local_buses_to_remove);
+    total_number_of_nodes = length(mpc.connections_with_aux_nodes);
+    [eq, eq_jac] = build_local_equalities(constraint_function, local_buses_to_remove, total_number_of_nodes);
     %% inequalities + Jacobian
     [ineq, ineq_jac] = build_local_inequalities(constraint_function);
     %% symbolic state
