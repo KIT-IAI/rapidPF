@@ -173,12 +173,12 @@ for i = 1:Nregion
     % slack
     slack_bus_entries =  find(mpc_local.bus(:,BUS_TYPE) == REF);
     %% jacobian - currently unused - jacobian of branch limit is not inclued
-    Jac_pf  = @(x)jacobian_power_flow_modified(x(entries_pf{1}), x(entries_pf{2}), x(entries_pf{3}), x(entries_pf{4}), Ybus, gen_bus_entries,copy_bus_entries);
+%     Jac_pf  = @(x)jacobian_power_flow_modified(x(entries_pf{1}), x(entries_pf{2}), x(entries_pf{3}), x(entries_pf{4}), Ybus, gen_bus_entries,copy_bus_entries);
     %% cost function - for quadratic gencost
     fi{i}           =@(x) (baseMVA^2*x(entries_pf{3})'*diag(genCost(:,1))*x(entries_pf{3})...
                   + baseMVA*x(entries_pf{3})'*genCost(:,2))/baseMVA;
     %% gradient - currently unused
-    gi{i}           = @(x)[zeros(2*Nbus,1); baseMVA^2*2*diag(genCost(:,1))*x(entries_pf{3})+baseMVA*genCost(:,2);zeros(Ngen,1)];
+%     gi{i}           = @(x)[zeros(2*Nbus,1); baseMVA^2*2*diag(genCost(:,1))*x(entries_pf{3})+baseMVA*genCost(:,2);zeros(Ngen,1)];
     %% hessian of lagrangian multiplier
     mpc_local;
     copy_gen_data = ~ismember(mpc_local.gen(:,GEN_BUS), mpc_local.regions);
@@ -237,7 +237,6 @@ mpc_merge = runopf(mpc_merge,opts);
 nlps(Nregion,1)     = localNLP;
 mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 mpc = mpc_split;
-
 
 for i = 1:Nregion
     mpc_local = mpc_split.split_case_files{i};
