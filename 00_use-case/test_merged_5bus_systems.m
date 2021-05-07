@@ -14,15 +14,15 @@ mpc.fields_to_merge = {'bus', 'gen', 'branch', 'gencost'};
 
 mpc_temp = loadcase('case5');
 
-% mpc_temp.branch(:, RATE_A) = 0;
-% mpc_temp.branch(:, RATE_B) = 0;
-% mpc_temp.branch(:, RATE_C) = 0;
+%  mpc_temp.branch(:, RATE_A) = 0;
+%  mpc_temp.branch(:, RATE_B) = 0;
+%  mpc_temp.branch(:, RATE_C) = 0;
 
 mpc.trans = mpc_temp;
 mpc.dist = { mpc_temp};
 
 mpc.connection_array = [ 1 2 1 5];
-
+% 
  mpc.trans = mpc_temp;
  mpc.dist = { mpc_temp;
               mpc_temp
@@ -30,6 +30,32 @@ mpc.connection_array = [ 1 2 1 5];
  
   mpc.connection_array = [ 1 2 1 5;
                          2 3 1 5];
+                     
+                     
+%  
+%         mpc.trans  = ext2int(loadcase('case9'));
+%         mpc.dist = { ext2int(loadcase('case9'))};
+%                             % region 1 - region 2
+%         mpc.connection_array = [
+%                             % region 1 - region 2
+%                             1 2 2 1
+% 
+%                             ];      
+
+% 
+% 
+%         mpc.trans  = ext2int(loadcase('case9'));
+%         mpc.dist = { ext2int(loadcase('case9'));
+%              ext2int(loadcase('case9'));
+%              ext2int(loadcase('case9'))};
+%                             % region 1 - region 2
+%         mpc.connection_array = [
+%                             % region 1 - region 2
+%                             1 2 2 1
+%                             1 3 1 1
+%                             1 4 3 1
+% 
+%                             ];    
 
 % connected a from generator to a to generator with much higher Pmax 
 %% 
@@ -104,7 +130,7 @@ option           = AladinOption;
 option.iter_max  = 20;
 option.tol       = 1e-8;
 option.mu0       = 1e4;
-option.rho0      = 1e4;
+option.rho0      = 1e2;
 option.nlp       = NLPoption;
 option.nlp.solver = 'fmincon';
 option.nlp.iter_display = true;
@@ -144,38 +170,38 @@ diff_aladin_oop_runopf = x_ref - xopt;
 
 
 %% validation old
-% opts = mpoption;
-% % fix deviation
-% opts.opf.violation = 1e-8;
-% mpc_merge = runopf(mpc_merge,opts);
-% % initialize local NLP problem by extracting data from rapidPF problem
-% Nregion = 2;
-% baseMVA = 100;
-% nlps(Nregion,1)     = localNLP;
-% mpc_split = run_case_file_splitter(mpc_merge, conn, names);
-% mpc = mpc_split;
-% GEN_BUS = 1;
-% VA = 9;
-% VM =8;
-% PG=2;
-% QG=3;
-% for i = 1:Nregion
-%     mpc_local = mpc_split.split_case_files{i};
-%     gen_idx             =   ismember(mpc_local.regions,mpc_local.gen(:,GEN_BUS));
-%     gen_bus_entries     =   find(gen_idx);     % entries of bus data
-% 
-%     gen_bus_global      =   mpc_local.bus(gen_bus_entries,GEN_BUS);
-%     gencost_idx_global = find(ismember(mpc.gen(:,GEN_BUS), gen_bus_global));
-%     Vang_opt = mpc_local.bus(:,VA)/180*pi;
-%     Vmag_opt = mpc_local.bus(:,VM);
-% %     gencost haven't been splitted - complicated - need to be simplified
-%     Pg_opt   = mpc.gen(gencost_idx_global,PG)/baseMVA;
-%     Qg_opt   = mpc.gen(gencost_idx_global,QG)/baseMVA;
-%     xsol{i} = stack_state(Vang_opt,Vmag_opt,Pg_opt,Qg_opt);
-% end
-% XOPT = vertcat(xsol{:});
-% logg.plot_distance(XOPT);
-% dx = xopt-XOPT
-% dx_norm = norm(dx,inf)
+opts = mpoption;
+% fix deviation
+opts.opf.violation = 1e-8;
+mpc_merge = runopf(mpc_merge,opts);
+% initialize local NLP problem by extracting data from rapidPF problem
+Nregion = n_regions;
+baseMVA = 100;
+nlps(Nregion,1)     = localNLP;
+mpc_split = run_case_file_splitter(mpc_merge, conn, names);
+mpc = mpc_split;
+GEN_BUS = 1;
+VA = 9;
+VM =8;
+PG=2;
+QG=3;
+for i = 1:Nregion
+    mpc_local = mpc_split.split_case_files{i};
+    gen_idx             =   ismember(mpc_local.regions,mpc_local.gen(:,GEN_BUS));
+    gen_bus_entries     =   find(gen_idx);     % entries of bus data
+
+    gen_bus_global      =   mpc_local.bus(gen_bus_entries,GEN_BUS);
+    gencost_idx_global = find(ismember(mpc.gen(:,GEN_BUS), gen_bus_global));
+    Vang_opt = mpc_local.bus(:,VA)/180*pi;
+    Vmag_opt = mpc_local.bus(:,VM);
+%     gencost haven't been splitted - complicated - need to be simplified
+    Pg_opt   = mpc.gen(gencost_idx_global,PG)/baseMVA;
+    Qg_opt   = mpc.gen(gencost_idx_global,QG)/baseMVA;
+    xsol{i} = stack_state(Vang_opt,Vmag_opt,Pg_opt,Qg_opt);
+end
+XOPT = vertcat(xsol{:});
+logg.plot_distance(XOPT);
+dx = xopt-XOPT
+dx_norm = norm(dx,inf)
 
 % [xsol_aladin, xsol_stack_aladin, mpc_sol_aladin, logg] = solve_distributed_problem_with_aladin(mpc_split, problem, names, opts);

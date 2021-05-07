@@ -26,13 +26,23 @@ mpc_temp = loadcase('case5');
 % mpc_temp.branch(:, 6) = 0;
 
 %mpc.fields_to_merge = {'bus', 'gen', 'branch'};
-mpc.trans = mpc_temp;
-mpc.dist = { mpc_temp;
-             mpc_temp
-                    };
+% mpc.trans = mpc_temp;
+% mpc.dist = { mpc_temp;
+%              mpc_temp
+%                     };
+% 
+% mpc.connection_array = [ 1 2 1 5;
+%                          2 3 4 1];
+%                      
 
-mpc.connection_array = [ 1 2 1 5;
-                         2 3 4 1];
+        mpc.trans  = ext2int(loadcase('case9'));
+        mpc.dist = { ext2int(loadcase('case9'))};
+                            % region 1 - region 2
+        mpc.connection_array = [
+                            % region 1 - region 2
+                            1 2 2 1
+
+                            ]; 
 
 % compatibility tests
 % Opf data is provided ??

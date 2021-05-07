@@ -152,5 +152,16 @@ function mpc=mpc_data(casefile)
                                 2 4  64  10;
                                 2 5  837  8;
                            ];
+    elseif strcmp(casefile, '18') 
+
+        mpc.trans  = ext2int(loadcase('case9'));
+        mpc.dist = { ext2int(loadcase('case9'))};
+                            % region 1 - region 2
+        mpc.connection_array = [
+                            % region 1 - region 2
+                            1 2 2 1
+
+                            ]; 
     end
+    
 end
