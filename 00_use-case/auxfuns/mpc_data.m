@@ -1136,7 +1136,7 @@ function mpc=mpc_data(casefile)
                             ];
     
     elseif strcmp(casefile, '28') 
-        % opf - 1
+
         mpc.trans  = ext2int(loadcase('case14'));
         mpc.dist = { ext2int(loadcase('case14'))};
                             % region 1 - region 2
@@ -1144,18 +1144,52 @@ function mpc=mpc_data(casefile)
                             % region 1 - region 2
                             1 2 3 6;
 
-                            ];       
-                        
-    elseif strcmp(casefile, 'test') 
+                            ];
+    elseif strcmp(casefile, '78') 
 
         mpc.trans  = ext2int(loadcase('case39'));
         mpc.dist = { ext2int(loadcase('case39'))};
                             % region 1 - region 2
         mpc.connection_array = [
                             % region 1 - region 2
-                            1 2 30 34;
+                            1 2 37 30;
 
-                            ];                           
+                            ];                             
+    elseif strcmp(casefile, 'test') 
+
+        mpc.trans  = ext2int(loadcase('case5'));
+        mpc.dist = { ext2int(loadcase('case5'))};
+                            % region 1 - region 2
+        mpc.connection_array = [
+                            % region 1 - region 2
+                            1 2 3 4
+
+                            ];    
+    elseif strcmp(casefile, '18') 
+
+        mpc.trans  = ext2int(loadcase('case9'));
+        mpc.dist = { ext2int(loadcase('case9'))};
+                            % region 1 - region 2
+        mpc.connection_array = [
+                            % region 1 - region 2
+                            1 2 2 1
+
+                            ]; 
+    elseif strcmp(casefile, '36') 
+
+        mpc.trans  = ext2int(loadcase('case9'));
+        mpc.dist = { ext2int(loadcase('case9'));
+             ext2int(loadcase('case9'));
+             ext2int(loadcase('case9'))};
+                            % region 1 - region 2
+        mpc.connection_array = [
+                            % region 1 - region 2
+                            1 2 2 1
+                            1 3 1 1
+                            1 4 3 1
+
+                            ];                          
+                        
     elseif strcmp(casefile, '10') 
 
         mpc.trans  = ext2int(loadcase('case5'));
@@ -1166,5 +1200,29 @@ function mpc=mpc_data(casefile)
                             1 2 3 3;
 
                             ];    
-end
+    elseif strcmp(casefile, '236') 
+
+        mpc.trans  = ext2int(loadcase('case118'));
+        mpc.dist = { ext2int(loadcase('case118'))};
+                            % region 1 - region 2
+        mpc.connection_array = [
+                            % region 1 - region 2
+                            1 2 1 6;
+
+                            ];    
+    elseif strcmp(casefile, '472') 
+
+        mpc.trans  = ext2int(loadcase('case118'));
+        mpc.dist = { ext2int(loadcase('case118'));
+            ext2int(loadcase('case118'));
+            ext2int(loadcase('case118'))};
+                            % region 1 - region 2
+        mpc.connection_array = [
+                            % region 1 - region 2
+                            1 2 1 6;
+                            1 3 32 6;
+                            1 4 55 6;
+
+                            ];                            
+    end
 end

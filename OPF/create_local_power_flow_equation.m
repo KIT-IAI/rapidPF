@@ -3,8 +3,10 @@ function pf_eq = create_local_power_flow_equation(Vang, Vmag, Pg, Qg, Ybus,Pd,Qd
     P = Vmag .* (M_p * Vmag)+ Pd;
     Q = Vmag .* (M_q * Vmag)+ Qd;
     % remove copy bus
+    if nargin>8
     P = P(core_bus_entries);
     Q = Q(core_bus_entries);
+    end
     pf_p = P ;
     pf_q = Q ;
     pf_p(gen_bus_entries) = P(gen_bus_entries) - Pg;
