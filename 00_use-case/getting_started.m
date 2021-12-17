@@ -1,4 +1,4 @@
-%% check if there is a UIfigure
+% check if there is a UIfigure
 if exist('app','var')
     % close UIfigure
     delete(app.UIFigure)
@@ -55,7 +55,7 @@ end
 % problem.solver = 'Casadi+Ipopt';
 
 %% solve problem
-[xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
+ [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
 % [xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc_split, problem, names);
 % comparison_centralized = compare_results(xval, xsol)
 
@@ -69,17 +69,17 @@ if strcmp(options.algorithm, 'aladin')
     opts = struct('maxiter',50, 'solveQP','MA57');
     opts.reg ='false';
     opts.rho0= 1e2;
-    % 
     % % opts.regParam = 1e-12;
     [xsol_aladin, xsol_stack_aladin, mpc_sol_aladin, logg] = solve_distributed_problem_with_aladin(mpc_split, problem, names, opts);
-    %%
+    % compare result from ALADIN with ref solution
     comparison_aladin    = compare_results(xval, xsol_aladin)
-    violation            = compare_constraints_violation(problem, logg);
-    %%
-    [a,b,c] = compare_power_flow_between_regions(mpc_sol_aladin, mpc_merge.connections, mpc_split.regions, conn(:,1:2));
-    %% 
-    deviation = deviation_violation_iter_plot(mpc_split, xval, logg, names, xsol_aladin);
-    
+%     % plot violation and deviation of end point
+%     violation            = compare_constraints_violation(problem, logg);
+%     deviation            = deviation_violation_iter_plot(mpc_split, xval, logg, names, xsol_aladin);
+%     % power data from  perspective of region
+%     [active_power_regions, active_power_via_trafos] = ...
+%         compare_power_flow_between_regions(mpc_sol_aladin,mpc_merge.connections,mpc_split.regions,conn(:,1:2))
+%     
 elseif strcmp(options.algorithm, 'admm')
     %% admm
     % 

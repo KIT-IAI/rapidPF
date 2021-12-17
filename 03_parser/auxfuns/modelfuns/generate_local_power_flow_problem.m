@@ -1,4 +1,4 @@
-function [cost, ineq, eq, x0, pf, bus_specifications, Jac, grad_cost, Hessian, state, dims] = generate_local_power_flow_problem(mpc, names, postfix, problem_type)
+function [cost, ineq, eq, x0, pf, bus_specifications, Jac, grad_cost, Hessian, state, dims,g_ls,jac] = generate_local_power_flow_problem(mpc, names, postfix, problem_type)
 % generate_local_power_flow_problem
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
@@ -67,6 +67,7 @@ function [cost, ineq, eq, x0, pf, bus_specifications, Jac, grad_cost, Hessian, s
     has_correct_size(bus_specifications(x0), 2*N_core);
     %% generate return values
     if strcmp(problem_type,'feasibility')
+        g_ls = [];
         grad_cost = @(x)zeros(4*N_core + 2*N_copy, 1);
         Hessian = @(x, kappa, rho)jacobian_num(@(y)[Jac_pf(y); Jac_bus]'*kappa, x,  4*N_core + 2*N_copy, 4*N_core+ 2*N_copy);
         cost = @(x) 0;
@@ -84,7 +85,7 @@ function [cost, ineq, eq, x0, pf, bus_specifications, Jac, grad_cost, Hessian, s
         ineq = @(x)[];
         eq = @(x)[];
         pf = @(x)[ pf_p(x); pf_q(x) ];
-        Jac = @(x)[];
+        Jac = Jac_g_ls;
         dims.eq = [];
         dims.ineq = [];
     end

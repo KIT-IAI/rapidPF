@@ -37,10 +37,15 @@ function [options, app] = plot_options
 
     % Create CasefileDropDown
     app.CasefileDropDown = uidropdown(app.UIFigure);
-    app.CasefileDropDown.Items = {'14+30+9','300+118', '300X3(infesible)', ...
-        '118X3',  '118X7', '118X8','118X10', '1354X2', '1354X3', '1354X3+300X2'};
+    app.CasefileDropDown.Items = {'test','53-I','53-II',...
+        '418-1','418-3','418-5','418-8','418-10',...
+        '300X3(infesible)', '118X3',  '118X7', '118X8','118X10', ...
+        '1654-1','1654-3','1654-5','1654-8','1654-10','1654-12',...
+        '1654-16','1654-20','1654-25','1654-30',...
+        '2708-1', '2708-5','2708-10','2708-15','2708-20','2708-30',...
+        '4062-1','4062-final', '1354X3+300X2'};
     app.CasefileDropDown.Position = [33 222 164 22];
-    app.CasefileDropDown.Value = '14+30+9';
+    app.CasefileDropDown.Value = 'test';
 
     % Create AlgorithmButtonGroup
     app.AlgorithmButtonGroup = uibuttongroup(app.UIFigure);
@@ -68,7 +73,7 @@ function [options, app] = plot_options
     % Create GSKEditField
     app.GSKEditField = uieditfield(app.UIFigure, 'numeric');
     app.GSKEditField.Position = [310 222 100 22];
-    app.GSKEditField.Value = 1;
+    app.GSKEditField.Value = 0;
 
     % Create SolverButtonGroup
     app.SolverButtonGroup = uibuttongroup(app.UIFigure);
@@ -78,24 +83,29 @@ function [options, app] = plot_options
     % Create CasADiButton
     app.CasADiButton = uiradiobutton(app.SolverButtonGroup);
     app.CasADiButton.Text = 'CasADi';
-    app.CasADiButton.Position = [11 81 63 22];
+    app.CasADiButton.Position = [11 80 63 22];
 
     % Create fminconButton
     app.fminconButton = uiradiobutton(app.SolverButtonGroup);
     app.fminconButton.Text = 'fmincon';
-    app.fminconButton.Position = [11 59 65 22];
+    app.fminconButton.Position = [11 60 65 22];
 
     % Create fminuncButton
     app.fminuncButton = uiradiobutton(app.SolverButtonGroup);
     app.fminuncButton.Text = 'fminunc';
-    app.fminuncButton.Position = [11 37 65 22];
+    app.fminuncButton.Position = [11 40 65 22];
     app.fminuncButton.Value = true;
 
     % Create worhpButton
     app.worhpButton = uiradiobutton(app.SolverButtonGroup);
     app.worhpButton.Text = 'worhp';
-    app.worhpButton.Position = [11 16 65 22];
+    app.worhpButton.Position = [11 20 65 22];
 
+    % Create worhpButton
+    app.lsqnonlinButton = uiradiobutton(app.SolverButtonGroup);
+    app.lsqnonlinButton.Text = 'lsqnonlin';
+    app.lsqnonlinButton.Position = [11 0 65 22];
+    
 %    Create runButton
     runButton = uibutton(app.UIFigure, 'push',...
         'Text', 'Run',...
@@ -126,13 +136,15 @@ function [options, app] = plot_options
 
     % solver
     if app.CasADiButton.Value == true
-        options.solver = 'Casadi+Ipopt';
+        options.solver = 'casadi';
     elseif app.fminconButton.Value == true
         options.solver = 'fmincon';
     elseif app.fminuncButton.Value == true
         options.solver = 'fminunc';
     elseif app.worhpButton.Value == true 
         options.solver = 'worhp';
+    elseif app.lsqnonlinButton.Value == true 
+        options.solver = 'lsqnonlin';    
     end    
 end            
 function runButtonPushed(app)

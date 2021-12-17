@@ -16,12 +16,13 @@ function [trans, dist] = gen_shift_key(mpc, alpha)
 end
 
 function [gen, shift_power] = decrease_dist_gen(gen, alpha)
-    shift_power = sum(gen(:,2))*(1-alpha);
-    gen(:,2)    = gen(:,2)*alpha;
+    shift_power = sum(gen(:,2))*alpha;
+    gen(:,2)    = gen(:,2)*(1-alpha);
 end
 
 function gen = increase_trans_gen(gen, shift_power)
     trans_gen_power = sum(gen(:,2));
     ratio           = (trans_gen_power + shift_power)/trans_gen_power;
     gen(:,2)        = gen(:,2)*ratio;
+    gen(:,9)        = gen(:,9)*ratio;
 end
