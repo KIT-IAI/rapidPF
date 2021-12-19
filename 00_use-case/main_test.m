@@ -12,7 +12,7 @@ addpath(genpath('../00_use-case/'));
 addpath(genpath('../01_generator/'));
 addpath(genpath('../02_splitter/'));
 addpath(genpath('../03_parser/'));
-addpath(genpath('../04_solver_extension'));
+addpath(genpath('../04_aladin/'));
 %% plot option
 [options, app] = plot_options;
 casefile       = options.casefile;
@@ -73,10 +73,10 @@ end
 
 option              = AladinOption;
 option.problem_type = problem_type;
-option.iter_max  = 10;
-option.tol       = 1e-10;
-option.mu0       = 1e3;
-option.rho0      = 1e2;
+option.iter_max  = 20;
+option.tol       = 1e-8;
+option.mu0       = 1e1;
+option.rho0      = 1e1;
 option.nlp       = NLPoption;
 option.nlp.solver = solver;
 option.nlp.iter_display = true;
