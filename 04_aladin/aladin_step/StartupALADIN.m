@@ -149,15 +149,14 @@ classdef StartupALADIN
             % INPUT
             % yi, lam  - primal & dual variables
             % dy, dlam - step of primal & dual variables
-            
             % extract data from main loop
             logg      = obj.logg;
             k         = logg.iter;
-            if k <2
-                X_plus    = logg.X(:,k);
-            else
+%             if k <2
+%                 X_plus    = logg.X(:,k);
+%             else
                 X_plus    = logg.Y(:,k)+dy;
-            end
+%             end
             % update primal variable
             % assign new state to xi
             idx_x_start   = 1;
@@ -170,11 +169,6 @@ classdef StartupALADIN
                 idx_x_end = idx_x_start + Nxi - 1;
                 x_plus{j} = X_plus(idx_x_start:idx_x_end);
                 idx_x_start = idx_x_end + 1;
-                % reassign to local nlp - kappa
-%                 Nkappai   = obj.nlp(j).Nkappai;
-%                 idx_kappa_end = idx_kappa_start + Nkappai - 1;
-%                 kappai{j} = kappa(idx_kappa_start:idx_kappa_end);
-%                 idx_kappa_start = idx_kappa_end + 1;
             end
             % update dual variable
             lam = lam+dlam;
@@ -196,35 +190,6 @@ classdef StartupALADIN
                 flag = 0;
             end
         end
-                
-%         %Methods3 - build global model for casadi -abondened, too slow
-%         function casadi_model =  build_global_model_casadi(obj)
-%             import casadi.*
-%             % state variable
-%             dx_SX = SX.sym('dx',obj.Nx,             1);
-%             s_SX  = SX.sym('dx',obj.Nlam,           1);
-%             % parameter
-%             HQP   = SX.sym('H',obj.Nx+obj.Nlam,     obj.Nx+obj.Nlam);
-%             gQP   = SX.sym('g',obj.Nx+obj.Nlam,     1);
-%             AQP   = SX.sym('A',obj.Nlam+obj.Nkappa, obj.Nx+obj.Nlam);
-%             bQP   = SX.sym('b',obj.Nlam+obj.Nkappa, 1);
-%             % extended variable - X = [dx; s]
-%             X_SX  = vertcat(dx_SX,s_SX);  
-%             % casadi setting
-%             options.ipopt.tol         = 1.0e-10;
-%             options.ipopt.print_level = 0;
-%             options.print_time        = 5;
-%             options.ipopt.max_iter    = 100;
-%             options.ipopt.constr_viol_tol = 1e-10;
-%             % obj function
-%             objective_fun = X_SX'*HQP*X_SX/2 + gQP'*X_SX;
-%             % constraint function
-%             con_fun       = AQP*X_SX - bQP;
-%             % NLP struct - TOO LONG?
-%             global_qp     = struct('x',X_SX,'f',objective_fun,'g',con_fun,'p',[HQP(:);gQP;AQP(:);bQP]);
-%             % casadi nlp model
-%             casadi_model  = nlpsol('solver','ipopt',global_qp,options);
-%         end
     end
 end
 
