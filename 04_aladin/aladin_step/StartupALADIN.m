@@ -149,15 +149,14 @@ classdef StartupALADIN
             % INPUT
             % yi, lam  - primal & dual variables
             % dy, dlam - step of primal & dual variables
-            
             % extract data from main loop
             logg      = obj.logg;
             k         = logg.iter;
-            if k <2
-                X_plus    = logg.X(:,k);
-            else
+%             if k <2
+%                 X_plus    = logg.X(:,k);
+%             else
                 X_plus    = logg.Y(:,k)+dy;
-            end
+%             end
             % update primal variable
             % assign new state to xi
             idx_x_start   = 1;
@@ -170,11 +169,6 @@ classdef StartupALADIN
                 idx_x_end = idx_x_start + Nxi - 1;
                 x_plus{j} = X_plus(idx_x_start:idx_x_end);
                 idx_x_start = idx_x_end + 1;
-                % reassign to local nlp - kappa
-%                 Nkappai   = obj.nlp(j).Nkappai;
-%                 idx_kappa_end = idx_kappa_start + Nkappai - 1;
-%                 kappai{j} = kappa(idx_kappa_start:idx_kappa_end);
-%                 idx_kappa_start = idx_kappa_end + 1;
             end
             % update dual variable
             lam = lam+dlam;
@@ -196,35 +190,6 @@ classdef StartupALADIN
                 flag = 0;
             end
         end
-                
-%         %Methods3 - build global model for casadi -abondened, too slow
-%         function casadi_model =  build_global_model_casadi(obj)
-%             import casadi.*
-%             % state variable
-%             dx_SX = SX.sym('dx',obj.Nx,             1);
-%             s_SX  = SX.sym('dx',obj.Nlam,           1);
-%             % parameter
-%             HQP   = SX.sym('H',obj.Nx+obj.Nlam,     obj.Nx+obj.Nlam);
-%             gQP   = SX.sym('g',obj.Nx+obj.Nlam,     1);
-%             AQP   = SX.sym('A',obj.Nlam+obj.Nkappa, obj.Nx+obj.Nlam);
-%             bQP   = SX.sym('b',obj.Nlam+obj.Nkappa, 1);
-%             % extended variable - X = [dx; s]
-%             X_SX  = vertcat(dx_SX,s_SX);  
-%             % casadi setting
-%             options.ipopt.tol         = 1.0e-10;
-%             options.ipopt.print_level = 0;
-%             options.print_time        = 5;
-%             options.ipopt.max_iter    = 100;
-%             options.ipopt.constr_viol_tol = 1e-10;
-%             % obj function
-%             objective_fun = X_SX'*HQP*X_SX/2 + gQP'*X_SX;
-%             % constraint function
-%             con_fun       = AQP*X_SX - bQP;
-%             % NLP struct - TOO LONG?
-%             global_qp     = struct('x',X_SX,'f',objective_fun,'g',con_fun,'p',[HQP(:);gQP;AQP(:);bQP]);
-%             % casadi nlp model
-%             casadi_model  = nlpsol('solver','ipopt',global_qp,options);
-%         end
     end
 end
 
@@ -250,104 +215,3 @@ function alg_option = update_option_setting(alg_option,local_option)
     alg_option.qp.specify_con_jac  = local_option.specify_con_jac;
     alg_option.active_set          = local_option.active_set;
 end
-
-%% trust region method / sufficient descent check
-%             H    =  blkdiag(sensitivities(:).HHi);
-%             grad = sparse(vertcat(sensitivities(:).gfi)+A'*lam);
-%
-%         function [dy,dlam,logg] = trust_region_method(obj,dy,dlam,A,logg, H, grad, i,xi,x_plus)
-% %             pk = vertcat(dy,dlam);
-%             pk = dy;
-%             pp = pk'*pk;
-%             gg = grad'*grad;
-%             if i==1
-%                 d = gg/(grad'*H*grad);
-%                 logg.delta(i) = d;
-%                 dd = d^2;
-%             else
-%                 dd = logg.delta(i)^2;
-%             end
-%             success = check_sufficient_descent(obj,A,xi,x_plus,i);
-%             if success
-%                % full step, increase delta
-%                     logg.delta(i) = max( 2 * sqrt(pp),logg.delta(i));
-%               
-%             else
-%                      logg.delta(i) = sqrt(pp)/4;
-%             end
-%             if pp > dd
-%                 p_sd = -(grad'*grad)/(grad'*H*grad)* grad; % steepest descent direction
-%                 pp_sd = p_sd'*p_sd;
-%                 if pp_sd > dd
-%                     beta =  sqrt(dd/pp_sd);
-%                     pk   = beta*p_sd;
-%                 else
-%                     % dogleg
-%                     dp = pk-p_sd;
-%                     c  = p_sd'*dp;
-%                     if c<=0
-%                         beta = (-c + sqrt(c^2+dp'*dp*(dd-pp_sd))) / (dp'*dp);
-%                     else
-%                         beta = (dd-pp_sd)/(c+sqrt(c^2+dp'*dp*(dd-pp_sd)));
-%                     end
-%                     pk  = p_sd + beta * dp;
-%                 end
-%                 Nx = numel(dy);
-%                 dy = pk(1:Nx);
-% %                 dlam = beta * dlam;
-% %                 dlam = pk((Nx+1):end);   
-%             end
-%             if i<numel(logg.delta)
-% 
-%                 logg.delta(i+1) = logg.delta(i);
-%             end
-%         end
-% % 
-% function flag = check_sufficient_descent(obj,A,xold,xnew,i)
-%     logg    = obj.logg;
-%     p_local = logg.Y(:,i)-logg.X(:,i);
-%     gamma   = 0.1;
-%     lambda  = 100;
-%     Nregion = numel(xold);
-%     Xnew = vertcat(xnew{:});
-%     Xold = vertcat(xold{:});
-%     dphi = 0;
-%     for j = 1:Nregion
-%         dphi = dphi + obj.nlp(j).local_funs.fi(xold{j})-obj.nlp(j).local_funs.fi(xnew{j});
-%     end
-%     dphi =  dphi + max(abs(A*Xold)) -max(abs(A*Xnew)) - gamma *( 500 * p_local'*p_local +  max(abs(lambda* A *logg.Y(:,i))));
-%     if dphi>0
-%         flag = true;
-%     else
-%         flag = false;
-%     end
-% end
-% 
-% function phi = phi_fun(fi,xi,Ai,ceq)
-%     
-%     for j = 1:Nregion
-%         dphi = dphi + obj.nlp(j).local_funs.fi(xold{j})-obj.nlp(j).local_funs.fi(xnew{j});
-%     end
-% end
-
-
-%             flag = check_sufficient_descent(obj,A,xi,x_plus,i)
-%             if flag
-%                 obj.gamma = obj.gamma/2;
-%             else
-%                 obj.gamma = obj.gamma*2;
-%             end
-%             % trust region
-%             
-%             [dy,dlam, obj.logg] = trust_region_method(obj,dy,dlam,A,obj.logg,H, grad,i,xi,x_plus);
-%             X_plus  = obj.logg.Y(:,i)+dy;
-% %             s = A*X_plus;
-% % % %             ss = s'*s;
-% %             dlam = s*mu;
-%             idx_start = 1;
-%             for j = 1:Nregion
-%                 Nxi       = numel(yi{j});
-%                 idx_end   = idx_start + Nxi - 1;
-%                 x_plus{j} = X_plus(idx_start:idx_end);
-%                 idx_start = idx_end + 1;
-%             end       
