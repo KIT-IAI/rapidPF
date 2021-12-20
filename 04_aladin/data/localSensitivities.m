@@ -64,7 +64,11 @@ classdef localSensitivities
 % %                         lambda = zeros(size(lambda));
 %                     end
 %                     % compute sens by using casadi
-%                     [grad, jac, Hess] = nlp.casadi_model.sens(yi,lambda);
+%                     if strcmp(nlp.option.con_type,'unconstrained')
+%                         [grad, jac, Hess] = nlp.casadi_model.sens(yi);
+%                     else
+%                         [grad, jac, Hess] = nlp.casadi_model.sens(yi,lambda);
+%                     end
 %                     obj.grad          = full(grad);
 %                     obj.jacobian      = full(jac);
 %                     if ~isempty(nlp.cineq)
@@ -80,16 +84,16 @@ classdef localSensitivities
         end
     end
 end
-
-function jacobian_bound = evaluate_jac_bound_active_set(lbx,ubx,x,tol)
-% check active set for boundary, return jacobian of bound in active set
-    eye_bound      = speye(numel(x));
-    % select the row which violate either upper bound or lower bound
-    jacobian_bound = eye_bound(((x-lbx)<-tol) | ((x-ubx)>-tol),:);
-%     if any(jacobian_bound)
-%         keyboard
-%     end
-end
+% 
+% function jacobian_bound = evaluate_jac_bound_active_set(lbx,ubx,x,tol)
+% % check active set for boundary, return jacobian of bound in active set
+%     eye_bound      = speye(numel(x));
+%     % select the row which violate either upper bound or lower bound
+%     jacobian_bound = eye_bound(((x-lbx)<-tol) | ((x-ubx)>-tol),:);
+% %     if any(jacobian_bound)
+% %         keyboard
+% %     end
+% end
 
 function active_set = detect_active_set_inequality(cineq,x,tol)
 % check active set for inequality constraints, return jacobian of inequality constraints in active set
