@@ -310,4 +310,3 @@ OPF/mpc_merge.m
 OPF/mpc_merge_split.m
 mpc_merge.m
 mpc_merge_split.m
-00_use-case/auxfuns/mpc_data.m

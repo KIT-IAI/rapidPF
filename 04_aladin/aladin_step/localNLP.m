@@ -229,17 +229,18 @@ classdef localNLP
             % casadi nlp model
             casadi_model.nlp          = nlpsol('solver','ipopt',nlp,options);
             % sensitivities - cost & gradient
-            fi_casadi                 = obj.local_funs.fi(yi_SX);
-            grad_casadi               = gradient(fi_casadi,yi_SX);
-            % sensitivities - jacobian
-            jac_casadi                = jacobian(constraint_casadi,yi_SX);    
-            % sensitivities - hessian of lagrangian function
-            if isempty(constraint_casadi)
-            hess_casadi               = hessian(fi_casadi,yi_SX);
-            else
-            hess_casadi               = hessian(fi_casadi+kappa_SX'*constraint_casadi,yi_SX);
-            end
-            casadi_model.sens         = Function('sens',{yi_SX,kappa_SX},{grad_casadi,jac_casadi,hess_casadi});
+%             fi_casadi                 = obj.local_funs.fi(yi_SX);
+%             grad_casadi               = gradient(fi_casadi,yi_SX);
+%             % sensitivities - jacobian
+%             jac_casadi                = jacobian(constraint_casadi,yi_SX);    
+%             % sensitivities - hessian of lagrangian function
+%             if isempty(constraint_casadi)
+%                 hess_casadi               = hessian(fi_casadi,yi_SX);
+%                 casadi_model.sens         = Function('sens',{yi_SX},{grad_casadi,jac_casadi,hess_casadi});
+%             else
+%                 hess_casadi               = hessian(fi_casadi+kappa_SX'*constraint_casadi,yi_SX);
+%                 casadi_model.sens         = Function('sens',{yi_SX,kappa_SX},{grad_casadi,jac_casadi,hess_casadi});
+%             end
         end
     end
 end
@@ -287,7 +288,7 @@ function [yi, lambda,grad,hess] = solve_nlp_fmincon(nlp,xi,lam,rho)
         % constrained NLP
         nonlcon = @(x)build_nonlcon(nlp,x);
     end    
-    opts.StepTolerance = 1e-6;
+%     opts.StepTolerance = 1e-6;
     % display options
     if nlp.option.iter_display
         opts.Display   = 'iter';
