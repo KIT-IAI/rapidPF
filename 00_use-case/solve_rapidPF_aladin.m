@@ -1,14 +1,17 @@
 function [xsol, xsol_stacked, logg] = solve_rapidPF_aladin(problem, mpc_split, option, names)
     % extract data from rapidPF problem
-    A       = horzcat(problem.AA{:});
-    if iscell(problem.b)
-        b       = problem.b{:};
-    else
-        b       = problem.b;
-    end
     x0      = problem.zz0;
     lam0    = problem.lam0;   
     Nregion = numel(x0);
+    A       = horzcat(problem.AA{:});
+    if iscell(problem.b)
+        b = zeros(numel(lam0),1);
+        for i = 1:Nregion
+            b       = b + problem.b{i};
+        end
+    else
+        b       = problem.b;
+    end
     % initialize local NLP problem by extracting data from rapidPF problem
     nlps(Nregion,1)     = localNLP;
     for i = 1:Nregion
