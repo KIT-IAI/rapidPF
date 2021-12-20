@@ -1,7 +1,11 @@
 function [xsol, xsol_stacked, logg] = solve_rapidPF_aladin(problem, mpc_split, option, names)
     % extract data from rapidPF problem
     A       = horzcat(problem.AA{:});
-    b       = problem.b;
+    if iscell(problem.b)
+        b       = problem.b{:};
+    else
+        b       = problem.b;
+    end
     x0      = problem.zz0;
     lam0    = problem.lam0;   
     Nregion = numel(x0);
