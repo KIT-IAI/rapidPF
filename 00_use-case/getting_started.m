@@ -55,7 +55,8 @@ end
 % problem.solver = 'Casadi+Ipopt';
 
 %% solve problem
- [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
+ %[xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
+ [xval, xval_stacked] = validate_distributed_problem_formulation_new(problem, mpc_split, names);
 % [xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc_split, problem, names);
 % comparison_centralized = compare_results(xval, xsol)
 
