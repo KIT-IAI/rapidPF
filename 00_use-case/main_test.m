@@ -75,8 +75,8 @@ option              = AladinOption;
 option.problem_type = problem_type;
 option.iter_max  = 20;
 option.tol       = 1e-8;
-option.mu0       = 1e1;
-option.rho0      = 1e1;
+option.mu0       = 1e2;
+option.rho0      = 1e2;
 option.nlp       = NLPoption;
 option.nlp.solver = solver;
 option.nlp.iter_display = true;
@@ -84,7 +84,8 @@ option.qp        = QPoption;
 option.qp.regularization_hess = false;
 % option.qp.solver = 'lsqlin';
 % option.qp.solver = 'lsqminnorm';
-option.qp.solver = 'casadi';
+option.qp.solver = 'ldl';
+% option.qp.solver = 'lu';
 % start alg
 [xsol, xsol_stacked,logg] = solve_rapidPF_aladin(problem, mpc_split, option, names);
 
