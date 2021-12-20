@@ -287,7 +287,7 @@ function [yi, lambda,grad,hess] = solve_nlp_fmincon(nlp,xi,lam,rho)
         % constrained NLP
         nonlcon = @(x)build_nonlcon(nlp,x);
     end    
-    opts.StepTolerance = 1e-6;
+%     opts.StepTolerance = 1e-6;
     % display options
     if nlp.option.iter_display
         opts.Display   = 'iter';
