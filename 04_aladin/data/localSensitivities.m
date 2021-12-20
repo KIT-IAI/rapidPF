@@ -14,7 +14,7 @@ classdef localSensitivities
             if nargin > 0
                 tol = sqrt(nlp.option.tol);
                 % computing sens by casadi
-                if isempty(nlp.casadi_model)
+%                 if isempty(nlp.casadi_model)
                     %% assumption: only have equality & inequality nonlinear constraints  
                     % not be validated yet
                     % jacobian for boundarys in active set
@@ -52,27 +52,27 @@ classdef localSensitivities
                     % hessian of lagrangian
                     
                     obj.Hess     = nlp.local_funs.hi(yi,kappa);                    
-                else
-                    %% using casadi to compute senstivities
-                    % active set detecting
-                    if ~isempty(nlp.cineq)
-                        active_set_ineq = detect_active_set_inequality(nlp.cineq,yi,tol); % inequality constraint on boundary
-                        active_set_eq   = true(nlp.Nkappai.eq,1);                         % all equality constraint
-                        active_set      = vertcat(active_set_ineq,active_set_eq);
-                        lambda          = active_set.*lambda;
-%                     else
-%                         lambda = zeros(size(lambda));
-                    end
-                    % compute sens by using casadi
-                    [grad, jac, Hess] = nlp.casadi_model.sens(yi,lambda);
-                    obj.grad          = full(grad);
-                    obj.jacobian      = full(jac);
-                    if ~isempty(nlp.cineq)
-                        % changing array size - may slow down 
-                        obj.jacobian  = obj.jacobian(active_set,:);
-                    end
-                    obj.Hess      = full(Hess);
-                end
+%                 else
+%                     %% using casadi to compute senstivities
+%                     % active set detecting
+%                     if ~isempty(nlp.cineq)
+%                         active_set_ineq = detect_active_set_inequality(nlp.cineq,yi,tol); % inequality constraint on boundary
+%                         active_set_eq   = true(nlp.Nkappai.eq,1);                         % all equality constraint
+%                         active_set      = vertcat(active_set_ineq,active_set_eq);
+%                         lambda          = active_set.*lambda;
+% %                     else
+% %                         lambda = zeros(size(lambda));
+%                     end
+%                     % compute sens by using casadi
+%                     [grad, jac, Hess] = nlp.casadi_model.sens(yi,lambda);
+%                     obj.grad          = full(grad);
+%                     obj.jacobian      = full(jac);
+%                     if ~isempty(nlp.cineq)
+%                         % changing array size - may slow down 
+%                         obj.jacobian  = obj.jacobian(active_set,:);
+%                     end
+%                     obj.Hess      = full(Hess);
+%                 end
                 % step limit on dy
                 obj.lbdy     =nlp.lby - yi; 
                 obj.ubdy     =nlp.uby - yi;
