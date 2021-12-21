@@ -1,4 +1,4 @@
-function mpc = back_to_mpc(mpc_split, xsol, et, iter, alg)
+function mpc = back_to_mpc(mpc_split, xsol, logg)
 % back_to_mpc
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
@@ -32,10 +32,10 @@ VA, BASE_KV, ZONE, VMAX, VMIN, LAM_P, LAM_Q, MU_VMAX, MU_VMIN] = idx_bus;
     mpc.branch     =  branch;
     mpc.baseMVA    =  baseMVA;
     mpc.success    =  true;     % Optimal Solution Found
-    mpc.et         =  et;       % elapsed time in seconds
-    mpc.iterations =  iter;
-    str            =  join(['\n' ,alg, ' Algorithm converged in %d iterations']);
-    fprintf(str, iter);
+    mpc.et         =  logg.computing_time;       % elapsed time in seconds
+    mpc.iterations =  logg.iter;
+    str            =  join(['\n' ,'ALADIN', ' Algorithm converged in %d iterations']);
+    fprintf(str, logg.iter);
 end
 
 function V = get_voltage(x)
