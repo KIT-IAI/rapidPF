@@ -1,4 +1,4 @@
-function error = deviation_violation_iter_plot(mpc, xval, logg, names,xsol_aladin) 
+function error = deviation_violation_iter_plot(mpc, xval, logg, names) 
     for j = 1:logg.iter
             x      = logg.Y(:,j);
             x      = wrap_ang(x,mpc);  
@@ -6,8 +6,8 @@ function error = deviation_violation_iter_plot(mpc, xval, logg, names,xsol_aladi
             e      = table2array(compare_results(xval, Y));
             error(j) = max(e(:,2)); % norm-inf of all regions
     end
-    logg.cons_violations(logg.cons_violations==0) =eps;
-    iter_plot(error,logg.cons_violations(2:end));
+    logg.primal_feasibility(logg.primal_feasibility==0) =eps;
+    iter_plot(error,logg.primal_feasibility(2:end));
 end
 
 function iter_plot(error, cons_violations)
