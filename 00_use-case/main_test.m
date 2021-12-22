@@ -89,5 +89,11 @@ option.qp.solver = 'ldl';
 % start alg
 [xsol, xsol_stacked,logg] = solve_rapidPF_aladin(problem, mpc_split, option, names);
 
+% back to mpc
+mpc_sol_aladin = back_to_mpc(mpc_split, xsol, logg);
+
 % compare result
-compare_results(xval, xsol)
+compare_results(xval, xsol);
+compare_constraints_violation(problem, logg);
+compare_power_flow_between_regions(mpc_sol_aladin, mpc_merge.connections, mpc_split.regions, conn(:,1:2));
+deviation_violation_iter_plot(mpc_split, xval, logg, names);
