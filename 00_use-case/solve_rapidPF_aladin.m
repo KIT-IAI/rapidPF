@@ -48,6 +48,8 @@ function [xsol, xsol_stacked, logg] = solve_rapidPF_aladin(problem, mpc_split, o
     end
     % main alg
     [xopt,logg] = run_aladin_algorithm(nlps,x0,lam0,A,b,option); 
+    % back to whole
+    state_opt = back_to_whole(xopt, problem);
     % reordering primal variable
-    [xsol, xsol_stacked] = deal_solution(xopt, mpc_split, names); 
+    [xsol, xsol_stacked] = deal_solution(state_opt, mpc_split, names); 
 end

@@ -23,12 +23,14 @@ function f = build_consensus_constraints(problem, x)
     for i = 1:N_regions
         A = problem.AA{i};
         if iscell(x)
-            y = x{i};
+            %y = x{i};
+            y = x{i}(problem.entries{i}.variable.stack);
         else
             y = x(n + (1:sizes(i)));
         end
         
         f = f + A*y;
+        f = f - problem.b{i};
         
         n = n + sizes(i);
     end

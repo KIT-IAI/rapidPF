@@ -53,4 +53,5 @@ function problem = generate_distributed_problem_new(mpc, names, problem_type)
     problem.state = states;
     
     problem.entries = entries;
+    problem.state_0 = state0_all;
 end
