@@ -35,7 +35,7 @@ function problem = add_aladin_specifics_new(problem, mpc, names)
     end
     
     Ncons   = size(consensus_matrices{1},1);
-    lam0    = 0.01*ones(Ncons,1);
+    lam0    = 0.0*ones(Ncons,1);
     %% generate output according to Aladin problem specifications
     problem.llbx = lb;
     problem.uubx = ub;
@@ -78,10 +78,10 @@ function [lb, ub] = build_bounds_per_region(N_core, N_copy)
     ang_ub = 10; 
     mag_lb = 0.1;
     mag_ub = 10; 
-    p_lb = -100; 
-    p_ub = 100;  
-    q_lb = -100; 
-    q_ub = 100;  
+    p_lb = -500; 
+    p_ub = 500;  
+    q_lb = -500; 
+    q_ub = 500;  
     
     [lb, ub] = build_bounds(N_core, N_copy, [ang_lb; mag_lb; p_lb; q_lb], [ang_ub; mag_ub; p_ub; q_ub]);
 end
