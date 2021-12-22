@@ -56,6 +56,10 @@ if strcmp(solver, 'Casadi+Ipopt') && strcmp(problem_type, 'feasibility')
     problem = rmfield(problem,'sens');
 end
 
+% problem.dimension = 'full';
+problem.dimension = 'half';
+
+
 % problem.solver      = 'worhp';
 % problem.solver = 'fmincon';
 % problem.solver = 'fminunc';

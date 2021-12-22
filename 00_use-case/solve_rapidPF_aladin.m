@@ -21,7 +21,6 @@ function [xsol, xsol_stacked, logg] = solve_rapidPF_aladin(problem, mpc_split, o
         gi = problem.sens.gg{i};% gradient of the local cost function
         hi = problem.sens.HH{i};% hessian  of the local cost function
         Ai = problem.AA{i};% consensus matrix for current region
-        
         % residual
         if strcmp(option.nlp.solver,'lsqnonlin')
             ri  = problem.locFuns.rri{i};% residual function
@@ -47,9 +46,14 @@ function [xsol, xsol_stacked, logg] = solve_rapidPF_aladin(problem, mpc_split, o
         nlps(i)    = localNLP(local_funs,option.nlp,problem.llbx{i},problem.uubx{i});
     end
     % main alg
-    [xopt,logg] = run_aladin_algorithm(nlps,x0,lam0,A,b,option); 
-    % back to whole
-    state_opt = back_to_whole(xopt, problem);
+    [xopt,logg] = run_aladin_algorithm(nlps,x0,lam0,A,b,option);
+    % check if half dim
+    if strcmp(problem.dimension, 'half')
+        % back to whole
+        state_opt = back_to_whole(xopt, problem);
+    else
+        state_opt = xopt;
+    end
     % reordering primal variable
     [xsol, xsol_stacked] = deal_solution(state_opt, mpc_split, names); 
 end
