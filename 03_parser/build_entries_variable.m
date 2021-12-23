@@ -79,6 +79,19 @@ function entries = build_entries_variable(n_core, n_copy, mpc, local_bus_to_remo
     entries.half.v_mag = entries_vmag_half;
     entries.half.p_net = entries_pnet_half;
     entries.half.q_net = entries_qnet_half;
+    
+    %% create entries for stack constant and variables
+    % get the correct order 
+    [~, v_ang_order] = sort([v_ang v_ang_const]);
+    [~, v_mag_order] = sort([v_mag v_mag_const]);
+    [~, p_net_order] = sort([p_net p_net_const]);
+    [~, q_net_order] = sort([q_net q_net_const]);
+    
+    % set to structure
+    entries.back_to_state.va_order = v_ang_order;
+    entries.back_to_state.vm_order = v_mag_order;
+    entries.back_to_state.p_order = p_net_order;
+    entries.back_to_state.q_order = q_net_order;
 end
 
 %% local functions
