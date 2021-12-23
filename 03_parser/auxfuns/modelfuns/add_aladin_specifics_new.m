@@ -41,7 +41,6 @@ function problem = add_aladin_specifics_new(problem, mpc, names)
     problem.uubx = ub;
     problem.opts.Sig = Sigma;
     problem.lam0 = lam0;
-    % problem.b = zeros(size(lam0));
 end
 
 function Sigma = build_Sigma_per_region(N_core, N_copy)

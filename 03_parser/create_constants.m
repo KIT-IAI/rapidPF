@@ -1,4 +1,4 @@
-function state_const = create_constants(Vang, Vmag, Pnet, Qnet, mpc, local_bus_to_remove, entries)
+function state_const = create_constants(~, Vmag, ~, ~, mpc, local_bus_to_remove, entries)
 % create_bus_specifications
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
@@ -68,12 +68,6 @@ function state_const = create_constants(Vang, Vmag, Pnet, Qnet, mpc, local_bus_t
 end
 
 %% local functions
-function f = reshape_to_bus_numbering(f, bus_types)
-    [~, sort_to_bus_numbering] = sort(bus_types);
-    f = f(sort_to_bus_numbering, :);
-    f = reshape(f', 2*numel(bus_types), 1);
-end
-
 function [ref, pv, pq] = remove_bus(bus, ref, pv, pq)
     ref = setdiff(ref, bus);
     pv = setdiff(pv, bus);

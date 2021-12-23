@@ -49,15 +49,16 @@ Nconnections = height(conn);
 mpc_merge = run_case_file_generator(mpc_trans, mpc_dist, conn, fields_to_merge, names);
 % case-file-splitter
 mpc_split = run_case_file_splitter(mpc_merge, conn, names);
+
+% state_dimension = 'full';
+state_dimension = 'half';
+
 % generate distributed problem
-problem = generate_distributed_problem_for_aladin(mpc_split, names, problem_type);
+problem = generate_distributed_problem_for_aladin(mpc_split, names, problem_type, state_dimension);
 problem.solver = solver;
 if strcmp(solver, 'Casadi+Ipopt') && strcmp(problem_type, 'feasibility')
     problem = rmfield(problem,'sens');
 end
-
-% problem.dimension = 'full';
-problem.dimension = 'half';
 
 
 % problem.solver      = 'worhp';

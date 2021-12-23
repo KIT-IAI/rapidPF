@@ -16,26 +16,46 @@ function problem = add_aladin_specifics(problem, mpc, names)
 %   end
 %   ```
 %   See also: [run_case_file_splitter](run_case_file_splitter.md)
-    [N_regions, N_buses_in_regions, N_copy_buses_in_regions, N_core_buses_in_regions] = get_relevant_information(mpc, names);
+    % get relevant parameters
+    [N_regions, ~, N_copy_buses_in_regions, N_core_buses_in_regions] = get_relevant_information(mpc, names);
     consensus_matrices = problem.AA;
+    state_dimension = problem.state_dimension;
     % ALADIN parameters
     [Sigma, lb, ub] = deal(cell(N_regions,1));
     for i = 1:N_regions
         N_core = N_core_buses_in_regions(i);
         N_copy = N_copy_buses_in_regions(i);
-        Sigma{i} = build_Sigma_per_region(N_core, N_copy);
-        [lb_temp, ub_temp] = build_bounds_per_region(N_core, N_copy);
-        [lb{i}, ub{i}] = deal(lb_temp, ub_temp);
+        
+        if strcmp(state_dimension,'full')   % use full state as variables
+            Sigma{i} = build_Sigma_per_region(N_core, N_copy);
+            [lb_temp, ub_temp] = build_bounds_per_region(N_core, N_copy);
+            [lb{i}, ub{i}] = deal(lb_temp, ub_temp);
+        
+        elseif strcmp(state_dimension,'half')   % use half of the state as variables
+            [lb_temp, ub_temp] = build_bounds_per_region(N_core, N_copy);
+            Sigma_i = build_Sigma_per_region(N_core, N_copy);
+            % get only the part for variables
+            entries = problem.entries{i}.variable.stack;
+            lb_temp = lb_temp(entries);
+            ub_temp = ub_temp(entries);
+            [lb{i}, ub{i}] = deal(lb_temp, ub_temp);
+            
+            Sigma{i} = Sigma_i(entries, entries);
+        end
     end
     
     Ncons   = size(consensus_matrices{1},1);
-    lam0    = 0.01*ones(Ncons,1);
+    % lam0    = 0.01*ones(Ncons,1);
+    lam0    = 0.0*ones(Ncons,1);
     %% generate output according to Aladin problem specifications
     problem.llbx = lb;
     problem.uubx = ub;
     problem.opts.Sig = Sigma;
     problem.lam0 = lam0;
-    problem.b = zeros(size(lam0));
+    
+    if strcmp(state_dimension,'full')  % use all the state as variables
+        problem.b = zeros(size(lam0));
+    end
 end
 
 function Sigma = build_Sigma_per_region(N_core, N_copy)
@@ -68,8 +88,8 @@ function [lb, ub] = build_bounds_per_region(N_core, N_copy)
 
 
 
-    ang_lb = -pi;
-    ang_ub = pi; 
+    ang_lb = -10;
+    ang_ub = 10; 
     mag_lb = 0.1;
     mag_ub = 10; 
     p_lb = -500; 

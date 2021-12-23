@@ -15,11 +15,13 @@ function fun = create_power_flow_equation_for_p(Vang, Vmag, Pnet, Qnet, Y, relev
 %       x^2
 %   end
 %   ```
-%   See also: [run_case_file_splitter](run_case_file_splitter.md)
+%   See also: [run_case_file_splitter](run_case_file_splitter.md)   
     if nargin == 5
         check_dimension(Vang, Vmag, Pnet, Qnet);        
         relevant_buses = 1:numel(Vang);
     end
+
+   
     assert(numel(Vang) == numel(Vmag), 'inconsistent dimensions for voltages')
     assert(numel(Pnet) == numel(Qnet), 'inconsistent dimensions for powers');
     

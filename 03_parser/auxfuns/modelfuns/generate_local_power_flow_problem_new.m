@@ -1,4 +1,4 @@
-function [cost, ineq, eq, x0_var, pf, bus_specifications, Jac, grad_cost, Hessian, state_var, dims, entries, state0_all] = generate_local_power_flow_problem_new(mpc, names, postfix, problem_type)
+function [cost, ineq, eq, x0_var, pf, bus_specifications, Jac, grad_cost, Hessian, state_var, dims, entries, state_const] = generate_local_power_flow_problem_new(mpc, names, postfix, problem_type)
 % generate_local_power_flow_problem
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
@@ -44,8 +44,6 @@ function [cost, ineq, eq, x0_var, pf, bus_specifications, Jac, grad_cost, Hessia
     Vmag = [Vmag_core; Vmag_copy];
     Pnet = Pnet_core;
     Qnet = Qnet_core;
-    
-    state_all = [Vang; Vmag; Pnet; Qnet];
      
     % get entries of constants and variables
     entries = build_entries_variable(N_core, N_copy, mpc, copy_buses_local);
@@ -60,16 +58,16 @@ function [cost, ineq, eq, x0_var, pf, bus_specifications, Jac, grad_cost, Hessia
     [Vang0, Vmag0, Pnet0, Qnet0] = create_initial_condition(mpc, copy_buses_local);
     x0 = stack_state(Vang0, Vmag0, Pnet0, Qnet0);
     
-    % get constants
-    entries_const = build_entries(N_core, N_copy, false);
-    state_const = create_constants(x0(entries_const{1}), x0(entries_const{2}), x0(entries_const{3}), x0(entries_const{4}), mpc, copy_buses_local, entries);
-    state0_all = state_const;
     % get initial condition for variables only
     x0_var = x0(entries.variable.stack);
+    
+    %% get constants
+    entries_const = build_entries(N_core, N_copy, false);
+    state_const = create_constants(x0(entries_const{1}), x0(entries_const{2}), x0(entries_const{3}), x0(entries_const{4}), mpc, copy_buses_local, entries);
     %% power flow equations
     entries_pf = build_entries(N_core, N_copy, true);
     % new
-    pf_p_new = @(x)create_power_flow_equation_for_p_new(x, state_const, Ybus, buses_local, entries, state_all);
+    pf_p_new = @(x)create_power_flow_equation_for_p_new(x, state_const, Ybus, buses_local, entries);
     pf_q_new = @(x)create_power_flow_equation_for_q_new(x, state_const, Ybus, buses_local, entries);
     pf_p = @(x)create_power_flow_equation_for_p(x(entries_pf{1}), x(entries_pf{2}), x(entries_pf{3}), x(entries_pf{4}), Ybus, buses_local);
     pf_q = @(x)create_power_flow_equation_for_q(x(entries_pf{1}), x(entries_pf{2}), x(entries_pf{3}), x(entries_pf{4}), Ybus, buses_local);
@@ -103,7 +101,7 @@ function [cost, ineq, eq, x0_var, pf, bus_specifications, Jac, grad_cost, Hessia
         g_ls    = @(x)[pf_p_new(x); pf_q_new(x)];
         % grad_cost = @(x)(2*Jac_g_ls(x)'* g_ls(x));
         grad_cost = @(x)(2*Jac_pf_new(x)'* g_ls(x));
-        % Hessian =  @(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x));%@(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x)); %@(x, kappa, rho)jacobian_num(@(y)(grad_cost(y)), x, 4*N_core + 2*N_copy, 4*N_core + 2*N_copy);
+        % Hessian =  @(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x));%@(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x)); 
         Hessian =  @(x,kappa, rho)(2*Jac_pf_new(x)'*Jac_pf_new(x));
         % cost = @(x)(g_ls(x)'*g_ls(x));
         cost = @(x)(g_ls(x)'*g_ls(x));

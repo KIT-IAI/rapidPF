@@ -48,7 +48,7 @@ function [xsol, xsol_stacked, logg] = solve_rapidPF_aladin(problem, mpc_split, o
     % main alg
     [xopt,logg] = run_aladin_algorithm(nlps,x0,lam0,A,b,option);
     % check if half dim
-    if strcmp(problem.dimension, 'half')
+    if strcmp(problem.state_dimension, 'half')
         % back to whole
         state_opt = back_to_whole(xopt, problem);
     else
