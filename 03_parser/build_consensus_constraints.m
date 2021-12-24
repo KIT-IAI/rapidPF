@@ -26,9 +26,9 @@ function f = build_consensus_constraints(problem, x)
         if iscell(x)
             y = x{i};
             
-            if strcmp(state_dimension,'half')   % use half state as variables
-                y = x{i}(problem.entries{i}.variable.stack); %only get variables
-            end
+%             if strcmp(state_dimension,'half')   % use half state as variables
+%                 y = x{i}(problem.entries{i}.variable.stack); %only get variables
+%             end
         else
             y = x(n + (1:sizes(i)));
         end

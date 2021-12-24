@@ -20,6 +20,12 @@ function [y, y_stacked] = validate_distributed_problem_formulation(problem, mpc,
     N_regions = numel(y);
     region = (1:N_regions)';
     state_dimension = problem.state_dimension;
+    
+    if strcmp(state_dimension,'half')   % use half state as variables
+        for i = 1:N_regions
+            y_stacked{i} = y_stacked{i}(problem.entries{i}.variable.stack);
+        end
+    end
     %% check equations
     % power flow equations
     pf_residual = cell2mat(arrayfun(@(i)norm(problem.pf{i}(y_stacked{i}), Inf), 1:N_regions, 'UniformOutput', false))';

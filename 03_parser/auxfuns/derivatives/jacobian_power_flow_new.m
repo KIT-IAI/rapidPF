@@ -7,7 +7,7 @@ function J = jacobian_power_flow_new(state_var, state_0, Ybus, entries, buses_to
     if isstruct(Ybus)
         Ybus = makeYbus(Ybus);
     end
-    V = Vm' .* exp(1j * Va');
+    V = Vm .* exp(1j * Va);
     [dS_dVa, dS_dVm] = dSbus_dV(Ybus, V);
     
     assert(numel(Va) == numel(Vm));
