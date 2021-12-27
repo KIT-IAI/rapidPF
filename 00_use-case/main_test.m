@@ -49,12 +49,17 @@ Nconnections = height(conn);
 mpc_merge = run_case_file_generator(mpc_trans, mpc_dist, conn, fields_to_merge, names);
 % case-file-splitter
 mpc_split = run_case_file_splitter(mpc_merge, conn, names);
+
+% state_dimension = 'full';
+state_dimension = 'half';
+
 % generate distributed problem
-problem = generate_distributed_problem_for_aladin(mpc_split, names, problem_type);
+problem = generate_distributed_problem_for_aladin(mpc_split, names, problem_type, state_dimension);
 problem.solver = solver;
 if strcmp(solver, 'Casadi+Ipopt') && strcmp(problem_type, 'feasibility')
     problem = rmfield(problem,'sens');
 end
+
 
 % problem.solver      = 'worhp';
 % problem.solver = 'fmincon';
@@ -89,5 +94,11 @@ option.qp.solver = 'ldl';
 % start alg
 [xsol, xsol_stacked,logg] = solve_rapidPF_aladin(problem, mpc_split, option, names);
 
+% back to mpc
+mpc_sol_aladin = back_to_mpc(mpc_split, xsol, logg);
+
 % compare result
 compare_results(xval, xsol)
+compare_constraints_violation(problem, logg);
+compare_power_flow_between_regions(mpc_sol_aladin, mpc_merge.connections, mpc_split.regions, conn(:,1:2));
+deviation_violation_iter_plot(mpc_split, xval, logg, names);

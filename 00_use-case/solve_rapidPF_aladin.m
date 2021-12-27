@@ -1,10 +1,17 @@
 function [xsol, xsol_stacked, logg] = solve_rapidPF_aladin(problem, mpc_split, option, names)
     % extract data from rapidPF problem
-    A       = horzcat(problem.AA{:});
-    b       = problem.b;
     x0      = problem.zz0;
     lam0    = problem.lam0;   
     Nregion = numel(x0);
+    A       = horzcat(problem.AA{:});
+    if iscell(problem.b)
+        b = zeros(numel(lam0),1);
+        for i = 1:Nregion
+            b       = b + problem.b{i};
+        end
+    else
+        b       = problem.b;
+    end
     % initialize local NLP problem by extracting data from rapidPF problem
     nlps(Nregion,1)     = localNLP;
     for i = 1:Nregion
@@ -14,7 +21,6 @@ function [xsol, xsol_stacked, logg] = solve_rapidPF_aladin(problem, mpc_split, o
         gi = problem.sens.gg{i};% gradient of the local cost function
         hi = problem.sens.HH{i};% hessian  of the local cost function
         Ai = problem.AA{i};% consensus matrix for current region
-        
         % residual
         if strcmp(option.nlp.solver,'lsqnonlin')
             ri  = problem.locFuns.rri{i};% residual function
@@ -40,7 +46,14 @@ function [xsol, xsol_stacked, logg] = solve_rapidPF_aladin(problem, mpc_split, o
         nlps(i)    = localNLP(local_funs,option.nlp,problem.llbx{i},problem.uubx{i});
     end
     % main alg
-    [xopt,logg] = run_aladin_algorithm(nlps,x0,lam0,A,b,option); 
+    [xopt,logg] = run_aladin_algorithm(nlps,x0,lam0,A,b,option);
+    % check if half dim
+    if strcmp(problem.state_dimension, 'half')
+        % back to whole
+        state_opt = back_to_whole(xopt, problem);
+    else
+        state_opt = xopt;
+    end
     % reordering primal variable
-    [xsol, xsol_stacked] = deal_solution(xopt, mpc_split, names); 
+    [xsol, xsol_stacked] = deal_solution(state_opt, mpc_split, names); 
 end
