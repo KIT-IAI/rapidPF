@@ -1,5 +1,4 @@
-function J = jacobian_power_flow_new(state_var, state_0, Ybus, entries, buses_to_ignore)
-    import casadi.*   
+function J = jacobian_power_flow_half(state_var, state_0, Ybus, entries, buses_to_ignore)
     % build the whole state
     [Va, Vm, P, Q] = back_to_whole_state(state_var, state_0, entries);
     

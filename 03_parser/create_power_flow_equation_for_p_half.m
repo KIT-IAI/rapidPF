@@ -1,4 +1,4 @@
-function fun = create_power_flow_equation_for_p_new(state_var, state_const, Y, relevant_buses, entries)
+function fun = create_power_flow_equation_for_p_half(state_var, state_const, Y, relevant_buses, entries)
     % stack the constants and variables to form the whole state
     [Vang, Vmag, Pnet] = stack_const_and_variables_p(state_var, state_const, entries);
     

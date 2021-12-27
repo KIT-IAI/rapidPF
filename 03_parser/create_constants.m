@@ -1,4 +1,4 @@
-function state_const = create_constants(~, Vmag, ~, ~, mpc, local_bus_to_remove, entries)
+function state_const = create_constants(Vmag, mpc, local_bus_to_remove, entries, n_state)
 % create_bus_specifications
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
@@ -22,7 +22,7 @@ function state_const = create_constants(~, Vmag, ~, ~, mpc, local_bus_to_remove,
         MU_PMAX, MU_PMIN, MU_QMAX, MU_QMIN, PC1, PC2, QC1MIN, QC1MAX, ...
         QC2MIN, QC2MAX, RAMP_AGC, RAMP_10, RAMP_30, RAMP_Q, APF] = idx_gen;
     
-    if nargin == 5
+    if nargin == 4
         local_bus_to_remove = [];
     end
     %%
@@ -58,13 +58,14 @@ function state_const = create_constants(~, Vmag, ~, ~, mpc, local_bus_to_remove,
     
     gbus = setdiff(gbus, ref);
     assert(isempty(setdiff(pv, gbus)));
-     
+    
+    state_const = zeros(n_state, 1);
     state_const(entries.constant.v_ang_global) = V0ang(entries.constant.v_ang);
     state_const(entries.constant.v_mag_global) = V0mag(entries.constant.v_mag);
     state_const(entries.constant.p_net_global) = P(entries.constant.p_net);
     state_const(entries.constant.q_net_global) = Q(entries.constant.q_net);
     
-    state_const = state_const';
+    % state_const = state_const';
 end
 
 %% local functions

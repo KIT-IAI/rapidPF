@@ -18,31 +18,32 @@ function problem = generate_distributed_problem(mpc, names, problem_type, state_
 %   See also: [run_case_file_splitter](run_case_file_splitter.md)
     % extract Data from casefile
     [N_regions, N_buses_in_regions, N_copy_buses_in_regions, ~] = get_relevant_information(mpc, names);
-    [costs, inequalities, equalities, states, xx0, pfs, bus_specs, Jacs, grads, Hessians, dims,residuals] = deal(cell(N_regions,1));
     connection_table = mpc.(names.consensus);
     
     if strcmp(state_dimension,'full')  % use all the state as variables
         % set up the Ai's
         consensus_matrices = create_consensus_matrices(connection_table, N_buses_in_regions, N_copy_buses_in_regions);
+        [costs, inequalities, equalities, states, xx0, pfs, bus_specs, Jacs, grads, Hessians, dims, residuals] = deal(cell(N_regions,1));
         % create local power flow problems
         fprintf('\n\n');
         for i = 1:N_regions
             fprintf('Creating power flow problem for system %i...', i);
-            [cost, inequality, equality, x0, pf, bus_spec, Jac, grad, Hessian, state, dim, residual] = generate_local_power_flow_problem(mpc.(names.split){i}, names, num2str(i), problem_type);
-            [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, bus_specs{i}, states{i}, Jacs{i}, grads{i}, Hessians{i}, dims{i}, residuals{i}] = deal(cost, inequality, equality, x0, pf, bus_spec, state, Jac, grad, Hessian, dim, residual);
+            %[cost, inequality, equality, x0, pf, bus_spec, Jac, grad, Hessian, state, dim, residual] = generate_local_power_flow_problem(mpc.(names.split){i}, names, num2str(i), problem_type);
+            [cost, inequality, equality, x0, pf, Jac, grad, Hessian, state, dim, ~, ~, residual, bus_spec] = generate_local_power_flow_problem_new(mpc.(names.split){i}, names, num2str(i), problem_type, state_dimension);
+            [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, states{i}, Jacs{i}, grads{i}, Hessians{i}, dims{i}, residuals{i}, bus_specs{i}] = deal(cost, inequality, equality, x0, pf, state, Jac, grad, Hessian, dim, residual, bus_spec);
             fprintf('done.\n')
         end
         %% generate bus_specs for full case
         problem.bus_specs = bus_specs;
         
     elseif strcmp(state_dimension,'half')  % use half of the state as variables
-        [costs, inequalities, equalities, states, xx0, pfs, bus_specs, Jacs, grads, Hessians, dims, entries, state_consts] = deal(cell(N_regions,1));
+        [costs, inequalities, equalities, states, xx0, pfs, Jacs, grads, Hessians, dims, entries, state_consts] = deal(cell(N_regions,1));
         % create local power flow problems
         fprintf('\n\n');
         for i = 1:N_regions
             fprintf('Creating power flow problem for system %i...', i);
-            [cost, inequality, equality, x0, pf, bus_spec, Jac, grad, Hessian, state, dim, entry, state_const] = generate_local_power_flow_problem_new(mpc.(names.split){i}, names, num2str(i), problem_type);
-            [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, bus_specs{i}, states{i}, Jacs{i}, grads{i}, Hessians{i}, dims{i}, entries{i}, state_consts{i}] = deal(cost, inequality, equality, x0, pf, bus_spec, state, Jac, grad, Hessian, dim, entry, state_const);
+            [cost, inequality, equality, x0, pf, Jac, grad, Hessian, state, dim, entry, state_const] = generate_local_power_flow_problem_new(mpc.(names.split){i}, names, num2str(i), problem_type, state_dimension);
+            [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, states{i}, Jacs{i}, grads{i}, Hessians{i}, dims{i}, entries{i}, state_consts{i}] = deal(cost, inequality, equality, x0, pf, state, Jac, grad, Hessian, dim, entry, state_const);
             fprintf('done.\n')
         end
         % set up the Ai's and b

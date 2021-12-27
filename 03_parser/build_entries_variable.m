@@ -1,8 +1,11 @@
-function entries = build_entries_variable(n_core, n_copy, mpc, local_bus_to_remove)  
+function entries = build_entries_for_problem(n_core, n_copy, mpc, local_bus_to_remove, state_dimension)  
     
-    if nargin == 5
+    if nargin == 4
         local_bus_to_remove = [];
     end
+    
+    entries_const = build_entries(N_core, N_copy, false);
+    entries_pf = build_entries(N_core, N_copy, true);
      %% get entries of ref, pv, pq buses
     mpopt = mpoption;
     mpc = ext2int(mpc, mpopt);
@@ -99,6 +102,23 @@ function [ref, pv, pq] = remove_bus(bus, ref, pv, pq)
     ref = setdiff(ref, bus);
     pv = setdiff(pv, bus);
     pq = setdiff(pq, bus);
+end
+
+%% build entries for full state case
+function entries = build_entries(N_core, N_copy, with_core)
+    if with_core
+        N = N_copy;
+    else
+        N = 0;
+    end
+        
+    entries = cell(4, 1);
+    dummy = { 1:N+N_core, 1:N+N_core, 1:N_core, 1:N_core };
+    nums = kron([N_core + N_copy; N_core], ones(2, 1));
+    nums_cum = [0 ; cumsum(nums)];
+    for i = 1:4
+        entries{i} = dummy{i} + nums_cum(i);
+    end
 end
 
 
