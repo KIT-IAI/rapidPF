@@ -104,11 +104,12 @@ classdef globalQP
                     case 'lu'
                         [L, U, P] = lu(LEQS_As);
                         LEQS_xs   = U\(L\(P*LEQS_Bs));
-                    case 'ldl'
+                    case 'MA57'
                         LEQS_As   =  [obj.HQP, obj.AQP'; obj.AQP, obj.KQP];
                         LEQS_Bs   = -[obj.gQP;obj.bQP];
-                        [L, D, P] = ldl(sparse(LEQS_As));
-                        LEQS_xs   = P*(L'\(D\(L\(P'*LEQS_Bs))));
+                        LEQS_xs   = ma57_solver(LEQS_As,LEQS_Bs);
+%                         [L, D, P] = ldl(LEQS_As);
+%                         LEQS_xs   = P*(L'\(D\(L\(P'*LEQS_Bs))));
                     case 'lsqlin'
                         LEQS_As   =  [obj.HQP, obj.AQP'; obj.AQP, obj.KQP];
                         LEQS_Bs   = -[obj.gQP;obj.bQP];                    

@@ -59,8 +59,8 @@ function problem = add_aladin_specifics(problem, mpc, names)
 end
 
 function Sigma = build_Sigma_per_region(N_core, N_copy)
-    ang = 100;
-    mag = 100;
+    ang = 1;
+    mag = 1;
     p = 1;
     q = 1;
 

@@ -49,7 +49,7 @@ Nconnections = height(conn);
 mpc_merge = run_case_file_generator(mpc_trans, mpc_dist, conn, fields_to_merge, names);
 % case-file-splitter
 mpc_split = run_case_file_splitter(mpc_merge, conn, names);
-
+%% choose problem dimension
 % state_dimension = 'full';
 state_dimension = 'half';
 
@@ -83,13 +83,13 @@ option.tol       = 1e-8;
 option.mu0       = 1e2;
 option.rho0      = 1e2;
 option.nlp       = NLPoption;
-option.nlp.solver = solver;
-option.nlp.iter_display = true;
+option.nlp.solver = 'MA57'; %solver;
+option.nlp.iter_display = false;
 option.qp        = QPoption;
 option.qp.regularization_hess = false;
 % option.qp.solver = 'lsqlin';
 % option.qp.solver = 'lsqminnorm';
-option.qp.solver = 'ldl';
+option.qp.solver = 'MA57';
 % option.qp.solver = 'lu';
 % start alg
 [xsol, xsol_stacked,logg] = solve_rapidPF_aladin(problem, mpc_split, option, names);
@@ -99,6 +99,6 @@ mpc_sol_aladin = back_to_mpc(mpc_split, xsol, logg);
 
 % compare result
 compare_results(xval, xsol)
-compare_constraints_violation(problem, logg);
-compare_power_flow_between_regions(mpc_sol_aladin, mpc_merge.connections, mpc_split.regions, conn(:,1:2));
-deviation_violation_iter_plot(mpc_split, xval, logg, names);
+% compare_constraints_violation(problem, logg);
+% compare_power_flow_between_regions(mpc_sol_aladin, mpc_merge.connections, mpc_split.regions, conn(:,1:2));
+% deviation_violation_iter_plot(mpc_split, xval, logg, names);
