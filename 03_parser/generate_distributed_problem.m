@@ -29,7 +29,7 @@ function problem = generate_distributed_problem(mpc, names, problem_type, state_
         for i = 1:N_regions
             fprintf('Creating power flow problem for system %i...', i);
             %[cost, inequality, equality, x0, pf, bus_spec, Jac, grad, Hessian, state, dim, residual] = generate_local_power_flow_problem(mpc.(names.split){i}, names, num2str(i), problem_type);
-            [cost, inequality, equality, x0, pf, Jac, grad, Hessian, state, dim, ~, ~, residual, bus_spec] = generate_local_power_flow_problem_new(mpc.(names.split){i}, names, num2str(i), problem_type, state_dimension);
+            [cost, inequality, equality, x0, pf, Jac, grad, Hessian, state, dim, ~, ~, residual, bus_spec] = generate_local_power_flow_problem(mpc.(names.split){i}, names, num2str(i), problem_type, state_dimension);
             [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, states{i}, Jacs{i}, grads{i}, Hessians{i}, dims{i}, residuals{i}, bus_specs{i}] = deal(cost, inequality, equality, x0, pf, state, Jac, grad, Hessian, dim, residual, bus_spec);
             fprintf('done.\n')
         end
@@ -42,12 +42,12 @@ function problem = generate_distributed_problem(mpc, names, problem_type, state_
         fprintf('\n\n');
         for i = 1:N_regions
             fprintf('Creating power flow problem for system %i...', i);
-            [cost, inequality, equality, x0, pf, Jac, grad, Hessian, state, dim, entry, state_const] = generate_local_power_flow_problem_new(mpc.(names.split){i}, names, num2str(i), problem_type, state_dimension);
+            [cost, inequality, equality, x0, pf, Jac, grad, Hessian, state, dim, entry, state_const] = generate_local_power_flow_problem(mpc.(names.split){i}, names, num2str(i), problem_type, state_dimension);
             [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, states{i}, Jacs{i}, grads{i}, Hessians{i}, dims{i}, entries{i}, state_consts{i}] = deal(cost, inequality, equality, x0, pf, state, Jac, grad, Hessian, dim, entry, state_const);
             fprintf('done.\n')
         end
         % set up the Ai's and b
-        [consensus_matrices, b] = create_consensus_matrices_new(connection_table, N_buses_in_regions, N_copy_buses_in_regions, entries, state_consts);
+        [consensus_matrices, b] = create_consensus_matrices_half(connection_table, N_buses_in_regions, N_copy_buses_in_regions, entries, state_consts);
         %% generate b for half case
         problem.b = b;
         problem.entries = entries;

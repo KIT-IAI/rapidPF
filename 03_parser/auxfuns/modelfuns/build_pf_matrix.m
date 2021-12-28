@@ -18,18 +18,22 @@ function [M_p, M_q] = build_pf_matrix(ang, Y)
 %   See also: [run_case_file_splitter](run_case_file_splitter.md)
     G = real(Y);
     B = imag(Y);
-    [sin_diff, cos_diff] = build_angle_differences(ang);
+    [row,col] = find(Y);
+    [sin_diff, cos_diff] = build_angle_differences(ang,row,col);
     
     M_p = G.*cos_diff + B.*sin_diff;
     M_q = G.*sin_diff - B.*cos_diff;
 end
 
-function [sin_diff, cos_diff] = build_angle_differences(ang)
+function [sin_diff, cos_diff] = build_angle_differences(ang,row,col)
 %     diff = ang - ang';
+    Nx   = numel(ang);
+%     ANG  = repmat(ang, 1, numel(ang));
+%     sparse
     
-    ANG = repmat(ang, 1, numel(ang));
-    diff = ANG - ANG';
+    diff = ang(row) - ang(col);
+%     diff(k) = ANG(k) - ANG'(k);
     
-    sin_diff = sin(diff);
-    cos_diff = cos(diff);
+    sin_diff = sparse(row,col,sin(diff),Nx,Nx);
+    cos_diff = sparse(row,col,cos(diff),Nx,Nx);
 end

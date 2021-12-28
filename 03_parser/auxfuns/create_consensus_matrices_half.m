@@ -1,4 +1,4 @@
-function [A, b] = create_consensus_matrices_new(tab, number_of_buses_in_region, number_of_copy_buses_in_region, entries, state0_all)
+function [A, b] = create_consensus_matrices_half(tab, number_of_buses_in_region, number_of_copy_buses_in_region, entries, state0_all)
 % create_consensus_matrices
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`

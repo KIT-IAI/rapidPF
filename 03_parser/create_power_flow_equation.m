@@ -1,4 +1,4 @@
-function fun = create_power_flow_equation_for_p(Vang, Vmag, Pnet, Qnet, Y, relevant_buses)
+function fun = create_power_flow_equation(Vang, Vmag, Pnet, Qnet, Y, relevant_buses)
 % create_power_flow_equation_for_p
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
@@ -20,16 +20,15 @@ function fun = create_power_flow_equation_for_p(Vang, Vmag, Pnet, Qnet, Y, relev
         check_dimension(Vang, Vmag, Pnet, Qnet);        
         relevant_buses = 1:numel(Vang);
     end
-
-   
-    assert(numel(Vang) == numel(Vmag), 'inconsistent dimensions for voltages')
-    assert(numel(Pnet) == numel(Qnet), 'inconsistent dimensions for powers');
-    
-    assert(numel(Pnet) == numel(relevant_buses) && numel(Qnet) == numel(relevant_buses), 'inconsistent dimensions')
-    [M_p, ~] = build_pf_matrix(Vang, Y);
+% 
+%    
+%     assert(numel(Vang) == numel(Vmag), 'inconsistent dimensions for voltages')
+%     assert(numel(Pnet) == numel(Qnet), 'inconsistent dimensions for powers');
+%     
+%     assert(numel(Pnet) == numel(relevant_buses) && numel(Qnet) == numel(relevant_buses), 'inconsistent dimensions')
+    [M_p, M_q] = build_pf_matrix(Vang, Y);
     P = Vmag .* (M_p * Vmag);
-    fun = P(relevant_buses) - Pnet;
+    Q = Vmag .* (M_q * Vmag);
+    fun = vertcat(P(relevant_buses) - Pnet, Q(relevant_buses) - Qnet);
 end
-
-
 
