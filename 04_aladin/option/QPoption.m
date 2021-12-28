@@ -3,7 +3,7 @@ classdef QPoption
     %   Detailed explanation goes here
     
     properties
-        solver               char {mustBeMember(solver,{'casadi','lsqlin','lsqminnorm','linsolve','pinv','ldl','lu','quadprog'})} = 'lsqminnorm' % solver of QP problem
+        solver               char {mustBeMember(solver,{'casadi','lsqlin','lsqminnorm','linsolve','pinv','ldl','lu','quadprog','MA57'})} = 'MA57' % solver of QP problem
         tol                          = 1e-8
         iter_display         logical = true        
         constrained          logical = false % if problem is unconstrained

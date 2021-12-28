@@ -112,6 +112,8 @@ classdef localNLP
                             else
                                 error('Residual function is necessary for lsqnonlin solver')
                             end
+                        case {'MA57'}
+                            
                         otherwise
                             % standard nlp problem
                             % option setting for local NLP - check empty
@@ -159,6 +161,10 @@ classdef localNLP
                         yi  = solve_nlp_lsqnonlin(obj,xi,lam,rho);
                     case {'casadi'}
                         [yi,~,fval]  = solve_nlp_casadi(obj,xi,lam,rho);
+                    case {'MA57'}
+                        LEQS_As      =   obj.local_funs.hi(xi,0)+2*rho*speye(obj.Nxi);
+                        LEQS_Bs      = - obj.local_funs.gi(xi);
+                        yi           =   xi + ma57_solver(LEQS_As,LEQS_Bs);
                     otherwise
                         fprintf('/nsolver unavaliable, using fmincon instead/n')
                         yi  = solve_nlp_fmincon(obj,xi,lam,rho);
@@ -171,18 +177,24 @@ classdef localNLP
                     case {'fmincon'}
                         [yi,lambda]  = solve_nlp_fmincon(obj,xi,lam,rho);
                     case {'casadi'}
-%                         viol = max(abs(obj.local_funs.ceq(xi)))
                         [yi,lambda]  = solve_nlp_casadi(obj,xi,lam,rho);
                     otherwise
                         fprintf('/nsolver unavaliable, using fmincon instead/n')
                         [yi,lambda]  = solve_nlp_fmincon(obj,xi,lam,rho);
-                end                % constrained NLP - fmincon
+                end   
             end
             %   compute sensitivities of local Non-Linear Problem
-            senstivities    = localSensitivities(obj, yi, lambda);
+% 
+%             grad = obj.local_funs.gi(xi);
+%             Hess = obj.local_funs.hi(xi,0)+2*rho*speye(obj.Nxi);
+%             pk   = ma57_solver(Hess,-grad);
+%             pk   = - (Hess+2*rho*eye(obj.Nxi))\grad;
+%             error = norm(yi-xi-pk,2)
+%             yi = xi+pk;
             if any(obj.idx_ang) 
                 yi          = wrap_ang_variable(yi,obj.idx_ang);
             end
+            senstivities    = localSensitivities(obj, yi, lambda);
             if ~isempty(fval)
                 senstivities.fval = fval;
             end
