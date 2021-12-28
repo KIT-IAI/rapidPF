@@ -146,7 +146,7 @@ classdef localNLP
         %    solvers including  1. fmincon   (default)
         %                       2. fminunc   (unconstrained only)
         %                       3. lsqnonlin (unconstrained only)
-        
+            fval = [];
             if ~obj.option.constrained
                 % 3 solvers avaliable for unconstrained NLP  
                 switch obj.option.solver 
@@ -158,7 +158,7 @@ classdef localNLP
                     case {'lsqnonlin'}
                         yi  = solve_nlp_lsqnonlin(obj,xi,lam,rho);
                     case {'casadi'}
-                        yi  = solve_nlp_casadi(obj,xi,lam,rho);
+                        [yi,~,fval]  = solve_nlp_casadi(obj,xi,lam,rho);
                     otherwise
                         fprintf('/nsolver unavaliable, using fmincon instead/n')
                         yi  = solve_nlp_fmincon(obj,xi,lam,rho);
@@ -180,6 +180,12 @@ classdef localNLP
             end
             %   compute sensitivities of local Non-Linear Problem
             senstivities    = localSensitivities(obj, yi, lambda);
+            if any(obj.idx_ang) 
+                yi          = wrap_ang_variable(yi,obj.idx_ang);
+            end
+            if ~isempty(fval)
+                senstivities.fval = fval;
+            end
         end
         
         %Methods3 - build nlp model for casadi
@@ -245,7 +251,7 @@ classdef localNLP
     end
 end
 
-function [yi,kappa] = solve_nlp_casadi(nlp,xi,lam,rho)
+function [yi,kappa,fval] = solve_nlp_casadi(nlp,xi,lam,rho)
 %% solve local nlp by casadi
     sol   = nlp.casadi_model.nlp('x0',   xi,...
                                  'p',    [rho;lam;xi],...
@@ -254,6 +260,7 @@ function [yi,kappa] = solve_nlp_casadi(nlp,xi,lam,rho)
                                  'lbg',  nlp.casadi_model.lbg,...
                                  'ubg',  nlp.casadi_model.ubg);
     yi    = full(sol.x);
+    fval  = full(sol.f);
     kappa = full(sol.lam_g);
 end
 

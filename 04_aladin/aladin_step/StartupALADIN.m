@@ -8,6 +8,7 @@ classdef StartupALADIN
     properties
         nlp           localNLP     % local Non-Linear Problem
         qp            globalQP     % global Quadratic Problem
+        idx_ang                    % entries of angle varibles
         A                          % consensus matrix      Ax=b
         b                          % consensus constraints Ax=b
         Nx                         % number of primal variable
@@ -37,6 +38,7 @@ classdef StartupALADIN
                 obj.Nregion        = numel(nlp);
                 % number of equality & inequality constraints
                 obj.Nkappa         = 0;
+                flag_angle         = false;
                 for i = 1:obj.Nregion
                     if ~isempty(nlp(i).ceq)
                         obj.Nkappa = obj.Nkappa + numel(nlp(i).ceq(x0{i}));
@@ -44,6 +46,14 @@ classdef StartupALADIN
                     if ~isempty(nlp(i).cineq)
                         obj.Nkappa = obj.Nkappa + numel(nlp(i).cineq(x0{i}));
                     end
+                    if any(nlp(i).idx_ang)
+                        flag_angle = true;
+                    end
+                end
+                if flag_angle
+                    obj.idx_ang = vertcat(nlp(:).idx_ang);
+                else
+                    obj.idx_ang = [];
                 end
 %                 obj.kappai         = cell(obj.Nregion,1);
                 % initialize logg to record data in iteration
@@ -53,14 +63,14 @@ classdef StartupALADIN
                 % updating global & local setting
                 obj.option         = update_option_setting(option, nlp(1).option);
                 % initial casadi model for global QP step
-                if strcmp(obj.option.qp.solver, 'casadi')
+%                 if strcmp(obj.option.qp.solver, 'casadi')
 %                     obj.global_casadi_model  = obj.build_global_model_casadi;
-                end
+%                 end
             end
         end
         
         % Method 1
-        function [yi,sensitivities,idx_ang] = local_step(obj,xi,lam)
+        function [yi,sensitivities] = local_step(obj,xi,lam)
             %% 1. solve local NLP problems in all regions
             % obtain primal minimizers of local problem and relevent sensitivities, including Hessian and gradient of original local cost function
             % INPUT
@@ -72,23 +82,19 @@ classdef StartupALADIN
             sensitivities(obj.Nregion,1)  = localSensitivities;
             % initial local state variable
             yi                            = cell(obj.Nregion,1);
-            flag = false;
+            fval = 0;
             for j = 1:obj.Nregion
                 % solve local NLPs, obtain yi and sensitivities info
-                fprintf('\nstart NLP of region %d\n\n',j)
+                if obj.nlp(j).option.iter_display
+                    fprintf('\nstart NLP of region %d\n\n',j)
+                end
                 [yi{j},sensitivities(j)]  = obj.nlp(j).solve_local_NLP(xi{j},lam,rho);
                 % angle issue - wrap angle variables to [-pi, pi], if they are not in the interval
-                if any(obj.nlp(j).idx_ang) 
-                    yi{j}                 = wrap_ang_variable(yi{j},obj.nlp(j).idx_ang);
-                    flag                  = true;
+                if ~isempty(sensitivities(j).fval)
+                    fval = fval+sensitivities(j).fval;
                 end
             end
-            % vertcat all entries of angle varibles, specify for PF/OPF
-            if flag
-                idx_ang = vertcat(obj.nlp(:).idx_ang);
-            else
-                idx_ang = [];
-            end
+            fval
         end     
         
         % Method 2
@@ -122,7 +128,7 @@ classdef StartupALADIN
         end
         
         % Method 3
-        function [dy,dlam] = global_step(obj,sensitivities, lam, consensus_residual, idx_ang)
+        function [dy,dlam] = global_step(obj,sensitivities, lam, consensus_residual)
             %% 3. solve global QP problem
             % initialize QP problem
             % INPUT
@@ -137,9 +143,6 @@ classdef StartupALADIN
             % solve equivalent linear system
             [dy,dlam]   = obj.qp.solve_global_qp(obj.Nlam, obj.Nx, lam);            
             % wrap angle variable into interval [-pi, pi]
-            if ~isempty(idx_ang)
-                dy             = wrap_ang_variable(dy,idx_ang);
-            end
         end        
         
         % Method 4
@@ -156,6 +159,9 @@ classdef StartupALADIN
 %                 X_plus    = logg.X(:,k);
 %             else
                 X_plus    = logg.Y(:,k)+dy;
+                if ~isempty(obj.idx_ang)
+                    X_plus = wrap_ang_variable(X_plus,obj.idx_ang);
+                end
 %             end
             % update primal variable
             % assign new state to xi
@@ -190,15 +196,6 @@ classdef StartupALADIN
                 flag = 0;
             end
         end
-    end
-end
-
-function x = wrap_ang_variable(x,idx_ang)
-    % wrap angle variables to [-pi, pi], if they are not in the interval
-    % x       - state variable
-    % idx_ang - logical array represents entries of angle variable 
-    if any((x(idx_ang)<-pi) | (x(idx_ang)>pi))
-        x(idx_ang) = wrapToPi(x(idx_ang));
     end
 end
 
