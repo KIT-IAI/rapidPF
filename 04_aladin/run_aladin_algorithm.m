@@ -10,20 +10,22 @@ function [xopt, logg, flag] = run_aladin_algorithm(nlps,x0,lam0,A,b,option)
     while aladin.logg.iter <=aladin.option.iter_max && ~flag
         fprintf('\nstart iteration %d\n',aladin.logg.iter)
         % 1. solve local NLPs
-        [yi,sensitivities,idx_ang]           = aladin.local_step(xi,lam);
+        [yi,sensitivities]           = aladin.local_step(xi,lam);
         % 2. check termination condition
         [flag, res_consensus, aladin.logg]   = aladin.check_termination_condition(xi,yi);
         % 3. solve global QP
-        [dy,dlam] = aladin.global_step(sensitivities,lam,res_consensus,idx_ang);
+        [dy,dlam] = aladin.global_step(sensitivities,lam,res_consensus);
         % 4. update primal and dual variables
         [xi, lam, aladin.logg] = aladin.primal_dual_update(yi,dy,lam,dlam);
         % 5. terminate when trap in the loop, local&global step repeated themselves
         if aladin.logg.iter>1 && ~flag
             flag                             = aladin.check_trap_in_loop;
         end
+%         norm(lam,2)
+%         lam = zeros(size(lam));
         % naive updating pernalty parameters
-        aladin.logg.mu(aladin.logg.iter+1)   = aladin.logg.mu(aladin.logg.iter)/1.1;
-        aladin.logg.rho(aladin.logg.iter+1)  = aladin.logg.rho(aladin.logg.iter)*1.1;      
+        aladin.logg.mu(aladin.logg.iter+1)   = aladin.logg.mu(aladin.logg.iter);
+        aladin.logg.rho(aladin.logg.iter+1)  = aladin.logg.rho(aladin.logg.iter);      
         aladin.logg.iter = aladin.logg.iter + 1;
     end
     aladin.logg.iter = aladin.logg.iter - 1;

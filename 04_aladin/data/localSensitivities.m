@@ -7,6 +7,7 @@ classdef localSensitivities
         jacobian    % jacobian of equality constraints for local regions
         ubdy
         lbdy
+        fval
         
     end
     methods
