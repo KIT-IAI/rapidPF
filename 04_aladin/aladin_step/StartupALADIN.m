@@ -94,7 +94,6 @@ classdef StartupALADIN
                     fval = fval+sensitivities(j).fval;
                 end
             end
-            fval
         end     
         
         % Method 2
@@ -120,7 +119,7 @@ classdef StartupALADIN
             % dual feasibility
             logg.dual_feasibility(k)   = rho * logg.local_steplength(k);   
             % check if primal & dual feasibility are satisfied
-            if logg.primal_feasibility(k)<=tol && logg.dual_feasibility(k)<=tol
+            if logg.primal_feasibility(k)<=tol %&& logg.dual_feasibility(k)<=tol
                 flag = 1;
             else
                 flag = 0;

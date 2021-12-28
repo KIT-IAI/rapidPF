@@ -112,13 +112,13 @@ function [cost, ineq, eq, x0_var, pf, Jac, grad_cost, Hessian, state_var, dims, 
         if strcmp(state_dimension,'full')  % use all the state as variables 
             g_ls = @(x)[pf_p(x); pf_q(x); bus_specifications(x)];
             Jac_g_ls = @(x)[Jac_pf(x); Jac_bus];
-            grad_cost = @(x)(2*Jac_g_ls(x)'* g_ls(x));
-            Hessian =  @(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x));%@(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x)); 
+            grad_cost = @(x)(Jac_g_ls(x)'* g_ls(x));
+            Hessian =  @(x,kappa, rho)(Jac_g_ls(x)'*Jac_g_ls(x));%@(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x)); 
         elseif strcmp(state_dimension,'half')  % use half of the state as variables 
-            grad_cost = @(x)(2*Jac_pf(x)'* g_ls(x));
-            Hessian =  @(x,kappa, rho)(2*Jac_pf(x)'*Jac_pf(x));%@(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x)); 
+            grad_cost = @(x)(Jac_pf(x)'* g_ls(x));
+            Hessian =  @(x,kappa, rho)(Jac_pf(x)'*Jac_pf(x));%@(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x)); 
         end
-        cost = @(x)(g_ls(x)'*g_ls(x));
+        cost = @(x)(g_ls(x)'*g_ls(x))/2;
         ineq = @(x)[];
         eq = @(x)[];
         pf = @(x)[ pf_p(x); pf_q(x) ];
