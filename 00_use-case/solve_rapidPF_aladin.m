@@ -18,8 +18,9 @@ function [xsol, xsol_stacked, logg] = solve_rapidPF_aladin(problem, mpc_split, o
         Nx = numel(x0{i});
         % cost fun
         fi = problem.locFuns.ffi{i};% original local cost function
-        gi = problem.sens.gg{i};% gradient of the local cost function
-        hi = problem.sens.HH{i};% hessian  of the local cost function
+%         gi = problem.sens.gg{i};% gradient of the local cost function
+%         hi = problem.sens.HH{i};% hessian  of the local cost function
+        sens = problem.sens{i};
         Ai = problem.AA{i};% consensus matrix for current region
         % residual
         if strcmp(option.nlp.solver,'lsqnonlin')
@@ -42,7 +43,7 @@ function [xsol, xsol_stacked, logg] = solve_rapidPF_aladin(problem, mpc_split, o
         con_ineq    = [];            % equality constraints
         jac_ineq    = [];            % jacobian matrix of equality constraints
         % problem solve by lsqnonlin - objective calculated by residual
-        local_funs = originalFuns(fi, gi, hi, Ai, [], [], con_eq, jac_eq, con_ineq, jac_ineq);
+        local_funs = originalFuns(fi,sens, Ai, [], [], con_eq, jac_eq, con_ineq, jac_ineq);
         nlps(i)    = localNLP(local_funs,option.nlp,problem.llbx{i},problem.uubx{i});
     end
     % main alg

@@ -1,4 +1,4 @@
-function [cost, ineq, eq, x0_var, pf, Jac, grad_cost, Hessian, state_var, dims, entries, state_const, g_ls, bus_specifications] = generate_local_power_flow_problem(mpc, names, postfix, problem_type, state_dimension)
+function [cost, ineq, eq, x0_var, pf, Jac, sens, state_var, dims, entries, state_const, g_ls, bus_specifications] = generate_local_power_flow_problem(mpc, names, postfix, problem_type, state_dimension)
 % generate_local_power_flow_problem
 %
 %   `copy the declaration of the function in here (leave the ticks unchanged)`
@@ -86,7 +86,6 @@ function [cost, ineq, eq, x0_var, pf, Jac, grad_cost, Hessian, state_var, dims, 
 %         pf_q = @(x)create_power_flow_equation_for_q_half(x, state_const, Ybus, buses_local, entries);
         pf_eq = @(x)create_power_flow_equation_half(x, state_const, Ybus, buses_local, entries);
         %% sensitivities
-        Jac_x_y = @(x,y)jacobian_power_flow_half(x, y, state_const, Ybus, entries, copy_buses_local);
     end
   
     %% check sizes
@@ -116,9 +115,10 @@ function [cost, ineq, eq, x0_var, pf, Jac, grad_cost, Hessian, state_var, dims, 
             Jac_g_ls = @(x)[Jac_pf(x); Jac_bus];
             grad_cost = @(x)(Jac_g_ls(x)'* g_ls(x));
             Hessian =  @(x,kappa, rho)(Jac_g_ls(x)'*Jac_g_ls(x));%@(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x)); 
-        elseif strcmp(state_dimension,'half')  % use half of the state as variables 
-            grad_cost = @(x)Jac_x_y(x,  g_ls(x)');
-            Hessian =  @(x,kappa, rho)(Jac_x_y(x,[]));%@(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x)); 
+        elseif strcmp(state_dimension,'half')  % use half of the state as variables
+            sens = @(x)jacobian_power_flow_half(x, pf_eq(x)', state_const, Ybus, entries, copy_buses_local);
+%             grad_cost = @(x)Jac_x_y(x,  g_ls(x)');
+%             Hessian =  @(x,kappa, rho)(Jac_x_y(x,[]));%@(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x)); 
         end
         cost = @(x)(g_ls(x)'*g_ls(x))/2;
         ineq = @(x)[];

@@ -37,13 +37,13 @@ function problem = generate_distributed_problem(mpc, names, problem_type, state_
         problem.bus_specs = bus_specs;
         
     elseif strcmp(state_dimension,'half')  % use half of the state as variables
-        [costs, inequalities, equalities, states, xx0, pfs, Jacs, grads, Hessians, dims, entries, state_consts] = deal(cell(N_regions,1));
+        [costs, inequalities, equalities, states, xx0, pfs, Jacs, senss, dims, entries, state_consts] = deal(cell(N_regions,1));
         % create local power flow problems
         fprintf('\n\n');
         for i = 1:N_regions
             fprintf('Creating power flow problem for system %i...', i);
-            [cost, inequality, equality, x0, pf, Jac, grad, Hessian, state, dim, entry, state_const] = generate_local_power_flow_problem(mpc.(names.split){i}, names, num2str(i), problem_type, state_dimension);
-            [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, states{i}, Jacs{i}, grads{i}, Hessians{i}, dims{i}, entries{i}, state_consts{i}] = deal(cost, inequality, equality, x0, pf, state, Jac, grad, Hessian, dim, entry, state_const);
+            [cost, inequality, equality, x0, pf, Jac, sens, state, dim, entry, state_const] = generate_local_power_flow_problem(mpc.(names.split){i}, names, num2str(i), problem_type, state_dimension);
+            [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, states{i}, Jacs{i}, senss{i}, dims{i}, entries{i}, state_consts{i}] = deal(cost, inequality, equality, x0, pf, state, Jac, sens, dim, entry, state_const);
             fprintf('done.\n')
         end
         % set up the Ai's and b
@@ -60,7 +60,6 @@ function problem = generate_distributed_problem(mpc, names, problem_type, state_
 
     problem.locFuns.dims = dims;
 
-    problem.sens.gg = grads;
     
     if strcmp(problem_type,'feasibility')
         problem.sens.JJac = Jacs;
@@ -71,8 +70,8 @@ function problem = generate_distributed_problem(mpc, names, problem_type, state_
         problem.sens.JJac = Jacs;
     end
     
-    problem.sens.JJac = Jacs;
-    problem.sens.HH = Hessians;
+%     problem.sens.JJac = Jacs;
+    problem.sens = senss;
 
     problem.zz0 = xx0;
     problem.AA  = consensus_matrices;

@@ -112,7 +112,7 @@ classdef localNLP
                             else
                                 error('Residual function is necessary for lsqnonlin solver')
                             end
-                        case {'MA57'}
+                        case {'MA57','mldivide','cg_steihaug'}
                             
                         otherwise
                             % standard nlp problem
@@ -148,41 +148,34 @@ classdef localNLP
         %    solvers including  1. fmincon   (default)
         %                       2. fminunc   (unconstrained only)
         %                       3. lsqnonlin (unconstrained only)
-            fval = [];
-            if ~obj.option.constrained
-                % 3 solvers avaliable for unconstrained NLP  
-                switch obj.option.solver 
-                    % switch between different solver
-                    case {'fmincon'}
-                        yi  = solve_nlp_fmincon(obj,xi,lam,rho);
-                    case {'fminunc'}
-                        yi  = solve_nlp_fminunc(obj,xi,lam,rho);
-                    case {'lsqnonlin'}
-                        yi  = solve_nlp_lsqnonlin(obj,xi,lam,rho);
-                    case {'casadi'}
-                        [yi,~,fval]  = solve_nlp_casadi(obj,xi,lam,rho);
-                    case {'MA57'}
-                        LEQS_As      =   obj.local_funs.hi(xi,0)+2*rho*speye(obj.Nxi);
-                        LEQS_Bs      = - obj.local_funs.gi(xi);
-                        yi           =   xi + ma57_solver(LEQS_As,LEQS_Bs);
-                    otherwise
-                        fprintf('/nsolver unavaliable, using fmincon instead/n')
-                        yi  = solve_nlp_fmincon(obj,xi,lam,rho);
-                end
-                % dont have lambda for unconstrained problem
-                lambda = [];
-            else
-                switch obj.option.solver 
-                    % switch between different solver
-                    case {'fmincon'}
-                        [yi,lambda]  = solve_nlp_fmincon(obj,xi,lam,rho);
-                    case {'casadi'}
-                        [yi,lambda]  = solve_nlp_casadi(obj,xi,lam,rho);
-                    otherwise
-                        fprintf('/nsolver unavaliable, using fmincon instead/n')
-                        [yi,lambda]  = solve_nlp_fmincon(obj,xi,lam,rho);
-                end   
+%             fval = [];
+            % 3 solvers avaliable for unconstrained NLP  
+            switch obj.option.solver 
+                % switch between different solver
+                case {'fmincon'}
+                    yi  = solve_nlp_fmincon(obj,xi,lam,rho);
+                case {'fminunc'}
+                    yi  = solve_nlp_fminunc(obj,xi,lam,rho);
+                case {'lsqnonlin'}
+                    yi  = solve_nlp_lsqnonlin(obj,xi,lam,rho);
+                case {'casadi'}
+                    yi  = solve_nlp_casadi(obj,xi,lam,rho);
+                case {'MA57'}
+                    [grad, ~, hess] =   obj.local_funs.sens(xi);
+                    yi  = xi + ma57_solver(hess+2*rho*speye(obj.Nxi), -grad);
+                case {'mldivide'}
+                    [grad, ~, hess] =   obj.local_funs.sens(xi);
+                    yi  = xi + (hess+2*rho*speye(obj.Nxi))\ -grad;
+                case {'cg_steihaug'}
+                    [grad, JJp] =   obj.local_funs.sens(xi);
+                    yi  = xi + cg_steihaug(@(p)(JJp(p)+2*rho*speye(obj.Nxi)*p),-grad,0.1,5);
+                otherwise
+                    fprintf('/nsolver unavaliable, using fmincon instead/n')
+                    yi  = solve_nlp_fmincon(obj,xi,lam,rho);
             end
+            % dont have lambda for unconstrained problem
+
+
             %   compute sensitivities of local Non-Linear Problem
 % 
 %             grad = obj.local_funs.gi(xi);
@@ -194,10 +187,10 @@ classdef localNLP
             if any(obj.idx_ang) 
                 yi          = wrap_ang_variable(yi,obj.idx_ang);
             end
-            senstivities    = localSensitivities(obj, yi, lambda);
-            if ~isempty(fval)
-                senstivities.fval = fval;
-            end
+            senstivities    = localSensitivities(obj, yi);
+%             if ~isempty(fval)
+%                 senstivities.fval = fval;
+%             end
         end
         
         %Methods3 - build nlp model for casadi

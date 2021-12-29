@@ -135,7 +135,7 @@ classdef StartupALADIN
             % lam           - dual variables
             % consensus_residual - residual of consensus
             % idx           - entries of angle varibles
-            fprintf('\nstart QP \n')
+%             fprintf('\nstart QP \n')
             k                  = obj.logg.iter;
             % pre-processing for QP problem 
             obj.qp             = globalQP(obj,sensitivities,consensus_residual,lam);

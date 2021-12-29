@@ -8,6 +8,7 @@ classdef originalFuns
         gi % gradient of the local cost function
         hi % hessian  of the local cost function
         Ai % consensus matrix for current region
+        sens
         
         % residual
         ri  % residual function
@@ -24,12 +25,11 @@ classdef originalFuns
     end
     
     methods
-        function obj = originalFuns(fi, gi, hi, Ai, ri, dri, con_eq, jac_eq, con_ineq, jac_inq)
+        function obj = originalFuns(fi, sens, Ai, ri, dri, con_eq, jac_eq, con_ineq, jac_inq)
             %LOCALFUN Construct an original funs for a region
             if nargin>0
                 obj.fi = fi;
-                obj.gi = gi;
-                obj.hi = hi;
+                obj.sens = sens;
                 obj.Ai = sparse(Ai);
                 if ~isempty(ri) && ~isempty(dri)
                     obj.ri = ri;

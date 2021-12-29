@@ -1,4 +1,4 @@
-function Jx = jacobian_power_flow_half(state_var,y, state_0, Ybus, entries, buses_to_ignore)
+function [grad, JJp, Hess] = jacobian_power_flow_half(state_var, r, state_0, Ybus, entries, buses_to_ignore)
     % build the whole state
     [Va, Vm, P, Q] = back_to_whole_state(state_var, state_0, entries);
     
@@ -18,7 +18,7 @@ function Jx = jacobian_power_flow_half(state_var,y, state_0, Ybus, entries, buse
 %     J_Q = [ imag(dS_dVa), imag(dS_dVm),  sparse(ntotal, ncore), -speye(ntotal, ncore) ];
 %     J = [J_P; J_Q];
     
-    J = sparse( [real(dS_dVa), real(dS_dVm), -speye(ntotal, ncore),   sparse(ntotal, ncore) ;
+    J = sparse([real(dS_dVa), real(dS_dVm), -speye(ntotal, ncore),   sparse(ntotal, ncore) ;
           imag(dS_dVa), imag(dS_dVm),  sparse(ntotal, ncore), -speye(ntotal, ncore) ]);
 
 
@@ -26,12 +26,18 @@ function Jx = jacobian_power_flow_half(state_var,y, state_0, Ybus, entries, buse
     J = remove_rows(J, buses_to_ignore, ntotal);
     
     % only get the columns of variables
-    if iscolumn(y)
-        Jx = J(: , entries.variable.stack)*y;
-    elseif isrow(y)
-        Jx = (y*J(: , entries.variable.stack))';
-    elseif isempty(y)
-        Jm = J(: , entries.variable.stack);
-        Jx = Jm'*Jm;
-    end
+%     if iscolumn(y)
+%         Jx = J(: , entries.variable.stack)*y;
+%     elseif isrow(y)
+%         Jx = (y*J(: , entries.variable.stack))';
+%     elseif isempty(y)
+%         Jm = J(: , entries.variable.stack);
+%         Jx = Jm'*Jm;
+%     end
+    Jm   = J(: , entries.variable.stack);
+    grad = (r*Jm)';
+    JJp  = @(p)Jm'*(Jm*p);
+    if nargout >2
+        Hess = Jm'*Jm;
+    end    
 end
