@@ -26,7 +26,11 @@ function fun = create_power_flow_equation(Vang, Vmag, Pnet, Qnet, Y, relevant_bu
 %     assert(numel(Pnet) == numel(Qnet), 'inconsistent dimensions for powers');
 %     
 %     assert(numel(Pnet) == numel(relevant_buses) && numel(Qnet) == numel(relevant_buses), 'inconsistent dimensions')
-    [M_p, M_q] = build_pf_matrix(Vang, Y);
+    if isnumeric(Vang)
+        [M_p, M_q] = build_pf_matrix(Vang, Y);
+    else
+        [M_p, M_q] = build_pf_matrix_casadi(Vang, Y);
+    end
     P = Vmag .* (M_p * Vmag);
     Q = Vmag .* (M_q * Vmag);
     fun = vertcat(P(relevant_buses) - Pnet, Q(relevant_buses) - Qnet);

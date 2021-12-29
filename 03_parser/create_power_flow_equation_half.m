@@ -3,7 +3,12 @@ function fun = create_power_flow_equation_half(state_var, state_const, Y, releva
     [Vang, Vmag, Pnet, Qnet] = stack_const_and_variables(state_var, state_const, entries);
     
     % build pf equation for p
-    [M_p, M_q] = build_pf_matrix(Vang, Y);
+    if isnumeric(Vang)
+        [M_p, M_q] = build_pf_matrix(Vang, Y);
+    else
+        [M_p, M_q] = build_pf_matrix_casadi(Vang, Y);
+    end
+    
     P = Vmag .* (M_p * Vmag);
     Q = Vmag .* (M_q * Vmag);
     
