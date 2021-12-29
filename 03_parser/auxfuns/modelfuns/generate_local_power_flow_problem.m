@@ -34,7 +34,7 @@ function [cost, ineq, eq, x0_var, pf, Jac, sens, state_var, dims, entries, state
     buses_local = 1:N_core;
     copy_buses_local = mpc.(names.copy_buses.local);
     N_copy = numel(copy_buses_local);
-    Ybus = makeYbus(ext2int(mpc));
+    Ybus = sparse(makeYbus(ext2int(mpc)));
     N_state = 4 * N_core + 2 * N_copy;
         
     %% get entries of constants and variables
@@ -64,9 +64,11 @@ function [cost, ineq, eq, x0_var, pf, Jac, sens, state_var, dims, entries, state
 %         pf_q = @(x)create_power_flow_equation_for_q(x(entries.pf{1}), x(entries.pf{2}), x(entries.pf{3}), x(entries.pf{4}), Ybus, buses_local);
         %% bus specifications
         bus_specifications = @(x)create_bus_specifications(x(entries.const{1}), x(entries.const{2}), x(entries.const{3}), x(entries.const{4}), mpc, copy_buses_local);
+        g_ls = @(x)[pf_eq(x); bus_specifications(x)];
         %% sensitivities
-        Jac_pf  = @(x)jacobian_power_flow(x(entries.pf{1}), x(entries.pf{2}), x(entries.pf{3}), x(entries.pf{4}), Ybus, copy_buses_local);
-        Jac_bus = jacobian_bus_specifications(mpc, copy_buses_local);
+        sens  = @(x)sens_pf_full(x(entries.pf{1}), x(entries.pf{2}), x(entries.pf{3}), x(entries.pf{4}), g_ls(x)', Ybus, copy_buses_local, jacobian_bus_specifications(mpc, copy_buses_local));
+        
+%         Jac_g_ls = @(x)[Jac_pf(x); Jac_bus];
         % state const
         state_const = []; % no need
     elseif strcmp(state_dimension,'half')  % use half of the state as variables
@@ -85,7 +87,9 @@ function [cost, ineq, eq, x0_var, pf, Jac, sens, state_var, dims, entries, state
 %         pf_p = @(x)create_power_flow_equation_for_p_half(x, state_const, Ybus, buses_local, entries);
 %         pf_q = @(x)create_power_flow_equation_for_q_half(x, state_const, Ybus, buses_local, entries);
         pf_eq = @(x)create_power_flow_equation_half(x, state_const, Ybus, buses_local, entries);
+        g_ls    =  @(x)pf_eq(x);
         %% sensitivities
+        sens = @(x)sens_pf_half(x, pf_eq(x)', state_const, Ybus, entries, copy_buses_local);
     end
   
     %% check sizes
@@ -109,17 +113,6 @@ function [cost, ineq, eq, x0_var, pf, Jac, sens, state_var, dims, entries, state
         dims.eq = 4*N_core;
         dims.ineq = [];
     elseif strcmp(problem_type,'least-squares')
-        g_ls    =  @(x)pf_eq(x);
-        if strcmp(state_dimension,'full')  % use all the state as variables 
-            g_ls = @(x)[pf_eq(x); bus_specifications(x)];
-            Jac_g_ls = @(x)[Jac_pf(x); Jac_bus];
-            grad_cost = @(x)(Jac_g_ls(x)'* g_ls(x));
-            Hessian =  @(x,kappa, rho)(Jac_g_ls(x)'*Jac_g_ls(x));%@(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x)); 
-        elseif strcmp(state_dimension,'half')  % use half of the state as variables
-            sens = @(x)jacobian_power_flow_half(x, pf_eq(x)', state_const, Ybus, entries, copy_buses_local);
-%             grad_cost = @(x)Jac_x_y(x,  g_ls(x)');
-%             Hessian =  @(x,kappa, rho)(Jac_x_y(x,[]));%@(x,kappa, rho)(2*Jac_g_ls(x)'*Jac_g_ls(x)); 
-        end
         cost = @(x)(g_ls(x)'*g_ls(x))/2;
         ineq = @(x)[];
         eq = @(x)[];

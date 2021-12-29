@@ -1,4 +1,4 @@
-function J = jacobian_power_flow(Va, Vm, P, Q, Ybus, buses_to_ignore)
+function [grad, JJp, Hess] = sens_pf_full(Va, Vm, P, Q, r, Ybus, buses_to_ignore, Jac_bus)
     if nargin == 5
         buses_to_ignore = [];
     end
@@ -13,10 +13,16 @@ function J = jacobian_power_flow(Va, Vm, P, Q, Ybus, buses_to_ignore)
     assert(numel(Va) == numel(buses_to_ignore) + numel(P));
     ncore = numel(P);
     ntotal = numel(Va);
-    
-    J_P = [ real(dS_dVa), real(dS_dVm), -speye(ntotal, ncore),   sparse(ntotal, ncore) ];
-    J_Q = [ imag(dS_dVa), imag(dS_dVm),  sparse(ntotal, ncore), -speye(ntotal, ncore) ];
-    J = [J_P; J_Q];
-    
+        
+    J = sparse([real(dS_dVa), real(dS_dVm), -speye(ntotal, ncore),   sparse(ntotal, ncore) ;
+                imag(dS_dVa), imag(dS_dVm),  sparse(ntotal, ncore), -speye(ntotal, ncore);
+                Jac_bus]);
+   
     J = remove_rows(J, buses_to_ignore, ntotal);
+    
+    grad = (r*J)';
+    JJp  = @(p)J'*(J*p);
+    if nargout >2
+        Hess = J'*J;
+    end
 end

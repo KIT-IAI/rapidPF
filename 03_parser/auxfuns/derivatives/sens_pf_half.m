@@ -1,10 +1,10 @@
-function [grad, JJp, Hess] = jacobian_power_flow_half(state_var, r, state_0, Ybus, entries, buses_to_ignore)
+function [grad, JJp, Hess] = sens_pf_half(state_var, r, state_0, Ybus, entries, buses_to_ignore)
     % build the whole state
     [Va, Vm, P, Q] = back_to_whole_state(state_var, state_0, entries);
     
     % build the derivative
     if isstruct(Ybus)
-        Ybus = makeYbus(Ybus);
+        Ybus = sparse(makeYbus(Ybus));
     end
     V = Vm .* exp(1j * Va);
     [dS_dVa, dS_dVm] = dSbus_dV(Ybus, V);
