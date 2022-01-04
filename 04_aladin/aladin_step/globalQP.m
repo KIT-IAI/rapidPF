@@ -127,12 +127,14 @@ classdef globalQP
                         dy        = LEQS_xs(1:Nx);
                         dlam      = LEQS_xs((Nx+1):(Nx+Nlam));
                     case 'cg_steihaug'
-%                         delta    = (obj.AQP'*obj.KQP*obj.bQP - obj.gQP)'*(obj.AQP'*obj.KQP*obj.bQP - obj.gQP);
-%                         LEQS_xs   = cg_steihaug( (obj.HQP - obj.AQP'*obj.KQP^-1*obj.AQP),(obj.AQP'*obj.KQP^-1*obj.bQP - obj.gQP),1e-12,500);
-%                         LEQS_xs = pcg((obj.HQP + obj.AQP'*100*obj.AQP),(obj.AQP'*100*obj.bQP + obj.gQP), 1e-12,200);
-                        opt.SYM = true;
-                        opt.POSDEF =true;
-                        dy        = linsolve(full(obj.HQP + obj.AQP'*100*obj.AQP), -full(obj.AQP'*100*obj.bQP + obj.gQP),opt);
+                        delta    = (obj.AQP'*obj.KQP*obj.bQP - obj.gQP)'*(obj.AQP'*obj.KQP*obj.bQP - obj.gQP);
+%                         dy   = cg_steihaug((obj.HQP + obj.AQP'*100*obj.AQP),-(obj.AQP'*100*obj.bQP + obj.gQP),1e-16,10000);
+                        dy   = cgs((obj.HQP + obj.AQP'*100*obj.AQP),-(obj.AQP'*100*obj.bQP + obj.gQP),1e-8,10000);
+%                         dy = pcg((obj.HQP + obj.AQP'*100*obj.AQP),-(obj.AQP'*100*obj.bQP + obj.gQP), 1e-6,100000);
+%                         norm(dy1-dy,2)
+%                         opt.SYM = true;
+%                         opt.POSDEF =true;
+%                         dy        = linsolve(full(obj.HQP + obj.AQP'*100*obj.AQP), -full(obj.AQP'*100*obj.bQP + obj.gQP),opt);
                         dlam = sparse(Nlam,1);
                     otherwise % default - 'lsqminnorm'
                         LEQS_As   =  [obj.HQP, obj.AQP'; obj.AQP, obj.KQP];
