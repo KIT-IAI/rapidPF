@@ -16,6 +16,7 @@ addpath(genpath('../04_aladin/'));
 %% plot option
 [options, app] = plot_options;
 casefile       = options.casefile;
+%%
 gsk            = options.gsk;      % generation shift key
 problem_type   = options.problem_type;
 algorithm      = options.algorithm;
@@ -28,10 +29,12 @@ solver         = options.solver;
 % algorithm      = 'aladin';
 % solver         = 'fmincon';
 
-%% setup
+% setup
+gsk = 1;
 names                = generate_name_struct();
 matpower_casefile    = mpc_data(casefile);
-[mpc_trans,mpc_dist] = gen_shift_key(matpower_casefile, gsk); % P = P * 0.2
+decreased_region     =1;
+[mpc_trans,mpc_dist] = gen_shift_key(matpower_casefile, decreased_region, gsk); % P = P * 0.2
 fields_to_merge      = matpower_casefile.fields_to_merge;
 connection_array     = matpower_casefile.connection_array;
 
@@ -44,12 +47,12 @@ trafo_params.angle = 0;
 
 conn = build_connection_table(connection_array, trafo_params);
 Nconnections = height(conn);
-%% main
+% main
 % case-file-generator
 mpc_merge = run_case_file_generator(mpc_trans, mpc_dist, conn, fields_to_merge, names);
 % case-file-splitter
 mpc_split = run_case_file_splitter(mpc_merge, conn, names);
-%% choose problem dimension
+% choose problem dimension
 % state_dimension = 'full';
 state_dimension = 'half';
 
@@ -66,12 +69,12 @@ end
 % problem.solver = 'fminunc';
 % problem.solver = 'Casadi+Ipopt';
 
-%% solve problem
+% solve problem
  [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
 % [xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc_split, problem, names);
 % comparison_centralized = compare_results(xval, xsol)
 
-%% start local nlp
+% start local nlp
 % initial setting
 % load lam0_35.mat
 % problem.lam0 = lam0_140(:,7);
@@ -104,5 +107,5 @@ mpc_sol_aladin = back_to_mpc(mpc_split, xsol, logg);
 % compare result
 compare_results(xval, xsol)
 % compare_constraints_violation(problem, logg);
-% compare_power_flow_between_regions(mpc_sol_aladin, mpc_merge.connections, mpc_split.regions, conn(:,1:2));
+compare_power_flow_between_regions(mpc_sol_aladin, mpc_merge.connections, mpc_split.regions, conn(:,1:2));
 % deviation_violation_iter_plot(mpc_split, xval, logg, names);
