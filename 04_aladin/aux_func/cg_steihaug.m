@@ -29,7 +29,7 @@ i = 0;
             return 
         end
         rho = rr/(p'*Ap);       % one-dim minimizer
-        xk  = x;
+%         xk  = x;
         x   = x + rho*p;        % update state
 %         if ~isempty(delta) && x'*x > delta^2 
 %             % 2. terminate when new step encounters edge of trust-region
@@ -57,7 +57,6 @@ i = 0;
         end
         i   = i+1;
     end
-    i
 end
 
 function tau = find_steplength_on_edge(x,p,delta)

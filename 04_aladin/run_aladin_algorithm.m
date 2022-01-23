@@ -38,7 +38,7 @@ function [xopt, logg, flag] = run_aladin_algorithm(nlps,x0,lam0,A,b,option)
 %     end
     xopt = vertcat(yi{:});
     aladin.logg.computing_time = toc;
-    fprintf('runing time of ALADIN algorithm: %6.3f [s]\n',aladin.logg.computing_time)
+%     fprintf('runing time of ALADIN algorithm: %6.3f [s]\n',aladin.logg.computing_time)
     logg = aladin.logg;
     % reduce dim of logg
     if logg.iter>aladin.option.iter_max 

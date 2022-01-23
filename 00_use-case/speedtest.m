@@ -1,9 +1,5 @@
-t=zeros(100,1);
-for i = 1:20
-[xsol, xsol_stacked,logg] = solve_rapidPF_aladin(problem, mpc_split, option, names);
-t(i) = logg.computing_time;
-end
-t0 = sum(t(11:end))/10
+[xsol,et] = solve_rapidPF_aladin_speedtest(problem, mpc_split, option, names);
+et
 % %%
 % opt = mpoption;
 
@@ -13,3 +9,17 @@ t0 = sum(t(11:end))/10
 % (obj.HQP - obj.AQP'*obj.KQP*obj.AQP) x = obj.AQP'*obj.KQP*obj.bQP - obj.gQP
 % 
 % ddy = (obj.HQP - obj.AQP'*obj.KQP*obj.AQP)\(obj.AQP'*obj.KQP*obj.bQP - obj.gQP) ;
+%% 
+
+    opt = mpoption;
+    opt.verbose = 0;
+    opt.out.all = 0;
+    t_centr=zeros(10,1);
+% 
+    for i = 1:10
+       t0 = tic;
+        [res, flag] = runpf(mpc_merge, opt);
+        t_centr(i)= toc(t0);      
+    end
+t1 = sum(t_centr)/10
+

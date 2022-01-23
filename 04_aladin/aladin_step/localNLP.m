@@ -168,7 +168,7 @@ classdef localNLP
                     yi  = xi + (hess+2*rho*speye(obj.Nxi))\ -grad;
                 case {'cg_steihaug'}
                     [grad, JJp] =   obj.local_funs.sens(xi);
-                    yi  = xi + cg_steihaug(@(p)(JJp(p)+2*rho*speye(obj.Nxi)*p),-grad,0.01,5);
+                    yi  = xi + cg_steihaug(@(p)(JJp(p)+2*rho*speye(obj.Nxi)*p),-grad,0.01,3);
                 otherwise
                     fprintf('/nsolver unavaliable, using fmincon instead/n')
                     yi  = solve_nlp_fmincon(obj,xi,lam,rho);
