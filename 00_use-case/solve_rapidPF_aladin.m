@@ -48,13 +48,16 @@ function [xsol, xsol_stacked, logg] = solve_rapidPF_aladin(problem, mpc_split, o
     end
     % main alg
     [xopt,logg] = run_aladin_algorithm(nlps,x0,lam0,A,b,option);
+    dx = norm(vertcat(problem.zz0{:}) - xopt,2)
     % check if half dim
     if strcmp(problem.state_dimension, 'half')
         % back to whole
         state_opt = back_to_whole(xopt, problem);
+%         x0        = back_to_whole(problem.zz0, problem)
     else
         state_opt = xopt;
     end
+    
     % reordering primal variable
     [xsol, xsol_stacked] = deal_solution(state_opt, mpc_split, names); 
 end

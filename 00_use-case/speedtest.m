@@ -1,5 +1,6 @@
 [xsol,et] = solve_rapidPF_aladin_speedtest(problem, mpc_split, option, names);
 et
+Nconnections
 % %%
 % opt = mpoption;
 
@@ -9,7 +10,7 @@ et
 % (obj.HQP - obj.AQP'*obj.KQP*obj.AQP) x = obj.AQP'*obj.KQP*obj.bQP - obj.gQP
 % 
 % ddy = (obj.HQP - obj.AQP'*obj.KQP*obj.AQP)\(obj.AQP'*obj.KQP*obj.bQP - obj.gQP) ;
-%% 
+%%
 
     opt = mpoption;
     opt.verbose = 0;
@@ -23,3 +24,5 @@ et
     end
 t1 = sum(t_centr)/10
 
+
+%%
