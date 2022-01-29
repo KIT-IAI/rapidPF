@@ -67,7 +67,7 @@ end
 % problem.solver      = 'worhp';
 % problem.solver = 'fmincon';
 % problem.solver = 'fminunc';
-% problem.solver = 'Casadi+Ipopt';
+problem.solver = 'Casadi+Ipopt';
 
 % solve problem
  [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
@@ -87,6 +87,7 @@ option.mu0       = 1e2;
 option.rho0      = 1e2;
 option.nlp       = NLPoption;
 % option.nlp.solver = 'mldivide'; %solver;
+%option.nlp.solver = 'cg_steihaug';
 option.nlp.solver = 'cg_steihaug';
 % option.nlp.solver = 'MA57';
 option.nlp.iter_display = false;
@@ -94,9 +95,9 @@ option.qp        = QPoption;
 option.qp.regularization_hess = false;
 % option.qp.solver = 'lsqlin';
 % option.qp.solver = 'lsqminnorm';
-option.qp.solver = 'mldivide';
+% option.qp.solver = 'mldivide';
 % option.qp.solver = 'MA57';
-% option.qp.solver = 'cg_steihaug';
+option.qp.solver = 'cg_steihaug';
 % option.qp.solver = 'lu';
 % start alg
 [xsol, xsol_stacked,logg] = solve_rapidPF_aladin(problem, mpc_split, option, names);
