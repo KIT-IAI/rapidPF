@@ -67,7 +67,7 @@ end
 % problem.solver      = 'worhp';
 % problem.solver = 'fmincon';
 % problem.solver = 'fminunc';
-problem.solver = 'Casadi+Ipopt';
+%problem.solver = 'Casadi+Ipopt';
 
 % solve problem
  [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
@@ -86,9 +86,9 @@ option.tol       = 1e-8;
 option.mu0       = 1e2;
 option.rho0      = 1e2;
 option.nlp       = NLPoption;
-% option.nlp.solver = 'mldivide'; %solver;
+option.nlp.solver = 'mldivide'; %solver;
 %option.nlp.solver = 'cg_steihaug';
-option.nlp.solver = 'cg_steihaug';
+%option.nlp.solver = 'cg_steihaug';
 % option.nlp.solver = 'MA57';
 option.nlp.iter_display = false;
 option.qp        = QPoption;
