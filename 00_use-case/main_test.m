@@ -95,9 +95,9 @@ option.qp        = QPoption;
 option.qp.regularization_hess = false;
 % option.qp.solver = 'lsqlin';
 % option.qp.solver = 'lsqminnorm';
-% option.qp.solver = 'mldivide';
+option.qp.solver = 'mldivide';
 % option.qp.solver = 'MA57';
-option.qp.solver = 'cg_steihaug';
+% option.qp.solver = 'cg_steihaug';
 % option.qp.solver = 'lu';
 % start alg
 [xsol, xsol_stacked,logg] = solve_rapidPF_aladin(problem, mpc_split, option, names);
