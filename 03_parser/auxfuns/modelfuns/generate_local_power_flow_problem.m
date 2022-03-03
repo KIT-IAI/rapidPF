@@ -65,8 +65,9 @@ function [cost, ineq, eq, x0_var, pf, Jac, sens, state_var, dims, entries, state
         %% bus specifications
         bus_specifications = @(x)create_bus_specifications(x(entries.const{1}), x(entries.const{2}), x(entries.const{3}), x(entries.const{4}), mpc, copy_buses_local);
         g_ls = @(x)[pf_eq(x); bus_specifications(x)];
+        J = jacobian_bus_specifications(mpc, copy_buses_local);
         %% sensitivities
-        sens  = @(x)sens_pf_full(x(entries.pf{1}), x(entries.pf{2}), x(entries.pf{3}), x(entries.pf{4}), g_ls(x)', Ybus, copy_buses_local, jacobian_bus_specifications(mpc, copy_buses_local));
+        sens  = @(x)sens_pf_full(x(entries.pf{1}), x(entries.pf{2}), x(entries.pf{3}), x(entries.pf{4}), g_ls(x)', Ybus, copy_buses_local, J);
         
 %         Jac_g_ls = @(x)[Jac_pf(x); Jac_bus];
         % state const

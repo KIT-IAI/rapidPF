@@ -17,7 +17,7 @@ addpath(genpath('../04_aladin/'));
 [options, app] = plot_options;
 casefile       = options.casefile;
 %%
-gsk            = options.gsk;      % generation shift key
+gsk            = 0;options.gsk;      % generation shift key
 problem_type   = options.problem_type;
 algorithm      = options.algorithm;
 solver         = options.solver;
@@ -30,7 +30,7 @@ solver         = options.solver;
 % solver         = 'fmincon';
 
 % setup
-gsk = 1;
+gsk = 0;
 names                = generate_name_struct();
 matpower_casefile    = mpc_data(casefile);
 decreased_region     =1;
@@ -47,14 +47,14 @@ trafo_params.angle = 0;
 
 conn = build_connection_table(connection_array, trafo_params);
 Nconnections = height(conn);
-% main
+%% main
 % case-file-generator
 mpc_merge = run_case_file_generator(mpc_trans, mpc_dist, conn, fields_to_merge, names);
 % case-file-splitter
 mpc_split = run_case_file_splitter(mpc_merge, conn, names);
 % choose problem dimension
-% state_dimension = 'full';
-state_dimension = 'half';
+state_dimension = 'full';
+% state_dimension = 'half';
 
 % generate distributed problem
 problem = generate_distributed_problem_for_aladin(mpc_split, names, problem_type, state_dimension);
@@ -69,11 +69,11 @@ end
 % problem.solver = 'fminunc';
 %problem.solver = 'Casadi+Ipopt';
 
-% solve problem
+%% solve problem
  [xval, xval_stacked] = validate_distributed_problem_formulation(problem, mpc_split, names);
 % [xsol, xsol_stacked, mpc_sol] = solve_distributed_problem_centralized(mpc_split, problem, names);
 % comparison_centralized = compare_results(xval, xsol)
-
+%%
 % start local nlp
 % initial setting
 % load lam0_35.mat
@@ -86,10 +86,11 @@ option.tol       = 1e-8;
 option.mu0       = 1e2;
 option.rho0      = 1e2;
 option.nlp       = NLPoption;
-option.nlp.solver = 'mldivide'; %solver;
-%option.nlp.solver = 'cg_steihaug';
-%option.nlp.solver = 'cg_steihaug';
+% option.nlp.solver = 'mldivide'; %solver;
+% option.nlp.solver = 'cg_steihaug';
+option.nlp.solver = 'cg_steihaug';
 % option.nlp.solver = 'MA57';
+% option.nlp.solver = 'casadi';
 option.nlp.iter_display = false;
 option.qp        = QPoption;
 option.qp.regularization_hess = false;
@@ -100,13 +101,16 @@ option.qp.solver = 'mldivide';
 % option.qp.solver = 'cg_steihaug';
 % option.qp.solver = 'lu';
 % start alg
+tic
 [xsol, xsol_stacked,logg] = solve_rapidPF_aladin(problem, mpc_split, option, names);
-
+toc
 % back to mpc
-mpc_sol_aladin = back_to_mpc(mpc_split, xsol, logg);
+%mpc_sol_aladin = back_to_mpc(mpc_split, xsol, logg);
 
 % compare result
-compare_results(xval, xsol)
+%[tab,~,error] = compare_results(xval, xsol)
 % compare_constraints_violation(problem, logg);
-compare_power_flow_between_regions(mpc_sol_aladin, mpc_merge.connections, mpc_split.regions, conn(:,1:2));
+%compare_power_flow_between_regions(mpc_sol_aladin, mpc_merge.connections, mpc_split.regions, conn(:,1:2));
 % deviation_violation_iter_plot(mpc_split, xval, logg, names);
+%tab
+%error

@@ -16,7 +16,7 @@ Nconnections
     opt.verbose = 0;
     opt.out.all = 0;
     t_centr=zeros(10,1);
-% 
+% % 
     for i = 1:10
        t0 = tic;
         [res, flag] = runpf(mpc_merge, opt);
