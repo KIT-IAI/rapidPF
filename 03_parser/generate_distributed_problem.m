@@ -23,31 +23,31 @@ function problem = generate_distributed_problem(mpc, names, problem_type, state_
     if strcmp(state_dimension,'full')  % use all the state as variables
         % set up the Ai's
         consensus_matrices = create_consensus_matrices(connection_table, N_buses_in_regions, N_copy_buses_in_regions);
-        [costs, inequalities, equalities, states, xx0, pfs, bus_specs, Jacs, grads, Hessians, dims, residuals] = deal(cell(N_regions,1));
+        [costs, inequalities, equalities, states, xx0, pfs, bus_specs, Jacs, senss, dims, residuals] = deal(cell(N_regions,1));
         % create local power flow problems
         fprintf('\n\n');
         for i = 1:N_regions
             fprintf('Creating power flow problem for system %i...', i);
             %[cost, inequality, equality, x0, pf, bus_spec, Jac, grad, Hessian, state, dim, residual] = generate_local_power_flow_problem(mpc.(names.split){i}, names, num2str(i), problem_type);
-            [cost, inequality, equality, x0, pf, Jac, grad, Hessian, state, dim, ~, ~, residual, bus_spec] = generate_local_power_flow_problem_new(mpc.(names.split){i}, names, num2str(i), problem_type, state_dimension);
-            [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, states{i}, Jacs{i}, grads{i}, Hessians{i}, dims{i}, residuals{i}, bus_specs{i}] = deal(cost, inequality, equality, x0, pf, state, Jac, grad, Hessian, dim, residual, bus_spec);
+            [cost, inequality, equality, x0, pf, Jac, sens, state, dim, ~, ~, residual, bus_spec] = generate_local_power_flow_problem(mpc.(names.split){i}, names, num2str(i), problem_type, state_dimension);
+            [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, states{i}, Jacs{i}, senss{i}, dims{i}, residuals{i}, bus_specs{i}] = deal(cost, inequality, equality, x0, pf, state, Jac, sens, dim, residual, bus_spec);
             fprintf('done.\n')
         end
         %% generate bus_specs for full case
         problem.bus_specs = bus_specs;
         
     elseif strcmp(state_dimension,'half')  % use half of the state as variables
-        [costs, inequalities, equalities, states, xx0, pfs, Jacs, grads, Hessians, dims, entries, state_consts] = deal(cell(N_regions,1));
+        [costs, inequalities, equalities, states, xx0, pfs, Jacs, senss, dims, entries, state_consts] = deal(cell(N_regions,1));
         % create local power flow problems
         fprintf('\n\n');
         for i = 1:N_regions
             fprintf('Creating power flow problem for system %i...', i);
-            [cost, inequality, equality, x0, pf, Jac, grad, Hessian, state, dim, entry, state_const] = generate_local_power_flow_problem_new(mpc.(names.split){i}, names, num2str(i), problem_type, state_dimension);
-            [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, states{i}, Jacs{i}, grads{i}, Hessians{i}, dims{i}, entries{i}, state_consts{i}] = deal(cost, inequality, equality, x0, pf, state, Jac, grad, Hessian, dim, entry, state_const);
+            [cost, inequality, equality, x0, pf, Jac, sens, state, dim, entry, state_const] = generate_local_power_flow_problem(mpc.(names.split){i}, names, num2str(i), problem_type, state_dimension);
+            [costs{i}, inequalities{i}, equalities{i}, xx0{i}, pfs{i}, states{i}, Jacs{i}, senss{i}, dims{i}, entries{i}, state_consts{i}] = deal(cost, inequality, equality, x0, pf, state, Jac, sens, dim, entry, state_const);
             fprintf('done.\n')
         end
         % set up the Ai's and b
-        [consensus_matrices, b] = create_consensus_matrices_new(connection_table, N_buses_in_regions, N_copy_buses_in_regions, entries, state_consts);
+        [consensus_matrices, b] = create_consensus_matrices_half(connection_table, N_buses_in_regions, N_copy_buses_in_regions, entries, state_consts);
         %% generate b for half case
         problem.b = b;
         problem.entries = entries;
@@ -60,7 +60,6 @@ function problem = generate_distributed_problem(mpc, names, problem_type, state_
 
     problem.locFuns.dims = dims;
 
-    problem.sens.gg = grads;
     
     if strcmp(problem_type,'feasibility')
         problem.sens.JJac = Jacs;
@@ -71,8 +70,8 @@ function problem = generate_distributed_problem(mpc, names, problem_type, state_
         problem.sens.JJac = Jacs;
     end
     
-    problem.sens.JJac = Jacs;
-    problem.sens.HH = Hessians;
+%     problem.sens.JJac = Jacs;
+    problem.sens = senss;
 
     problem.zz0 = xx0;
     problem.AA  = consensus_matrices;

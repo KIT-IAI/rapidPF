@@ -1,4 +1,4 @@
-function [xsol, xsol_stacked, logg] = solve_rapidPF_aladin(problem, mpc_split, option, names)
+function [xsol, et] = solve_rapidPF_aladin_speedtest(problem, mpc_split, option, names)
     % extract data from rapidPF problem
     x0      = problem.zz0;
     lam0    = problem.lam0;   
@@ -47,17 +47,19 @@ function [xsol, xsol_stacked, logg] = solve_rapidPF_aladin(problem, mpc_split, o
         nlps(i)    = localNLP(local_funs,option.nlp,problem.llbx{i},problem.uubx{i});
     end
     % main alg
-    [xopt,logg] = run_aladin_algorithm(nlps,x0,lam0,A,b,option);
-    dx = norm(vertcat(problem.zz0{:}) - xopt,2)
+    t=zeros(100,1);
+    for i = 1:100
+        [xopt,logg] = run_aladin_algorithm(nlps,x0,lam0,A,b,option);
+        t(i) = logg.computing_time;
+    end
+    et = sum(t(11:end))/90;
     % check if half dim
     if strcmp(problem.state_dimension, 'half')
         % back to whole
         state_opt = back_to_whole(xopt, problem);
-%         x0        = back_to_whole(problem.zz0, problem)
     else
         state_opt = xopt;
     end
-    
     % reordering primal variable
     [xsol, xsol_stacked] = deal_solution(state_opt, mpc_split, names); 
 end

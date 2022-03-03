@@ -14,6 +14,7 @@ classdef globalQP
         ubg       % upper boundary of constraints
         lbg       % lower boundary of constraints
         option    QPoption
+        sens
     end
     
     methods
@@ -28,15 +29,17 @@ classdef globalQP
             k            = logg.iter;
             mu           = logg.mu(k);
             rho          = logg.rho(k);
+%             obj.sens     = sensitivities;
             Hk           = blkdiag(sensitivities(:).Hess);
+%             sens         = sensitivities;
             gk           = vertcat(sensitivities(:).grad);
             % check regularization setting
-            if obj.option.regularization_hess
-                gamma    = max(logg.primal_feasibility(k),logg.dual_feasibility(k)/rho);%/1.1^double(k);%/1.1^double(k)
-                if gamma > 1e-4
-                    Hk = Hk+gamma*speye(problem.Nx);
-                end
-            end
+%             if obj.option.regularization_hess
+%                 gamma    = max(logg.primal_feasibility(k),logg.dual_feasibility(k)/rho);%/1.1^double(k);%/1.1^double(k)
+%                 if gamma > 1e-4
+%                     Hk = Hk+gamma*speye(problem.Nx);
+%                 end
+%             end
             if strcmp(obj.option.solver,'casadi')
                 % solve global problem by casadi
                 y0       = problem.logg.Y(:,k);
@@ -60,8 +63,9 @@ classdef globalQP
                 obj.lbg  = zeros((Nactive_cons+problem.Nlam),1);
             elseif ~obj.option.constrained
                 % unconstrained
+%                 lam      = zeros(size(lam));
                 obj.HQP  = Hk;
-                obj.gQP  = gk+problem.A'*lam;
+                obj.gQP  = gk;%+problem.A'*lam;
                 obj.KQP  = -speye(problem.Nlam)/mu;
                 obj.AQP  = problem.A;
                 obj.bQP  = consensus_residual;
@@ -97,20 +101,42 @@ classdef globalQP
                 [dy, dlam] = obj.solve_global_qp_casadi(Nx,Nlam,lam);
             else
                 % solve equivialent linear system
-                LEQS_As   =  [obj.HQP, obj.AQP'; obj.AQP, obj.KQP];
-                LEQS_Bs   = -[obj.gQP;obj.bQP];
+
                 % solve QP
                 switch obj.option.solver
                     case 'lu'
-                        [L, U, P] = lu(LEQS_As);
-                        LEQS_xs   = U\(L\(P*LEQS_Bs));
-                    case 'MA57'
                         LEQS_As   =  [obj.HQP, obj.AQP'; obj.AQP, obj.KQP];
                         LEQS_Bs   = -[obj.gQP;obj.bQP];
-                        LEQS_xs   = ma57_solver(LEQS_As,LEQS_Bs);
+                        [L, U, P] = lu(LEQS_As);
+                        LEQS_xs   = U\(L\(P*LEQS_Bs));
+                        dy        = LEQS_xs(1:Nx);
+                        dlam      = LEQS_xs((Nx+1):(Nx+Nlam));
+                    case 'mldivide'
+                        dy   = - (obj.HQP + obj.AQP'*100*obj.AQP)...
+                               \(obj.AQP'*100*obj.bQP + obj.gQP);
+                        dlam = sparse(Nlam,1);
+                    case 'MA57'
+%                         LEQS_Bs   = -[obj.gQP;obj.bQP];
+%                         LEQS_xs   = cg_steihaug(obj,LEQS_Bs);
+%                         LEQS_xs = LEQS_As\LEQS_Bs;
 %                         [L, D, P] = ldl(LEQS_As);
 %                         LEQS_xs   = P*(L'\(D\(L\(P'*LEQS_Bs))));
-                    case 'lsqlin'
+                        LEQS_As   =  [obj.HQP, obj.AQP'; obj.AQP, obj.KQP];
+                        LEQS_Bs   = -[obj.gQP;obj.bQP];
+                        LEQS_xs   = ma57_solver(LEQS_As, LEQS_Bs);
+                        dy        = LEQS_xs(1:Nx);
+                        dlam      = LEQS_xs((Nx+1):(Nx+Nlam));
+                    case 'cg_steihaug'
+                        delta    = (obj.AQP'*obj.KQP*obj.bQP - obj.gQP)'*(obj.AQP'*obj.KQP*obj.bQP - obj.gQP);
+%                         dy   = cg_steihaug((obj.HQP + obj.AQP'*100*obj.AQP),-(obj.AQP'*100*obj.bQP + obj.gQP),1e-16,10000);
+                        dy   = cgs((obj.HQP + obj.AQP'*100*obj.AQP),-(obj.AQP'*100*obj.bQP + obj.gQP),1e-8,10000);
+%                         dy = pcg((obj.HQP + obj.AQP'*100*obj.AQP),-(obj.AQP'*100*obj.bQP + obj.gQP), 1e-6,100000);
+%                         norm(dy1-dy,2)
+%                         opt.SYM = true;
+%                         opt.POSDEF =true;
+%                         dy        = linsolve(full(obj.HQP + obj.AQP'*100*obj.AQP), -full(obj.AQP'*100*obj.bQP + obj.gQP),opt);
+                        dlam = sparse(Nlam,1);
+                    otherwise % default - 'lsqminnorm'
                         LEQS_As   =  [obj.HQP, obj.AQP'; obj.AQP, obj.KQP];
                         LEQS_Bs   = -[obj.gQP;obj.bQP];                    
                         N_xs    = numel(LEQS_Bs);
@@ -119,20 +145,17 @@ classdef globalQP
                         lb(1:Nx) = obj.lbdy;
                         ub(1:Nx) = obj.ubdy;
                         LEQS_xs = lsqlin(LEQS_As,LEQS_Bs,[],[],[],[],lb,ub);%                 case 'pinv'
-    %                     LEQS_xs = lsqlin(LEQS_As,LEQS_Bs,[],[],[],[],[],[]);
+                        dy        = LEQS_xs(1:Nx);
+                        dlam      = LEQS_xs((Nx+1):(Nx+Nlam));
+ %                     LEQS_xs = lsqlin(LEQS_As,LEQS_Bs,[],[],[],[],[],[]);
     %                     dxs = norm(LEQS_xs-LEQS_2,inf)
     %                     LEQS_xs = pinv(LEQS_As,LEQS_Bs);
     %                 case 'linsolve'
     %                     LEQS_xs = linsolve(LEQS_As,LEQS_Bs);
-                    otherwise % default - 'lsqminnorm'
                         LEQS_As   =  [obj.HQP, obj.AQP'; obj.AQP, obj.KQP];
                         LEQS_Bs   = -[obj.gQP;obj.bQP];                    
                         LEQS_xs = lsqminnorm(LEQS_As,LEQS_Bs);
                 end
-                % extract global step
-                dy        = LEQS_xs(1:Nx);
-                dlam      = LEQS_xs((Nx+1):(Nx+Nlam));
-%                 kappa     = LEQS_xs((Nx+Nlam+1):end);
             end
         end
         
@@ -174,3 +197,4 @@ classdef globalQP
         end
     end
 end
+

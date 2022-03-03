@@ -3,7 +3,7 @@ classdef NLPoption
     %   support fmincon, fminunc, lsqnonlin
     
     properties
-        solver      char {mustBeMember(solver,{'fmincon', 'fminunc','lsqnonlin','casadi','MA57'})}   = 'fmincon'         % select solver
+        solver      char {mustBeMember(solver,{'fmincon', 'fminunc','lsqnonlin','casadi','MA57','mldivide','cg_steihaug'})}   = 'fmincon'         % select solver
         sens        char {mustBeMember(sens,{'specify', 'casadi'})}   = 'casadi'
         con_type    char {mustBeMember(con_type,{'unconstrained','eq', 'ineq','both'})}       = 'unconstrained'   % problem type of local NLPs
         constrained          logical = false % if problem is unconstrained
