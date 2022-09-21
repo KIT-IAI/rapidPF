@@ -37,7 +37,9 @@ function [grad, JJp, Hess] = sens_pf_half(state_var, r, state_0, Ybus, entries, 
     Jm   = J(: , entries.variable.stack);
     grad = (r*Jm)';
     JJp  = @(p)Jm'*(Jm*p);
+    Nx = numel(grad);
     if nargout >2
-        Hess = Jm'*Jm;
-    end    
+        Hess = Jm'*Jm;%+1e-6*speye(Nx);
+        JJp  = Jm;
+    end
 end

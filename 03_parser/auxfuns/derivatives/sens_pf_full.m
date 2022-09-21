@@ -24,5 +24,6 @@ function [grad, JJp, Hess] = sens_pf_full(Va, Vm, P, Q, r, Ybus, buses_to_ignore
     JJp  = @(p)J'*(J*p);
     if nargout >2
         Hess = J'*J;
+        JJp  = J;
     end
 end

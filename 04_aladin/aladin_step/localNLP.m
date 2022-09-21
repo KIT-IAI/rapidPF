@@ -148,7 +148,7 @@ classdef localNLP
         %    solvers including  1. fmincon   (default)
         %                       2. fminunc   (unconstrained only)
         %                       3. lsqnonlin (unconstrained only)
-%             fval = [];
+        %             fval = [];
             % 3 solvers avaliable for unconstrained NLP  
             switch obj.option.solver 
                 % switch between different solver

@@ -88,10 +88,10 @@ option.rho0      = 1e2;
 option.nlp       = NLPoption;
 % option.nlp.solver = 'mldivide'; %solver;
 % option.nlp.solver = 'cg_steihaug';
-option.nlp.solver = 'cg_steihaug';
+option.nlp.solver = 'mldivide';
 % option.nlp.solver = 'MA57';
 % option.nlp.solver = 'casadi';
-option.nlp.iter_display = false;
+option.nlp.iter_display = true;
 option.qp        = QPoption;
 option.qp.regularization_hess = false;
 % option.qp.solver = 'lsqlin';
@@ -108,7 +108,7 @@ toc
 %mpc_sol_aladin = back_to_mpc(mpc_split, xsol, logg);
 
 % compare result
-%[tab,~,error] = compare_results(xval, xsol)
+[tab,~,error] = compare_results(xval, xsol)
 % compare_constraints_violation(problem, logg);
 %compare_power_flow_between_regions(mpc_sol_aladin, mpc_merge.connections, mpc_split.regions, conn(:,1:2));
 % deviation_violation_iter_plot(mpc_split, xval, logg, names);

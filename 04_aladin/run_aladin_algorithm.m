@@ -46,7 +46,7 @@ function [xopt, logg, flag] = run_aladin_algorithm(nlps,x0,lam0,A,b,option)
     end
     logg = logg.post_loop_dataprocessing;
     % plot iter info
-%     if aladin.option.iter_plot
-%         logg.plot_iter_info;
-%     end
+    if aladin.option.iter_plot
+        logg.plot_iter_info;
+    end
 end
