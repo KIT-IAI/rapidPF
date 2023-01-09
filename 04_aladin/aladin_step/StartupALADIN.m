@@ -57,7 +57,7 @@ classdef StartupALADIN
                 end
 %                 obj.kappai         = cell(obj.Nregion,1);
                 % initialize logg to record data in iteration
-                obj.logg           = iterInfo(option.iter_max, obj.Nx, obj.Nlam);
+                obj.logg           = iterInfo(option.iter_max, obj.Nx, obj.Nlam, obj.Nregion);
                 obj.logg.mu(1)     = option.mu0;
                 obj.logg.rho(1)    = option.rho0;
                 % updating global & local setting
@@ -70,29 +70,33 @@ classdef StartupALADIN
         end
         
         % Method 1
-        function [yi,sensitivities] = local_step(obj,xi,lam)
+        function [yi,sensitivities,logg] = local_step(obj,xi,lam)
             %% 1. solve local NLP problems in all regions
             % obtain primal minimizers of local problem and relevent sensitivities, including Hessian and gradient of original local cost function
             % INPUT
             % xi  - primal variables of current region
             % lam - dual variables
-            k                             = obj.logg.iter;
-            rho                           = obj.logg.rho(k);
+            logg                          = obj.logg;
+            k                             = logg.iter;
+            rho                           = logg.rho(k);
             % initial sensitivities array of localSensitivities Class
             sensitivities(obj.Nregion,1)  = localSensitivities;
             % initial local state variable
             yi                            = cell(obj.Nregion,1);
             fval = 0;
             for j = 1:obj.Nregion
+                tic
                 % solve local NLPs, obtain yi and sensitivities info
-                if obj.nlp(j).option.iter_display
-                    fprintf('\nstart NLP of region %d\n\n',j)
-                end
+%                 if obj.nlp(j).option.iter_display
+%                     fprintf('\nstart NLP of region %d\n\n',j)
+%                 end
                 [yi{j},sensitivities(j)]  = obj.nlp(j).solve_local_NLP(xi{j},lam,rho);
                 % angle issue - wrap angle variables to [-pi, pi], if they are not in the interval
-                if ~isempty(sensitivities(j).fval)
-                    fval = fval+sensitivities(j).fval;
-                end
+%                 if ~isempty(sensitivities(j).fval)
+%                     fval = fval+sensitivities(j).fval;
+%                 end
+                logg.et.local(j,k)=toc;
+%                logg.delta(k) = logg.delta(k)+obj.nlp(j).local_funs.fi(yi{j});
             end
         end     
         

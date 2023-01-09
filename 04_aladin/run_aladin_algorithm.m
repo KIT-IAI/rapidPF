@@ -1,6 +1,6 @@
 function [xopt, logg, flag] = run_aladin_algorithm(nlps,x0,lam0,A,b,option)
     %  initialize algorithm, run ALADIN-loop    
-    tic
+%     tic
     xi     = x0;
     lam    = lam0;
     % initialize ALADIN algorithm
@@ -9,14 +9,17 @@ function [xopt, logg, flag] = run_aladin_algorithm(nlps,x0,lam0,A,b,option)
     flag   = false;
     while aladin.logg.iter <=aladin.option.iter_max && ~flag
 %         fprintf('\nstart iteration %d\n',aladin.logg.iter)
+        k = aladin.logg.iter;
         % 1. solve local NLPs
-        [yi,sensitivities]           = aladin.local_step(xi,lam);
+        [yi,sensitivities,aladin.logg]           = aladin.local_step(xi,lam);
         % 2. check termination condition
         [flag, res_consensus, aladin.logg]   = aladin.check_termination_condition(xi,yi);
         % 3. solve global QP
+        tic
         [dy,dlam] = aladin.global_step(sensitivities,lam,res_consensus);
         % 4. update primal and dual variables
         [xi, lam, aladin.logg] = aladin.primal_dual_update(yi,dy,lam,dlam);
+        aladin.logg.et.global(k) = toc;
         % 5. terminate when trap in the loop, local&global step repeated themselves
         if aladin.logg.iter>1 && ~flag
             flag                             = aladin.check_trap_in_loop;
@@ -26,6 +29,7 @@ function [xopt, logg, flag] = run_aladin_algorithm(nlps,x0,lam0,A,b,option)
         % naive updating pernalty parameters
         aladin.logg.mu(aladin.logg.iter+1)   = aladin.logg.mu(aladin.logg.iter);
         aladin.logg.rho(aladin.logg.iter+1)  = aladin.logg.rho(aladin.logg.iter);      
+        aladin.logg.et.total(k) = max(aladin.logg.et.local(:,k)) +  aladin.logg.et.global(k);
         aladin.logg.iter = aladin.logg.iter + 1;
     end
     aladin.logg.iter = aladin.logg.iter - 1;
@@ -37,7 +41,7 @@ function [xopt, logg, flag] = run_aladin_algorithm(nlps,x0,lam0,A,b,option)
 %         fprintf('\nterminate due to reach maximal iterations %d \n',aladin.logg.iter)
 %     end
     xopt = vertcat(yi{:});
-    aladin.logg.computing_time = toc;
+%     aladin.logg.computing_time = toc;
 %     fprintf('runing time of ALADIN algorithm: %6.3f [s]\n',aladin.logg.computing_time)
     logg = aladin.logg;
     % reduce dim of logg

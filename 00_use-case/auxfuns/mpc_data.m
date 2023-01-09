@@ -2804,7 +2804,7 @@ function mpc=mpc_data(casefile)
                             1 2 37 30;
 
                             ];                             
-    elseif strcmp(casefile, 'test') 
+    elseif strcmp(casefile, 'test11') 
 
         mpc.trans  = ext2int(loadcase('case5'));
         mpc.dist = { ext2int(loadcase('case5'))};

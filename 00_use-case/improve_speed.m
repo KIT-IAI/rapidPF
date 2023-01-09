@@ -26,9 +26,12 @@ problem_type   = 'least-squares';
 algorithm      = 'aladin';
 solver         = 'fmincon';
 % casefile       = "53-II";
-casefile       = "118X3";
+% casefile       = "118X3";
 % casefile       = "418-10";
 % casefile = '418-3';
+casefile = '118X8';
+
+% casefile = '2708-1';
 % casefile       = '120';
 % gsk            = 0;      % generation shift key
 % problem_type   = 'least-squares';
@@ -95,6 +98,7 @@ option.qp.solver = 'mldivide';
 tic
 [xsol, xsol_stacked,logg] = solve_rapidPF_aladin(problem, mpc_split, option, names);
 toc
+% 
 xref = vertcat(xsol_stacked{:});
 % problem.solver      = 'worhp';
 % problem.solver = 'fmincon';
@@ -119,72 +123,97 @@ for i = 1:Nregion
     lam0{i}    = sparse(Nxi(i),1);
     Nxall      = size(problem.AA{i},2);
     Sigma{i}   = speye(Nxall);
+    sens{i}    = problem.sens{i};
 %     problem.zz0{i} = 
 end
 E = vertcat(EE{:});
 D = E'*E;
 %% initial
+ % initial
 v0 = cell(Nregion,1);
-yi = problem.zz0;
-lam = lam0;
+xi = problem.zz0;
 flag = false;
-k = 1;
-reg = 1e-8;
-rho = 10;
-dx = norm(vertcat(yi{:})-xref)
-while k<40 && ~false
+reg = 1e-10;
+rho = 1e-9;
+% dx0 = norm(vertcat(xi{:})-xref)
+iter_max = 7;
+Nll      = size(problem.AA{1},1);
+pn =[]
+tic
+% gauss newton test
+for k = 1:iter_max
     for i = 1:Nregion
-        % step 1: local step
+        if k >1
+%             xi{i} = xi{i} + pn{i}';
+            xi{i} = xi{i} + pn{i};
+        end
+        [gk{i}, Jk{i}, Bk{i}] =   sens{i}(xi{i});
+        Bk{i} = Bk{i}+ rho*speye(Nstate(i)); %+ rho*speye(Nstate(i));
+        % reduced Hessian
+        Jx     = Jk{i}(:,x_idx{i});
+        Jy     = Jk{i}(:,~x_idx{i});
+        gx     = gk{i}(x_idx{i});
+        gy     = gk{i}(~x_idx{i});
+        Nx{i}     = numel(gx);
+        Ny{i}     = numel(gy);
+        Hxx{i} = Jx'*Jx+reg*speye(Nx{i});
+        Hyy{i} = Jy'*Jy+reg*speye(Ny{i});
+        Hyx{i} = Jy'*Jx;
+        H_red{i}   = Hxx{i} - Hyx{i}'* (Hyy{i}\(Hyx{i}));
+    end
 
-        [grad, ~, hess] =   problem.sens{i}(yi{i});
-        grad(x_idx{i})     =   grad(x_idx{i});% + lam{i};
-        yi{i} = yi{i} - (hess+rho*speye(Nstate(i)))\ grad;
-        xi{i} = yi{i}(x_idx{i});
-        [Jr{i}, J,~] =   problem.sens{i}(yi{i});
-        Jx     = J(:,x_idx{i});
-        Jy     = J(:,~x_idx{i});
-        Hxx    = Jx'*Jx;
-        % regularization if low rank
-%         if rank(full(Hxx))<Nxi(i) || min(eig(full(Hxx)))<0
-            Hxx = Hxx + reg*speye(Nxi(i));
-%         end
-         Hyy{i}    = Jy'*Jy;
-%         if rank(full(Hyy))<(Nstate(i)-Nxi(i)) || min(eig(full(Hyy)))<0
-             Hyy{i} =  Hyy{i} + reg*speye(Nstate(i)-Nxi(i));
-%         end
-        Hyx{i}    = Jy'*Jx;
-%         Hi     = Hxx - Hxy*inv(Hyy)*Hxy';
-        invHy  = inv( Hyy{i});
-        invHy  = (invHy+invHy')/2;
-        Hi{i}   = Hxx - Hyx{i}'*invHy*Hyx{i};
-%         size(Hi{i},1)
-%         rank(full(Hi{i}))
-    end
-    dy = norm(vertcat(yi{:})-xref)
-    H = blkdiag(Hi{:});
-%     rank(full(H))
-    X = vertcat(xi{:});
-    z = (E'*H*E)\E'*H*X;
-    Px = E*z - X;
-    v = vertcat(lam{:}) - H*(Px) ;
-    k = k+1
-    lam = distributed_states(v,lam);
-    pxi = distributed_states(Px,xi);
-%     if k>1
-    for i = 1:Nregion
-        pyi = - Hyy{i}\(Jr{i}(~x_idx{i})+Hyx{i}*pxi{i});
-        yi{i}(x_idx{i}) = yi{i}(x_idx{i})+pxi{i};
-        yi{i}(~x_idx{i}) = yi{i}(~x_idx{i})+pyi;
-    end
-    dx = norm(vertcat(yi{:})-xref)
-%     rho = norm(Px)/100;
-    rho = rho/2;
-%     if k ==14
-%         keyboard
-%     end
-%     end
+    % QP subproblem - HDQ
+    lam = lam0;
+    for n = 1:1
+        for i =1:Nregion
+            g{i}    = gk{i};
+            g{i}(x_idx{i}) = g{i}(x_idx{i})+lam{i};
+%             pn{i} = - (Bk{i}+rho*speye(Nstate(i)))\g{i};
+            pn{i} = - Bk{i}\g{i};
+            pred{i} = pn{i}(x_idx{i});
+            x_plus{i} = pn{i}(x_idx{i}) + xi{i}(x_idx{i});
+        end
+        H = blkdiag(H_red{:});
+        X_plus = vertcat(x_plus{:});
+%         Z_plus = pinv(full(E'*H*E))*(E'*(H*X_plus));
+        Z_plus = ((E'*H*E))\(E'*(H*X_plus));
+%         pp_local(n) = norm(vertcat(pn{:}));
+        P = E*Z_plus  - X_plus;
+%         dpnorm(n) = norm(P);
+        v = vertcat(lam{:}) - 10*H*(P);
+%         v_norm(n) = norm(v);
+        lam = distributed_states(v,lam);
+        p_red = distributed_states(P,x_plus);
+        for i =1:Nregion
+            g{i}    = gk{i};
+            g{i}(x_idx{i}) = g{i}(x_idx{i})+lam{i};
+%             pn{i} = - (Bk{i}+rho*speye(Nstate(i)))\g{i};
+            pn{i} = - Bk{i}\g{i};
+        end        
+    end 
+%     figure(3)
+%     subplot(1,2,1)
+%     semilogy(dpnorm)
+%     title('dpnorm')
+%     subplot(1,2,2)
+%     semilogy(v_norm)
+%     title('v_norm')
+    
+        dx(k) = norm(vertcat(xi{:}) + vertcat(pn{:})- xref);
+%         dx(k)   
+        norm_coupling(k) =   norm(P) ;
+    rho = max(rho/10,1e-9);
+%     rho = max(norm_coupling(k)/10,1e-10);
+
 end
-
+toc
+figure(4)
+subplot(1,2,1)
+semilogy(norm_coupling)
+title('norm_coupling')
+subplot(1,2,2)
+semilogy(dx)
+title('dx')
 
 function xi = distributed_states(X,xi)
     nstart = 0;
@@ -194,33 +223,5 @@ function xi = distributed_states(X,xi)
         nstart = nstart+nx;
     end
 end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

@@ -10,6 +10,7 @@ classdef iterInfo
         rho            double {mustBeNumeric}   % local penalty parameter
         mu             double {mustBeNumeric}   % global penalty parameter
         computing_time double {mustBeNumeric}   % total computing time
+        et
         delta                                     
         local_steplength   double {mustBeNumeric}   % steplength of local NLP
         global_steplength  double {mustBeNumeric}   % steplength of global QP
@@ -18,7 +19,7 @@ classdef iterInfo
     end
     
     methods
-        function obj = iterInfo(iter_max,Nx,Nlam)
+        function obj = iterInfo(iter_max,Nx,Nlam,Nregion)
         %% constructor with maximal iteration and dimension of variables
             if nargin>1
                 obj.X   = zeros(Nx,iter_max);
@@ -36,7 +37,10 @@ classdef iterInfo
             obj.local_steplength  = zeros(iter_max,1);
             obj.global_steplength = zeros(iter_max,1);
             obj.primal_feasibility = zeros(iter_max,1);
-            obj.dual_feasibility  = zeros(iter_max,1);            
+            obj.dual_feasibility  = zeros(iter_max,1);
+            obj.et.local          = zeros(Nregion, iter_max);
+            obj.et.global         = zeros(iter_max,1);
+            obj.et.total          = zeros(iter_max,1);
         end
         
         function obj = post_loop_dataprocessing(obj)
@@ -49,6 +53,9 @@ classdef iterInfo
                 idx         = 1:obj.iter;
                 obj.mu      = obj.mu(idx);
                 obj.rho     = obj.rho(idx);
+                obj.delta   = obj.delta(idx);
+                obj.et.global = obj.et.global(idx);
+                obj.et.total = obj.et.total(idx);
                 obj.local_steplength    = obj.local_steplength(idx);
                 obj.global_steplength   = obj.global_steplength(idx);
                 obj.primal_feasibility  = obj.primal_feasibility(idx);
@@ -58,7 +65,9 @@ classdef iterInfo
                     obj.Y      = obj.Y(:,idx);
                     obj.Z      = obj.Z(:,idx);
                     obj.lam    = obj.lam(:,idx);
+                    obj.et.local = obj.et.local(:,idx);
                 end
+                obj.computing_time = sum(obj.et.total);
             end
         end
         
