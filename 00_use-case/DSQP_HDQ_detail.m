@@ -25,15 +25,15 @@ gsk            = 0;
 problem_type   = 'least-squares';
 algorithm      = 'aladin';
 solver         = 'fmincon';
-casefile       = "53-II";
-load xref_53.mat
+% casefile       = "53-II";
+% load xref_53.mat
 % casefile       = "118X3";
 % casefile       = "418-5";
 % casefile = '418-3';
 % load xref_418.mat
 % casefile = '118X8';
-% casefile = '118X10';
-% load xref_118_10.mat
+casefile = '118X10';
+load xref_118_10.mat
 
 % casefile = '2708-1';
 % casefile       = '120';
@@ -86,7 +86,7 @@ end
 option              = AladinOption;
 option.problem_type = problem_type;
 option.iter_max  = 5;
-option.tol       = 1e-8;
+option.tol       = 1e-6;
 option.mu0       = 1e2;
 option.rho0      = 1e2;
 option.nlp       = NLPoption;
@@ -171,7 +171,8 @@ norm_Q               = zeros(iter_max,1);
 norm_dp              = zeros(iter_max,1);
 norm_distance        = zeros(iter_max,1);
 % gauss newton test
-for k = 1:iter_max
+k                    = 1;
+while (k <= iter_max) 
 %     lam = lam0;
     for i = 1:Nregion
         tic
@@ -182,8 +183,8 @@ for k = 1:iter_max
             xi{i}   = xi{i} + pn{i};
         end
         [gk{i}, Jk{i}, Hk{i}] =   sens{i}(xi{i});
-        size(Jk{i})
-        rank(full(Jk{i}))
+%         size(Jk{i})
+%         rank(full(Jk{i}))
         HH    = sparse(casadi_model{i}(xi{i}));
         QQ(i)    = norm(HH-Hk{i},inf);
         Hk{i} = Hk{i}+ rho*speye(Nstate(i)); %+ rho*speye(Nstate(i));
@@ -255,6 +256,7 @@ end
     norm_Q(k)        = norm(QQ,inf);
     norm_dp(k)       = norm(dpx);
     rho              = max(1e-9, rho/100);
+    k                = k+1;
 end
 logg_hdsqp.et.computing_time = sum(logg_hdsqp.et.total);
 logg_hdsqp.et.computing_time
@@ -264,7 +266,6 @@ for i = 1:Nregion
     g{i}(x_idx{i}) = g{i}(x_idx{i})+lam{i};
     %             pn{i} = - (Bk{i}+rho*speye(Nstate(i)))\g{i};
     xi{i}   = xi{i} - Hk{i}\g{i};
-    df(k) = df(k) + problem.locFuns.ffi{i}(xi{i});
     df0   = problem.locFuns.ffi{i}(problem.zz0{i});
 end
 x_dsqp(:,k) = vertcat(xi{:});
@@ -284,6 +285,10 @@ dx_aladin = zeros(logg.iter,1);
 for i = 1:logg.iter
     t_aladin(i)  = sum(logg.et.total(1:i));
     dx_aladin(i) = norm(logg.X(:,i) - xx0,inf);
+    dfk          = 0
+    for i = 1:Nregion
+        df(k)      = df(k) + problem.locFuns.ffi{i}(xi{i});
+    end
 end
 t_aladin = [0;t_aladin];
 dx_aladin = [dx0;dx_aladin];

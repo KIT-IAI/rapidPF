@@ -96,7 +96,7 @@ classdef StartupALADIN
 %                     fval = fval+sensitivities(j).fval;
 %                 end
                 logg.et.local(j,k)=toc;
-%                logg.delta(k) = logg.delta(k)+obj.nlp(j).local_funs.fi(yi{j});
+               logg.delta(k) = logg.delta(k)+obj.nlp(j).local_funs.fi(yi{j});
             end
         end     
         
